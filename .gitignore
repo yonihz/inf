@@ -2,7 +2,7 @@
 !/**/
 !.gitignore
 !.myfuncs
-!*.C
+!*.c
 !*.h
 ![mM]akefile
 
