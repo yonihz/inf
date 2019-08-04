@@ -17,8 +17,8 @@ int main()
 	int i = 12;
 	unsigned int ui = 2;
 	printf("float 8/6=%f\n",f);
-	printf("unsigned int ui-i=%u\n",ui-i);
-	printf("unsigned int i*(ui-i)=%u\n",i*(ui-i));
+	printf("unsigned int ui-i=%d\n",ui-i);
+	printf("unsigned int i*(ui-i)=%d\n",i*(ui-i));
 	printf("double d/f=%f\n",d/f);
 	i = d / f + i * (ui - i);
 	printf("double d / f + i * (ui - i)=%f\n",d / f + i * (ui - i));
