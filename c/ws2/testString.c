@@ -11,10 +11,12 @@ int main()
 	char* str4="very";
 	char str5[100];
 	char str6[100];
+	char str7[]="This;is;a;very;long;string";
 	char c = 'w';
 	char *buffer1;
 	char *buffer2;	
 	int n = 2;
+	char *token;
 	
 	/* Strlen */
 	printf("str1 = %s\n",str1);
@@ -56,7 +58,16 @@ int main()
 	printf("Strstr str3 str4 %s\n\n",Strstr(str3,str4));
 	
 	/* Strspn */
-	printf("Strspn str3 str4 %d\n",(int)strspn(str3,str3));
+	printf("Strspn str3 str4 %d\n\n",(int)strspn(str3,str3));
+
+	/* Strtok */
+	printf("%s\n",str7);
+	token = strtok(str7,";");
+	while (token != NULL)
+	{
+		printf("%s\n",token);
+		token = strtok(NULL, ";");
+	}
 	
 	return (0);
 }

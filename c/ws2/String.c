@@ -146,12 +146,17 @@ size_t Strspn(const char *s, const char *accept)
 	return (i);
 }
 
-/*
+
 char *Strtok(char *str, const char *delim)
 {
-
+	if (*str != NULL)
+	{
+		static int counter = 0;
+		
+	
 }
-*/
+
+
 
 
 
