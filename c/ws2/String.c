@@ -14,7 +14,7 @@ int Strcmp(const char *s1, const char *s2)
 {
 	int i;
 	int d;
-	for (i=0; *(s1+i) != '\0' && *(s2+i) != '\0'; i++);
+	for (i=0; *(s1+i) != '\0' && *(s2+i) != '\0'; i++)
 	{
 		d = *(s1+i) - *(s2+i);
 		if (d != 0)
@@ -117,8 +117,45 @@ char *Strncat(char *dest, const char *src, size_t n)
 	return dest;
 }
 
+char *Strstr(const char *haystack, const char *needle)
+{
+	int i=0;
+	int j=0;
+	for (i=0; *(haystack+i) != '\0'; i++)
+	{
+		if (*(haystack+i) == *needle)
+		{
+			for (j=0; *(needle+j) != '\0' && *(needle+j) == *(haystack+i+j); j++);
+			if (*(needle+j) == '\0')
+			{
+				return (char *)(haystack+i);
+			}
+		}
+	}
+	return NULL;	
+}
 
+size_t Strspn(const char *s, const char *accept)
+{
+	int i=0;
+	int j=0;
+	for (i=0; *(s+i) != '\0'; i++)
+	{
+		if (*(s+i) == *accept)
+		{
+			for (j=0; *(accept+j) != '\0' && *(accept+j) == *(s+i+j); j++);
+			return j;
+		}
+	}
+	return 0;	
+}
 
+/*
+char *Strtok(char *str, const char *delim)
+{
+	
+}
+*/
 
 
 

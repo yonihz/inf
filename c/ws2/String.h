@@ -13,6 +13,9 @@ char *Strchr(const char *str, int c);
 char *Strdup(const char *s);
 char *Strcat(char *dest, const char *src);
 char *Strncat(char *dest, const char *src, size_t n);
+char *Strstr(const char *haystack, const char *needle);
+size_t Strspn(const char *s, const char *accept);
+char *Strtok(char *str, const char *delim);
 
 #endif
 
