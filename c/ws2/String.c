@@ -1,4 +1,5 @@
 #include <ctype.h>	/* for tolower() */
+#include <stdio.h>	/* for printf() */
 #include <stdlib.h>	/* for malloc() */
 #include "String.h"	/* for string functions implementation */
 
@@ -154,49 +155,34 @@ char *Strtok(char *str, const char *delim)
 	char* tok_org;
 	int i = 0;
 	
+	printf("%p\n",tok);
 	tok_org = tok;
 	
 	if (str != NULL)
 	{
 		buffer_str = str;
-		while (*buffer_str != '\0')
-		{
-			while (*(delim+i) != '\0')
-			{
-				if (*buffer_str == *(delim+i))
-				{
-					*tok = '\0';
-					return tok_org;
-				}	
-				i++;
-			}
-			
-			*tok = *buffer_str;
-
-			buffer_str++;
-			tok++;
-		}
-
-		*tok = '\0';
-		return (tok_org);
 	}
-	
-	buffer_str++;
+	else
+	{
+		buffer_str++;
+	}
 
 	while (*buffer_str != '\0')
 	{
-		
-		while (*delim != '\0')
+		while (*(delim+i) != '\0')
 		{
-			if (*buffer_str == * delim)
+			if (*buffer_str == *(delim+i))
 			{
 				*tok = '\0';
 				return (tok_org);
-			}	
-			delim++;
+			}
+
+			i++;
 		}
 		
 		*tok = *buffer_str;
+
+		printf("%s\n",tok);
 
 		buffer_str++;
 		tok++;
