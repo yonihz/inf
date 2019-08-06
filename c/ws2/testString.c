@@ -61,6 +61,7 @@ int main()
 	printf("Strspn str3 str4 %d\n\n",(int)strspn(str3,str3));
 
 	/* Strtok */
+	/*
 	printf("%s\n",str7);
 	token = Strtok(str7,";");
 	while (token != NULL)
@@ -68,6 +69,7 @@ int main()
 		printf("%s\n",token);
 		token = Strtok(NULL, ";");
 	}
-	
+	*/
+
 	return (0);
 }

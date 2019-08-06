@@ -147,16 +147,12 @@ size_t Strspn(const char *s, const char *accept)
 	return (i);
 }
 
-
+/*
 char *Strtok(char *str, const char *delim)
 {
 	static char* buffer_str;
 	char* tok;
-	char* tok_org;
 	int i = 0;
-	
-	printf("%p\n",tok);
-	tok_org = tok;
 	
 	if (str != NULL)
 	{
@@ -167,8 +163,12 @@ char *Strtok(char *str, const char *delim)
 		buffer_str++;
 	}
 
+	tok = buffer_str;
+
 	while (*buffer_str != '\0')
 	{
+		i = 0;
+
 		while (*(delim+i) != '\0')
 		{
 			if (*buffer_str == *(delim+i))
@@ -179,21 +179,18 @@ char *Strtok(char *str, const char *delim)
 
 			i++;
 		}
-		
+
+		printf("!!!! %s\n", buffer_str);
+
 		*tok = *buffer_str;
-
-		printf("%s\n",tok);
-
+		
 		buffer_str++;
+		
 		tok++;
+		
 	}
 
 	*tok = '\0';
 	return tok_org;		
 }
-
-
-
-
-
-
+*/	
