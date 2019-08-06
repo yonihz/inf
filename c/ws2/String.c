@@ -135,7 +135,7 @@ size_t Strspn(const char *s, const char *accept)
 
 	for (i = 0; *(s + i) != '\0'; i++)
 	{
-		for (j = 0; *(s + i) != *(accept + j); j++) 	
+		for (j = 0; *(s + i) != *(accept + j); j++) /* check each char on s if equal to any char on accept */
 		{		
 			if (*(accept + j) == '\0')
 			{
@@ -149,11 +149,61 @@ size_t Strspn(const char *s, const char *accept)
 
 char *Strtok(char *str, const char *delim)
 {
-	if (*str != NULL)
-	{
-		static int counter = 0;
-		
+	static char* buffer_str;
+	char* tok;
+	char* tok_org;
+	int i = 0;
 	
+	tok_org = tok;
+	
+	if (str != NULL)
+	{
+		buffer_str = str;
+		while (*buffer_str != '\0')
+		{
+			while (*(delim+i) != '\0')
+			{
+				if (*buffer_str == *(delim+i))
+				{
+					*tok = '\0';
+					return tok_org;
+				}	
+				i++;
+			}
+			
+			*tok = *buffer_str;
+
+			buffer_str++;
+			tok++;
+		}
+
+		*tok = '\0';
+		return (tok_org);
+	}
+	
+	buffer_str++;
+
+	while (*buffer_str != '\0')
+	{
+		
+		while (*delim != '\0')
+		{
+			if (*buffer_str == * delim)
+			{
+				*tok = '\0';
+				return (tok_org);
+			}	
+			delim++;
+		}
+		
+		*tok = *buffer_str;
+
+		buffer_str++;
+		tok++;
+	}
+
+	*tok = '\0';
+	return tok_org;		
 }
 
 

@@ -62,11 +62,11 @@ int main()
 
 	/* Strtok */
 	printf("%s\n",str7);
-	token = strtok(str7,";");
+	token = Strtok(str7,";");
 	while (token != NULL)
 	{
 		printf("%s\n",token);
-		token = strtok(NULL, ";");
+		token = Strtok(NULL, ";");
 	}
 	
 	return (0);
