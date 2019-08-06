@@ -10,7 +10,9 @@ int main()
 	int* ptr2 = &b;
 	
 	printf("Before swap: %d %d\n",*ptr1,*ptr2);
-	SwapPtr(&ptr1,&ptr2);
+
+	SwapPtr(&ptr1,&ptr2); /* pass addresses of pointers to function */
+
 	printf("After swap: %d %d\n",*ptr1,*ptr2);
 
 	return (0);

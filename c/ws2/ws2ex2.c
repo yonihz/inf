@@ -21,7 +21,7 @@ int isPalindrome(const char *str)
 
 	while (i < len/2)
 	{
-		if (*(str + i) != *(str + len - i - 1))
+		if (*(str + i) != *(str + len - i - 1)) /* check pairs of symmetric chars if equal */
 		{
 			return (0);
 		}

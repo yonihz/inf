@@ -41,9 +41,6 @@ size_t Strspn(const char *s, const char *accept);
 /* Strtok - extract tokens from strings */
 char *Strtok(char *str, const char *delim);
 
-/* isPalindrome - checks if a string is a palindrome */
-int isPalindrome(const char *str);
-
 #endif
 
 
