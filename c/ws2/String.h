@@ -1,6 +1,7 @@
-#include <stddef.h>
 #ifndef __STRING_H__
 #define __STRING_H__
+
+#include <stddef.h>
 
 /* Strlen - calculate the length of a string */
 size_t Strlen(const char *str);

@@ -1,6 +1,7 @@
 #include <ctype.h>	/* for tolower() */
 #include <stdio.h>	/* for printf() */
 #include <stdlib.h>	/* for malloc() */
+#include <string.h>	/* for strspn() strcspn() */
 #include "String.h"	/* for string functions implementation */
 
 size_t Strlen(const char *s)
@@ -68,9 +69,9 @@ int Strcasecmp(const char *s1, const char *s2)
 	return (tolower(*s1) - tolower(*s2)); /* return char diff (both lower case) if one or both strings ended */
 }
 
-char *Strchr(const char *str, int c)
+char *Strchr(const char* str, int c)
 {
-	for ( ; *str != '\0'; str++)
+	for (; *str != '\0'; str++)
 	{
 		if (*str == c)
 		{
@@ -147,50 +148,54 @@ size_t Strspn(const char *s, const char *accept)
 	return (i);
 }
 
-/*
 char *Strtok(char *str, const char *delim)
 {
-	static char* buffer_str;
-	char* tok;
-	int i = 0;
+	static char* ptr = NULL;
+	char* tok = NULL;	
+	int n = 0, m = 0;
+
 	
 	if (str != NULL)
 	{
-		buffer_str = str;
+		ptr = str;
+		n = strspn(ptr, delim);
+		ptr = ptr + n;
+		
+		if (*ptr == '\0')
+		{
+			return (NULL);
+		}
+		
+		tok = ptr;
+
+		m = strcspn(ptr, delim);
+		ptr = ptr + m;
+
+		n = strspn(ptr, delim);
+		ptr = ptr + n;
+
+		*(ptr-n) = '\0';
+		
+		return (tok);
 	}
 	else
 	{
-		buffer_str++;
-	}
-
-	tok = buffer_str;
-
-	while (*buffer_str != '\0')
-	{
-		i = 0;
-
-		while (*(delim+i) != '\0')
+		if (*ptr == '\0')
 		{
-			if (*buffer_str == *(delim+i))
-			{
-				*tok = '\0';
-				return (tok_org);
-			}
-
-			i++;
+			return (NULL);
 		}
 
-		printf("!!!! %s\n", buffer_str);
+		tok = ptr;		
+	
+		m = strcspn(ptr, delim);
+		ptr = ptr + m;
 
-		*tok = *buffer_str;
-		
-		buffer_str++;
-		
-		tok++;
-		
+		n = strspn(ptr, delim);
+		ptr = ptr + n;
+
+		*(ptr-n) = '\0';
+
+		return (tok);
 	}
-
-	*tok = '\0';
-	return tok_org;		
 }
-*/	
+	

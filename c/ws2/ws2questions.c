@@ -7,7 +7,7 @@ int main()
 	float f = 3;
 	float *fp = &f;
 	ip = (unsigned int*) fp;
-	printf("%u\n", *ip);
+	printf("%f\n", (float)*ip);
 	
 /*
 	int* p = (int*)17;
