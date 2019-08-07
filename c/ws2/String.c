@@ -83,11 +83,11 @@ char *Strchr(const char *str, int c)
 
 char *Strdup(const char *s)
 {
-	char *buffer;
+	char *buffer = NULL;
 
-	buffer = (char *)malloc(sizeof(s)); /* allocate memory to new string */
+	buffer = (char *)malloc(Strlen(s)+1); /* allocate memory to new string */
 	
-	if (buffer == NULL) /* return null if malloc failed */
+	if (NULL == buffer) /* return null if malloc failed */
 	{
 		return (NULL);
 	}
