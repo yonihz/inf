@@ -28,7 +28,7 @@ char* AddIntStr(const char* s1, const char* s2)
 
 	printf("%s + %s\n",s1, s2); /* print for tests */
 
-	len3 = len1 + 1; /* New string could be longer by 1 than the the longest between the two */
+	len3 = len1 + 1; /* new string could be longer by 1 than the longest between the two */
 
 	if (len2 > len1)
 	{
