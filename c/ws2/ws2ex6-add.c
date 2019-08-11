@@ -2,20 +2,20 @@
 #include <stdlib.h> /* for malloc() */
 #include "String.h" /* for Strlen() */
 
-char* AddIntStr(const char* s1, const char* s2);
+char* AddLargeNums(const char* s1, const char* s2);
 
 int main()
 {
 	/* test */
-	printf("%s\n\n",AddIntStr("111","222"));
-	printf("%s\n\n",AddIntStr("11","2222"));
-	printf("%s\n\n",AddIntStr("2222","11"));
-	printf("%s\n\n",AddIntStr("999","1"));
-	printf("%s\n\n",AddIntStr("9999","1111"));
+	printf("%s\n\n",AddLargeNums("111","222"));
+	printf("%s\n\n",AddLargeNums("11","2222"));
+	printf("%s\n\n",AddLargeNums("2222","11"));
+	printf("%s\n\n",AddLargeNums("999","1"));
+	printf("%s\n\n",AddLargeNums("9999","1111"));
 	return (0);
 }
 
-char* AddIntStr(const char* s1, const char* s2)
+char* AddLargeNums(const char* s1, const char* s2)
 {
 		
 	size_t len1 = Strlen(s1);
