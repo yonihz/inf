@@ -6,7 +6,7 @@ alias gd9='gcc -std=c99 -pedantic-errors -Wall -Wextra -g'
 alias gc9='gcc -std=c99 -pedantic-errors -Wall -Wextra -DNDEBUG -O3'
 #
 # Valgrind alias
-alias vlg='valgrind --leak-check=yes -track-origins=yes'
+alias vlg='valgrind --leak-check=yes --track-origins=yes'
 #
 # git clones aliases
 alias gitclab='git clone http://git.ilrd/ilrd/ramat-gan/OL74/yoni-horovitz.git'

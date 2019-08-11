@@ -14,6 +14,8 @@ size_t Strlen(const char *s)
 	return (i);
 }
 
+/* ******************** */
+
 int Strcmp(const char *s1, const char *s2)
 {	
 	for ( ; *s1 != '\0' && *s2 != '\0'; s1++, s2++)
@@ -26,6 +28,8 @@ int Strcmp(const char *s1, const char *s2)
 
 	return (*s1 - *s2); /* return char diff if one or both strings ended */
 }
+
+/* ******************** */
 
 char *Strcpy(char *dest, const char *src)
 {	
@@ -40,6 +44,8 @@ char *Strcpy(char *dest, const char *src)
 
 	return (org);
 }
+
+/* ******************** */
 
 char *Strncpy(char *dest, const char *src, size_t n)
 {	
@@ -56,6 +62,8 @@ char *Strncpy(char *dest, const char *src, size_t n)
 	return (org);
 }
 
+/* ******************** */
+
 int Strcasecmp(const char *s1, const char *s2)
 {	
 	for ( ; *s1 != '\0' && *s2 != '\0'; s1++, s2++)
@@ -69,6 +77,8 @@ int Strcasecmp(const char *s1, const char *s2)
 	return (tolower(*s1) - tolower(*s2)); /* return char diff (both lower case) if one or both strings ended */
 }
 
+/* ******************** */
+
 char *Strchr(const char* str, int c)
 {
 	for (; *str != '\0'; str++)
@@ -81,6 +91,8 @@ char *Strchr(const char* str, int c)
 
 	return (0);
 } 
+
+/* ******************** */
 
 char *Strdup(const char *s)
 {
@@ -96,6 +108,8 @@ char *Strdup(const char *s)
 	return (Strcpy(buffer,s));
 }
 
+/* ******************** */
+
 char *Strcat(char *dest, const char *src)
 {
 	Strcpy((dest+Strlen(dest)), src); /* append src to dest end */
@@ -103,12 +117,16 @@ char *Strcat(char *dest, const char *src)
 	return (dest);
 }
 
+/* ******************** */
+
 char *Strncat(char *dest, const char *src, size_t n)
 {
 	Strncpy((dest+Strlen(dest)), src, n); /* append n bytes of src to dest end */
 
 	return (dest);
 }
+
+/* ******************** */
 
 char *Strstr(const char *haystack, const char *needle)
 {
@@ -131,6 +149,8 @@ char *Strstr(const char *haystack, const char *needle)
 	return (NULL);	
 }
 
+/* ******************** */
+
 size_t Strspn(const char *s, const char *accept)
 {
 	size_t i = 0, j = 0;
@@ -147,6 +167,8 @@ size_t Strspn(const char *s, const char *accept)
 	}
 	return (i);
 }
+
+/* ******************** */
 
 char *Strtok(char *str, const char *delim)
 {

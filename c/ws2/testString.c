@@ -14,10 +14,11 @@ int main()
 	char str7[]="This;is;;a;very;long;;;string";
 	char c = 'w';
 	char *buffer1;
-	char *buffer2;	
+	char *buffer2;
+	char *buffer3;	
 	int n = 2;
 	char *token;
-	
+
 	/* Strlen */
 	printf("str1 = %s\n",str1);
 	printf("Strlen str1 = %lu\n\n",Strlen(str1));
@@ -42,17 +43,21 @@ int main()
 	printf("Strchr %c in %s = %s\n\n",c,str1,Strchr(str1,c));
 	
 	/* Strdup */
-	printf("Strdup str1 = %s\nbuffer = %s\n\n",str1,Strdup(str1));
+	buffer3 = Strdup(str1);	
+	printf("Strdup str1 = %s\nbuffer = %s\n\n",str1,buffer3);
+	free(buffer3);
 	
 	/* Strcat */
 	buffer1 = malloc(Strlen(str1)+Strlen(str2)+1);
 	Strcpy(buffer1,str1);
 	printf("Strcat str1 str2 %s\n\n",Strcat(buffer1,str2));
+	free(buffer1);
 
 	/* Strncat */
 	buffer2 = malloc(Strlen(str1)+n+1);
 	Strcpy(buffer2,str1);
 	printf("Strncat str1 str2 %s\n\n",Strncat(buffer2,str2,n));
+	free(buffer2);
 	
 	/* Strstr */
 	printf("Strstr str3 str4 %s\n\n",Strstr(str3,str4));
