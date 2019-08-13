@@ -1,10 +1,26 @@
 int main()
 {
-	int* ptr;
+	int a;
 
+	switch (a)
+	{
+		case 10:
 
+			break;
+		case 11:
 
-	ptr[10] = 3;
+			break;
+		case 12:
+
+			break;
+		case 13:
+
+			break;
+		case 14:
+
+			break;
+
+	}
 
 	return 0;
 }
