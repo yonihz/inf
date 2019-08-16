@@ -24,7 +24,7 @@ unsigned int ClosestDiv16(unsigned int n);
 void Swap(unsigned int* n1, unsigned int* n2);
 int CountSetBitsLoop(unsigned int n);
 int CountSetBitsLUT(unsigned int n);
-void PrintBitsFloat(unsigned int* ptr);
+void PrintBitsFloat(float f);
 
 int main()
 {
@@ -35,8 +35,7 @@ int main()
 	unsigned char c = 33;
 	unsigned int arr[20];
 	size_t size_arr = 0;
-	float f = 1.2;
-	int* ptr = 0;
+	float f = -1.2;
 
 	size_arr = sizeof(arr)/sizeof(arr[0]);
 
@@ -85,8 +84,7 @@ int main()
 	printf("CountSetBitsLUT(%u) = %d\n", n, CountSetBitsLUT(n));
 
 	/* ex13 test: prints bits of float */
-	ptr = &f;
-	PrintBitsFloat(ptr);
+	PrintBitsFloat(f);
 
 	return (0);
 }
@@ -338,20 +336,38 @@ int CountSetBitsLUT(unsigned int n)
 
 /* ex13 function: print bits of float */
 
-void PrintBitsFloat(unsigned int* ptr)
+void PrintBitsFloat(float f)
 {
-	int bit = 0;
+	unsigned int* ptr = 0;
 	unsigned int m = 1;
-	
-	while (m <= *ptr)
+	int bit = 0;
+	int i = 0;
+	int a[32];
+
+	ptr = (unsigned int*)&f;
+
+	while (m <= 1 << 30)
 	{
 		bit = 0;
 
-		if (m & *ptr)
+		if (*ptr & m)
 		{
 			bit = 1;
 		}
-		
-		printf("%d \n", bit);
+
+		a[i] = bit;
+		i++;
+
+		m = m << 1;
 	}
+		
+	bit = (f < 0) ? 1 : 0;
+	a[i] = bit;
+
+	for (i = 0; i < 32; i++)
+	{
+		printf("%d ",a[31-i]);
+	}
+
+	printf("\n");
 }
