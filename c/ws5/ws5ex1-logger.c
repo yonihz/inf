@@ -55,7 +55,7 @@ int main(int argc, char** argv)
 
 	/* check if user entered a filename */
 
-	if (argc != 2)
+	if (2 != argc)
 	{
 		printf("Error: filename missing. Exiting program\n");
 		return (0);
@@ -83,8 +83,7 @@ int main(int argc, char** argv)
 
 		if (status == FAIL)
 		{
-			printf("Error. Exiting program\n");
-			return (0);
+			printf("Operation failed, try again.\n");
 		}
 	}
 
@@ -102,13 +101,13 @@ enum op_status CountLines(char* filename, char* input_str)
 
 	file_ptr = fopen(filename,"r");
 	
-	if (file_ptr == NULL)
+	if (NULL == file_ptr)
 	{
 		printf("Error: no file\n");
-		return(PASS);
+		return(FAIL);
 	}
 
-	rewind(file_ptr);
+	rewind(file_ptr); /* rewind file and check for newline chars in file */
 
 	c = getc(file_ptr);
 
@@ -136,18 +135,25 @@ enum op_status PrependStr(char* filename, char* input_str)
 
 	printf("OPERATION: Prepend\n");
 
-	file_ptr = fopen(filename,"r");
+	file_ptr = fopen(filename,"r"); /* check if file exists */
 
-	if (file_ptr != NULL)
+	if (NULL != file_ptr)
 	{
 		file_exists = 0;
 		fclose(file_ptr);
 	}
 
-	if (file_exists != 0)
+	if (file_exists != 0) /* if file exists, append text and return */
 	{
 		file_ptr = fopen(filename,"a");
-		input_str += 1;
+
+		if (NULL == file_ptr)
+		{
+			printf("Error: file open failed\n");
+			return(FAIL);
+		}
+	
+		input_str += 1; /* increment string to exclude < char */
 		fputs(input_str,file_ptr);
 		fputs("\n",file_ptr);
 		fclose(file_ptr);
@@ -157,13 +163,19 @@ enum op_status PrependStr(char* filename, char* input_str)
 
 	file_ptr = fopen(filename,"r");
 
-	file_ptr_temp = fopen("temp","w");
+	file_ptr_temp = fopen("temp","w"); /* create a temp file for prepend */
+
+	if (NULL == file_ptr || NULL == file_ptr_temp)
+	{
+		printf("Error: file open failed\n");
+		return(FAIL);
+	}
 
 	input_str += 1;
-	fputs(input_str, file_ptr_temp);
+	fputs(input_str, file_ptr_temp); /* append the input text to empty temp file */
 	fputs("\n", file_ptr_temp);
 
-	rewind(file_ptr);
+	rewind(file_ptr); /* rewind original file and copy char by char to temp file */
 
 	c = fgetc(file_ptr);
 
@@ -179,7 +191,7 @@ enum op_status PrependStr(char* filename, char* input_str)
 
 	fclose(file_ptr);
 
-	remove(filename);
+	remove(filename); /* remove original file, then rename temp to original file */
 	
 	rename("temp", filename);
 
@@ -194,9 +206,9 @@ enum op_status AppendStr(char* filename, char* input_str)
 
 	file_ptr = fopen(filename,"a");
 	
-	if (file_ptr == NULL)
+	if (NULL == file_ptr)
 	{
-		printf("Error in file open\n");
+		printf("Error: file open failed\n");
 		return(FAIL);
 	}
 
@@ -220,15 +232,13 @@ enum op_status RemoveFile(char* filename, char* input_str)
 
 	file_ptr = fopen(filename,"r");
 	
-	if (file_ptr == NULL)
+	if (NULL == file_ptr)
 	{
 		printf("Error: no file\n");
-		return(PASS);
+		return(FAIL);
 	}
 
-	/* remove function returns 0 if successful */
-
-	status = remove(filename);
+	status = remove(filename); /* remove() function returns 0 if successful */
 
 	return (status);
 }
@@ -252,14 +262,14 @@ int CmpAllChars(const char* dest, const char* src)
 	return (strcmp(dest, src));
 }
 
-/* Compare string to N chars using strncmp function */
+/* Compare string to 1 char using strncmp function */
 
 int Cmp1Char(const char* dest, const char* src)
 {
 	return (strncmp(dest, src, 1));
 }
 
-/* Null compare function */
+/* Null compare function - always return 0 */
 
 int CmpNull(const char* dest, const char* src)
 {
