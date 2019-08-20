@@ -1,6 +1,7 @@
 #include <stdio.h> /* for printf() */
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for strlen() */
+
 #include "poly.h"
 
 void PolySetValue(data_t* arr_elem, data_type_t input_data_type, void* input_data)
@@ -35,7 +36,7 @@ void PolySetValue(data_t* arr_elem, data_type_t input_data_type, void* input_dat
 		}
 		case TYPE_UNDEFINED:
 		{
-			printf("Undefined object\n");
+			printf("Object not defined yet\n");
 			break;
 		}
 		default:
@@ -52,12 +53,12 @@ void PolyAdd(data_t* arr_elem, int num)
 	{
 		case TYPE_INT:
 		{
-			(*arr_elem).value.n += 10;
+			(*arr_elem).value.n += num;
 			break;
 		}
 		case TYPE_FLT:
 		{
-			(*arr_elem).value.f += 10;
+			(*arr_elem).value.f += num;
 			break;
 		}
 		case TYPE_STR:
@@ -130,7 +131,7 @@ void PolyPrintSingle(data_t* arr_elem)
 		}
 		case TYPE_UNDEFINED:
 		{
-			printf("Undefined object\n");
+			printf("Object not defined yet\n");
 			break;
 		}
 		default:
@@ -157,6 +158,8 @@ void PolyCleanSingle(data_t* arr_elem)
 	{
 		free((*arr_elem).value.str);
 	}
+
+	(*arr_elem).dt = TYPE_UNDEFINED;
 }
 
 void PolyCleanAll(data_t* arr, size_t size)
@@ -190,7 +193,7 @@ data_type_t PolyGetType(data_t* arr_elem)
 		}
 		case TYPE_UNDEFINED:
 		{
-			printf("Undefined object\n");
+			printf("Object not defined yet\n");
 			break;
 		}
 		default:

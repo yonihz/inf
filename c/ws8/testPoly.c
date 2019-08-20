@@ -73,14 +73,19 @@ int main()
 	PolyAdd(&my_arr[1], 10);
 	PolyPrintSingle(&my_arr[1]);
 
-	/* test7: print all, gettype, clean all */
+	/* test7: gettype*/
 
-	printf("\n\ntest7: printall\n");
-	PolyPrintAll(my_arr, ARR_SIZE);
-	printf("\n\nGetType test\n");
+	printf("\n\ntest7: GetType\n");
 	type1 = PolyGetType(&my_arr[3]);
 	printf("Type is %d\n",type1);
+
+	/* test8: print all, clean all, print all */
+	printf("\n\ntest8: printall\n");
+	PolyPrintAll(my_arr, ARR_SIZE);
+
+	printf("\n\ntest8: printall after cleanall\n");
 	PolyCleanAll(my_arr, ARR_SIZE);
+	PolyPrintAll(my_arr, ARR_SIZE);
 
 	free(my_arr);
 
