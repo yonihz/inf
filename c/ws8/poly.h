@@ -9,20 +9,18 @@
 
 /* enum definition */
 
-enum data_type { TYPE_UNDEFINED, TYPE_INT, TYPE_FLT, TYPE_STR };
-
-typedef enum data_type data_type_t;
+typedef enum { TYPE_UNDEFINED, TYPE_INT, TYPE_FLT, TYPE_STR } data_type_t;
 
 /* struct definition */
 
-typedef union value_union
+typedef union
 {
 	int n;
 	float f;
 	char* str;
 } value_t;
 
-typedef struct data_struct
+typedef struct
 {
 	data_type_t dt;
 	value_t value;

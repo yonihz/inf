@@ -1,12 +1,12 @@
-#include <stdio.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
+#include <stdio.h> /* for printf() */
+#include <stdlib.h> /* for malloc() */
+#include <string.h> /* for strlen() */
 #include "poly.h"
 
 void PolySetValue(data_t* arr_elem, data_type_t input_data_type, void* input_data)
 {
+	PolyCleanSingle(arr_elem);
+
 	(*arr_elem).dt = input_data_type;
 
 	switch (input_data_type)
@@ -24,6 +24,12 @@ void PolySetValue(data_t* arr_elem, data_type_t input_data_type, void* input_dat
 		case TYPE_STR:
 		{
 			(*arr_elem).value.str = malloc(strlen((char*)input_data) + 1);
+			if (NULL == (*arr_elem).value.str)
+			{
+				printf("Error - malloc failed\n");
+				exit(1);
+			}
+
 			strcpy((*arr_elem).value.str, (char*)input_data);
 			break;
 		}
@@ -70,9 +76,21 @@ void PolyAdd(data_t* arr_elem, int num)
 
 			str_num = malloc(len_num + 1);
 
+			if (NULL == str_num)
+			{
+				printf("Error - malloc failed\n");
+				exit(1);
+			}
+
 			sprintf(str_num, "%d", num);
 
-			temp_ptr = realloc((*arr_elem).value.str, len_num + len_curr + 1);		
+			temp_ptr = realloc((*arr_elem).value.str, len_num + len_curr + 1);
+			if (NULL == temp_ptr)
+			{
+				printf("Error - malloc failed\n");
+				exit(1);
+			}
+	
 			(*arr_elem).value.str = temp_ptr;
 			strcpy((*arr_elem).value.str + len_curr, str_num);
 			free(str_num);
