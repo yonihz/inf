@@ -6,8 +6,9 @@
 
 void *Memset(void *s, int c, size_t n)
 {
-	char* char_ptr = (char*)s;
-	size_t* word_ptr = (size_t*)s;
+	char* org = (char*)s;
+	char* char_ptr = 0;
+	size_t* word_ptr = 0;
 	size_t offset_tail = 0;
 	size_t offset_head = 0;
 	size_t word_c = 0;
@@ -19,38 +20,44 @@ void *Memset(void *s, int c, size_t n)
 	chunks = (n - offset_tail) / word_size;
 	offset_head = n - offset_tail - chunks * word_size;
 
-	/* duplicate c to word size length */
+	printf("chunks: %lu, tail: %lu, head: %lu\n", chunks, offset_tail, offset_head); 
+
 	for (i = 0; i < word_size; i++)
 	{
-		word_c += (0xff & (size_t)c) << (i * word_size);
+		word_c += (0xff & (size_t)c) << (i * 8);
 	}
 
-	/* insert tail bits before alignment boundary */
-	for (i = 0; i < offset_tail && n > 0; i++)
+	char_ptr = (char*)s;
+
+	for (i = 0; i < (offset_tail + 1) && n > 0; i++)
 	{
-		*(char_ptr + i) = c;
+		printf("tail\n");
+		*char_ptr = c;
+		char_ptr = char_ptr + i;
 		n--;
 	}
-
-	/* insert word sized chunks */
-	word_ptr = (size_t*)(char_ptr+i);
+	
+	word_ptr = (size_t*)char_ptr;
 
 	for (i = 0; i < chunks && n > 0; i++)
 	{
-		*(word_ptr+i) = word_c;
-		n -= word_size;
+		printf("chunk\n");
+		*word_ptr = word_c;
+		word_ptr = word_ptr + i;
+		n = n - word_size;
 	}
 
-	/* insert head bits left after last alignment boundary */
-	char_ptr = (char*)(word_ptr+i);
+	char_ptr = (char*)word_ptr;
 
 	for (i = 0; i < offset_head && n > 0; i++)
 	{
-		*(char_ptr+i) = c;
+		printf("head\n");
+		*char_ptr = c;
+		char_ptr = char_ptr + i;
 		n--;
 	}
 
-	return (s);
+	return org;
 }
 
 /*
