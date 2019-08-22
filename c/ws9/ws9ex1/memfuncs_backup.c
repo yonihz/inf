@@ -64,6 +64,7 @@ void *Memcpy(void *dest, const void *src, size_t n)
 	size_t* word_ptr_dest = (size_t*)dest;
 	size_t tail_src = 0;
 	size_t tail_dest = 0;
+	size_t tail_diff = 0;
 	size_t head_src = 0;
 	size_t chunks = 0;
 	size_t buffer = 0;
@@ -71,8 +72,12 @@ void *Memcpy(void *dest, const void *src, size_t n)
 
 	tail_src = (word_size - ((size_t)(src) % word_size)) % word_size;
 	tail_dest = (word_size - ((size_t)(dest) % word_size)) % word_size;
-	chunks = (n - tail_dest) / word_size;
-	head_src = n - tail_dest - chunks * word_size;
+	tail_diff = tail_dest <= tail_src ? tail_src - tail_dest : tail_dest;
+	chunks = (n - tail_diff) / word_size;
+	head_src = n - tail_diff - chunks * word_size;
+
+	printf("n = %lu\n", n);
+	printf("tail_src: %lu tail_dest: %lu tail_diff: %lu chunks: %lu head_src: %lu\n",tail_src,tail_dest,tail_diff,chunks,head_src);
 	
 	for (i = 0; i < tail_dest && n > 0; i++)
 	{
@@ -81,29 +86,20 @@ void *Memcpy(void *dest, const void *src, size_t n)
 		n--;
 	}
 
-	if (tail_src >= tail_dest)
-	{
-		buff1_ptr_src = (size_t*)(char_ptr_src - (word_size - tail_src));
-		buff2_ptr_src = (size_t*)(char_ptr_src + tail_src);
-	}
-	else
-	{
-		buff1_ptr_src = (size_t*)(char_ptr_src + tail_src);
-		buff2_ptr_src = (size_t*)(char_ptr_src + tail_src + word_size);
-	}
-
+	buff1_ptr_src = (size_t*)(char_ptr_src - (word_size - tail_src));
+	buff2_ptr_src = (size_t*)(char_ptr_src + tail_src);
 	word_ptr_dest = (size_t*)(char_ptr_dest + tail_dest);
 
 	for (i = 0; i < chunks && n > 0; i++)
 	{
 		printf("chuck\n");
-		buffer = (*(buff1_ptr_src + i) << (word_size - (tail_dest-tail_src))*8) | 
-				 (*(buff2_ptr_src + i) >> (tail_dest-tail_src)*8);
+		buffer = (*(buff1_ptr_src + i) << (word_size - tail_diff)*8) | 
+				 (*(buff2_ptr_src + i) >> (tail_diff)*8);
 		*(word_ptr_dest + i) = buffer;
 		n -= word_size;
 	}
 
-	char_ptr_src = (char*)(buff1_ptr_src + i) + (word_size - (tail_dest-tail_src));
+	char_ptr_src = (char*)(buff1_ptr_src + i) + (word_size - tail_diff);
 	char_ptr_dest = (char*)(word_ptr_dest + i);
 
 	for (i = 0; i < head_src && n > 0; i++)
