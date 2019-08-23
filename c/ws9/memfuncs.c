@@ -73,10 +73,11 @@ void *Memcpy(void *dest, const void *src, size_t n)
 	tail_dest = (word_size - ((size_t)(dest) % word_size)) % word_size;
 	chunks = (n - tail_dest) / word_size;
 	head_src = n - tail_dest - chunks * word_size;
+
+	printf("\ntail_src: %lu | tail_dest: %lu | chunks: %lu | head_src: %lu\n\n", tail_src, tail_dest, chunks, head_src);
 	
 	for (i = 0; i < tail_dest && n > 0; i++)
 	{
-		printf("tail\n");
 		*(char_ptr_dest + i) = *(char_ptr_src + i);
 		n--;
 	}
@@ -96,19 +97,26 @@ void *Memcpy(void *dest, const void *src, size_t n)
 
 	for (i = 0; i < chunks && n > 0; i++)
 	{
-		printf("chuck\n");
-		buffer = (*(buff1_ptr_src + i) << (word_size - (tail_dest-tail_src))*8) | 
-				 (*(buff2_ptr_src + i) >> (tail_dest-tail_src)*8);
+		if (tail_src >= tail_dest)
+		{
+			buffer = (*(buff1_ptr_src + i) << (word_size - (tail_src - tail_dest))*8) | 
+					 (*(buff2_ptr_src + i) >> (tail_src - tail_dest)*8);
+		}
+		else
+		{
+			buffer = (*(buff1_ptr_src + i) << (tail_dest-tail_src)*8) | 
+					 (*(buff2_ptr_src + i) >> (word_size - (tail_dest-tail_src))*8);
+		}
+
 		*(word_ptr_dest + i) = buffer;
 		n -= word_size;
 	}
 
-	char_ptr_src = (char*)(buff1_ptr_src + i) + (word_size - (tail_dest-tail_src));
+	char_ptr_src = (char*)(char_ptr_src + n - head_src);
 	char_ptr_dest = (char*)(word_ptr_dest + i);
 
 	for (i = 0; i < head_src && n > 0; i++)
 	{
-		printf("head\n");
 		*(char_ptr_dest+i) = *(char_ptr_src+i);
 		n--;
 	}
