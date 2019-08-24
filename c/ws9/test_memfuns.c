@@ -17,10 +17,10 @@ int main()
 
 	for (i = 0; i < ARR_SIZE; i++)
 	{
-		arr1[i] = 1;
-		arr2[i] = 0;
-		arr1m[i] = 1;
-		arr2m[i] = 0;
+		arr1[i] = i;
+		arr2[i] = i;
+		arr1m[i] = i;
+		arr2m[i] = i;
 	}
 
 	/* test - memset */
@@ -35,7 +35,7 @@ int main()
 	*/
 
 	/* test - memcpy */
-	
+	/*
 	Memcpy(arr2+2,arr1+5, n * sizeof(char));
 	memcpy(arr2m+2,arr1m+5, n * sizeof(char));
 
@@ -43,6 +43,17 @@ int main()
 	{
 			printf("%d	%d	|	%d	%d\n", arr1[i], arr2[i], arr1m[i], arr2m[i]);
 	}
+	*/
 
+	/* test - memmove */
+	
+	Memmove(arr1+7,arr1+0, n * sizeof(char));
+	memmove(arr1m+7,arr1m+0, n * sizeof(char));
+
+	for (i = 0; i < ARR_SIZE; i++)
+	{
+			printf("%d	%d	|	%d	%d\n", arr1[i], arr2[i], arr1m[i], arr2m[i]);
+	}
+	
 	return (0);
 }	
