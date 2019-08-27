@@ -209,16 +209,16 @@ bitsarr_t BitsArrSetBit(bitsarr_t arr, size_t index, int state)
 bitsarr_t BitsArrMirrorLUT(bitsarr_t arr)
 {
 	size_t i = 0;
-	unsigned int rev_bits_lut[256] = { REVERSE_BITS };	
+	size_t rev_bits_lut[256] = { REVERSE_BITS };	
+	bitsarr_t arr_mirror = 0ul;
 
-	while (i < (word_size / 8) / 2)
+	while (i < word_size)
 	{
-		arr |=	((rev_bits_lut[(arr >> i * 8) & 0xff] << (word_size - 8 - i * 8)) |
-				(rev_bits_lut[(arr >> (word_size - 8 - i * 8)) & 0xff] << i * 8));
-		i++;
+		arr_mirror |= (rev_bits_lut[(arr >> i) & 0xff] << (word_size - 8 - i));
+		i += 8;
 	}
 
-	return (arr);
+	return (arr_mirror);
 }
 
 size_t BitsArrCountOnLUT(bitsarr_t arr)
