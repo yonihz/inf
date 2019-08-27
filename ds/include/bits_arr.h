@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include "bits_arr.h"
 
-
 typedef size_t bitsarr_t; 
 
 /* return current status. complexity o(1) */
@@ -50,5 +49,8 @@ bitsarr_t BitsArrMirror(bitsarr_t arr);
 /* complexity o(1) */
 bitsarr_t BitsArrSetBit(bitsarr_t arr, size_t index, int state);
 
+bitsarr_t BitsArrMirrorLUT(bitsarr_t arr);
+
+size_t BitsArrCountOnLUT(bitsarr_t arr);
 
 #endif
