@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 #include <stdio.h>
-#include "../include/bits_arr.h"
+#include "bits_arr.h"
 
 
 typedef size_t bitsarr_t; 
