@@ -19,8 +19,16 @@ struct stack
 
 stack_t *StackCreate(size_t num_of_elements, size_t size_of_element)
 {
+	size_t max_size = 1e6;
+	size_t total_size = size_of_element * num_of_elements;
+
     stack_t* new = malloc(sizeof(stack_t));
     new->head = malloc(size_of_element * num_of_elements);
+
+    if (0 == total_size || max_size < total_size)
+    {
+        return (NULL);
+    } 
 
     if (NULL == new || NULL == new->head)
     {
@@ -30,7 +38,7 @@ stack_t *StackCreate(size_t num_of_elements, size_t size_of_element)
     new->size_of_element = size_of_element;
     new->status = ACTIVE;
     new->current = new->head;
-    new->end = (char*)new->head + size_of_element * num_of_elements;
+    new->end = (char*)new->head + total_size;
     
     return (new);
 }
