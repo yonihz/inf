@@ -91,7 +91,7 @@ const void *StackPeek(const stack_t *stack)
         return (NULL);
     }
 
-    return (stack->current);
+    return ((char*)stack->current - stack->size_of_element);
 }
 
 size_t StackSize(const stack_t *stack)
