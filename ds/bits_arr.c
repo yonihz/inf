@@ -1,3 +1,10 @@
+/*****************************************************
+ * FILE NAME                                            *
+ * *
+ * PURPOSE *
+ * *
+ *****************************************************/
+
 #include <stdio.h>
 #include "bits_arr.h"
 
@@ -14,7 +21,16 @@
 #define R6(n) R4(n), R4(n + 2*4 ), R4(n + 1*4 ), R4(n + 3*4 )
 #define REVERSE_BITS R6(0), R6(2), R6(1), R6(3)
 
+static size_t set_bits_lut[256] = { SET_BITS };
+static size_t rev_bits_lut[256] = { REVERSE_BITS };
+
+static unsigned char set_bits_lut2[256];
+static unsigned char rev_bits_lut2[256];
+
 size_t word_size = sizeof(bitsarr_t) * 8;
+
+void CreateBitMirrorLUT();
+void CreateSetBitsLUT();
 
 bitsarr_t BitsArrFlip(bitsarr_t arr, size_t index)
 {
@@ -119,12 +135,7 @@ int BitsArrIsOn(bitsarr_t arr, size_t index)
 	
 	m <<= index;
 
-	if (arr & m)
-	{
-		return (1);
-	}
-
-	return (0);
+	return ((arr & m) != 0);
 }
 
 int BitsArrIsOff(bitsarr_t arr, size_t index)
@@ -138,12 +149,7 @@ int BitsArrIsOff(bitsarr_t arr, size_t index)
 	
 	m <<= index;
 
-	if (arr & m)
-	{
-		return (0);
-	}
-
-	return (1);
+	return ((arr & m) == 0);
 }
 
 
@@ -168,7 +174,7 @@ char *BitsArrToString(bitsarr_t arr, char *dest)
 
 	while (i < word_size)
 	{
-		*(dest + word_size - 1 - i) = arr % 2 + '0';
+		*(dest + (word_size - 1 - i)) = arr % 2 + '0';
 		arr /= 2;
 		i++;
 	}
@@ -208,10 +214,11 @@ bitsarr_t BitsArrSetBit(bitsarr_t arr, size_t index, int state)
 
 bitsarr_t BitsArrMirrorLUT(bitsarr_t arr)
 {
-	size_t i = 0;
-	size_t rev_bits_lut[256] = { REVERSE_BITS };	
+	size_t i = 0;	
 	bitsarr_t arr_mirror = 0ul;
-
+    /*
+    CreateBitMirrorLUT();
+    */
 	while (i < word_size)
 	{
 		arr_mirror |= (rev_bits_lut[(arr >> i) & 0xff] << (word_size - 8 - i));
@@ -224,13 +231,57 @@ bitsarr_t BitsArrMirrorLUT(bitsarr_t arr)
 size_t BitsArrCountOnLUT(bitsarr_t arr)
 {
 	size_t i = 0;	
-	unsigned int count = 0;
-	unsigned int set_bits_lut[256] = { SET_BITS };
-
+	size_t count = 0;
+    /*
+    CreateSetBitsLUT();
+    */
 	for (i = 0; i < (word_size / 8); i++)
 	{
 		count += set_bits_lut[(arr >> (i * 8)) & 0xff];
 	}
 
 	return (count);
+}
+
+void CreateBitMirrorLUT()
+{
+    static int is_rev_bits_lut = 0;
+    int size = 256;
+    int i = 0, j = 0;
+
+    if (is_rev_bits_lut)
+    {
+        return;
+    }
+
+    is_rev_bits_lut = 1;
+
+    while (i < size)
+    {
+        rev_bits_lut2[i] = i;
+        j = 0;
+	    while (j < (size - 1))
+	    {
+		    rev_bits_lut2[i] <<= 1;
+		    j >>= 1;
+		    rev_bits_lut2[i] |= j & 1;
+		    j++;
+	    }
+        i++;
+	}
+}
+
+void CreateSetBitsLUT()
+{
+    static int is_set_bits_lut = 0;
+    unsigned char size = 255;
+    unsigned char i = 0, j = 0;
+
+    if (is_set_bits_lut)
+    {
+        return;
+    }
+
+    is_set_bits_lut = 1;
+
 }

@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include "../include/bits_arr.h"
+#include "bits_arr.h"
 
 #define RED   "\x1B[31m"
 #define GRN   "\x1B[32m"
@@ -174,7 +174,7 @@ void TestBitsArrIsOn()
 
 	printf("BitsArrIsOn Tests\n");
 	VerifyInt(BitsArrIsOn(arr1, index1), 1, "TEST 1 PASSED", "TEST 1 FAILED");
-	VerifyInt(BitsArrIsOn(arr1, index2), 0, "TEST 2 PASSED", "TEST 2 FAILED");
+	VerifyInt(BitsArrIsOn(arr1, index2), 0ul, "TEST 2 PASSED", "TEST 2 FAILED");
 	VerifyInt(BitsArrIsOn(arr1, index3), (-1), "TEST 3 PASSED", "TEST 3 FAILED");
 }
 
@@ -190,8 +190,8 @@ void TestBitsArrIsOff()
 	/* test3 - check that index out of bounds return -1, compare to expected result */
 
 	printf("BitsArrIsOff Tests\n");
-	VerifyInt(BitsArrIsOff(arr1, index2), 1, "TEST 1 PASSED", "TEST 1 FAILED");
-	VerifyInt(BitsArrIsOff(arr1, index1), 0, "TEST 2 PASSED", "TEST 2 FAILED");
+	VerifyInt(BitsArrIsOff(arr1, index2), 1ul, "TEST 1 PASSED", "TEST 1 FAILED");
+	VerifyInt(BitsArrIsOff(arr1, index1), 0ul, "TEST 2 PASSED", "TEST 2 FAILED");
 	VerifyInt(BitsArrIsOff(arr1, index3), (-1), "TEST 3 PASSED", "TEST 3 FAILED");
 }
 
@@ -221,13 +221,13 @@ void TestBitsArrRotL()
 
 void TestBitsArrToString()
 {
-	size_t arr1 = (1ul << 5) | (1ul << 20) | (1ul << 63);
+	size_t arr1 = (1ul << 0) | (1ul << 20) | (1ul << 61);
 	size_t arr2 = ~0lu;
 	size_t arr3 = 0lu;
 	static char arr1_char[64];
 	static char arr2_char[64];
 	static char arr3_char[64];
-	static char arr1t_char[]="1000000000000000000000000000000000000000000100000000000000100000";
+	static char arr1t_char[]="0010000000000000000000000000000000000000000100000000000000000001";
 	static char arr2t_char[]="1111111111111111111111111111111111111111111111111111111111111111";
 	static char arr3t_char[]="0000000000000000000000000000000000000000000000000000000000000000";
 
