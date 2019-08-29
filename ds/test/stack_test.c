@@ -14,13 +14,19 @@
 * 																*
 ****************************************************************/
 
-#include <stdio.h>
-#include <string.h>
+#include <stdio.h>	/* printf */
+
 #include "stack.h"
 
 #define RED   "\x1B[31m"
 #define GRN   "\x1B[32m"
 #define RESET "\x1B[0m"
+
+#ifndef NDEBUG
+void TestStackCreateSizeMax();
+void TestStackCreateSize0();
+void TestStackInvalidPtr();
+#endif
 
 void TestStackCreate();
 void TestStackPush();
@@ -29,7 +35,6 @@ void TestStackPeek();
 void TestStackSize();
 void TestStackIsEmpty();
 void TestStackLIFO();
-void TestStackDestroy();
 
 int main()
 {
@@ -40,26 +45,37 @@ int main()
     TestStackSize();
     TestStackIsEmpty();
     TestStackLIFO();
-	TestStackDestroy();
+
+#ifndef NDEBUG
+/*	TestStackCreateSizeMax(); */
+/*	TestStackCreateSize0(); */
+/*	TestStackInvalidPtr(); */
+#endif
     
 	return (0);
 }
 
 void VerifyStackt(stack_t* test, stack_t* expected, char pass[], char fail[])
 {
-	(test == expected) ? (printf(GRN), printf("%s\n", pass)) : (printf(RED), printf("%s\n", fail)) ;
+	(test == expected) ?
+	(printf(GRN), printf("%s\n", pass)) :
+	(printf(RED), printf("%s\n", fail)) ;
 	printf(RESET);
 }
 
 void VerifyInt(int test, int expected, char pass[], char fail[])
 {
-	(test == expected) ? (printf(GRN), printf("%s\n", pass)) : (printf(RED), printf("%s\n", fail)) ;
+	(test == expected) ?
+	(printf(GRN), printf("%s\n", pass)) :
+	(printf(RED), printf("%s\n", fail)) ;
 	printf(RESET);
 }
 
 void VerifySizet(size_t test,size_t expected, char pass[], char fail[])
 {
-	(test == expected) ? (printf(GRN), printf("%s\n", pass)) : (printf(RED), printf("%s\n", fail)) ;
+	(test == expected) ?
+	(printf(GRN), printf("%s\n", pass)) :
+	(printf(RED), printf("%s\n", fail)) ;
 	printf(RESET);
 }
 
@@ -67,11 +83,15 @@ void VerifyVoidptr(void* test, void* expected, char pass[], char fail[])
 {
 	if (NULL == expected)
 	{
-		(test == NULL) ? (printf(GRN), printf("%s\n", pass)) : (printf(RED), printf("%s\n", fail)) ;
+		(test == NULL) ?
+		(printf(GRN), printf("%s\n", pass)) :
+		(printf(RED), printf("%s\n", fail)) ;
 		return;
 	}
 
-	(*(int*)test == *(int*)expected) ? (printf(GRN), printf("%s\n", pass)) : (printf(RED), printf("%s\n", fail)) ;
+	(*(int*)test == *(int*)expected) ?
+	(printf(GRN), printf("%s\n", pass)) :
+	(printf(RED), printf("%s\n", fail)) ;
 	printf(RESET);
 }
 
@@ -89,37 +109,6 @@ void TestStackCreate()
     "TEST 1 PASSED - CREATE AND PUSH",
     "TEST 1 FAILED - CREATE AND PUSH");
 
-	StackDestroy(stack1);
-
-    stack1 = StackCreate(0, 1);
-
-    VerifyInt(StackPush(stack1, (a+4)), (-1),
-    "TEST 2 PASSED - CREATE SIZE 0 AND PUSH",
-    "TEST 2 FAILED - CREATE SIZE 0 AND PUSH");
-
-	StackDestroy(stack1);
-
-    stack1 = StackCreate(1, 1e6+1);
-
-    VerifyInt(StackPush(stack1, (a+4)), (-1),
-    "TEST 3 PASSED - CREATE SIZE>MAX AND PUSH",
-    "TEST 3 FAILED - CREATE SIZE>MAX AND PUSH");
-
-	StackDestroy(stack1);
-
-}
-
-void TestStackDestroy()
-{
-	stack_t* stack1 = NULL;
-    size_t num_of_elements = 5;
-    size_t size_of_elements = sizeof(int);
-
-	printf("StackDestroy Tests\n");
-	printf("DESTROY SAME STACK TWICE (DEBUG ONLY)\n");
-    stack1 = StackCreate(num_of_elements, size_of_elements);
-
-	StackDestroy(stack1);
 	StackDestroy(stack1);
 }
 
@@ -148,10 +137,6 @@ void TestStackPush()
     "TEST 2 FAILED - PUSH TO FULL STACK");
 
 	StackDestroy(stack1);
-
-    VerifyInt(StackPush(stack1, (a+4)), (-1),
-    "TEST 3 PASSED - PUSH INVALID STACK",
-    "TEST 3 FAILED - PUSH INVALID STACK");
 }
 
 void TestStackPop()
@@ -304,3 +289,35 @@ void TestStackLIFO()
 
 	StackDestroy(stack1);
 }
+
+#ifndef NDEBUG
+
+void TestStackCreateSizeMax()
+{
+	stack_t* stack1 = NULL;
+
+	printf("StackCreate Debug Test - SIZE MAX\n");
+    stack1 = StackCreate(1, ~0ul);
+}
+
+void TestStackCreateSize0()
+{
+	stack_t* stack1 = NULL;
+
+	printf("StackCreate Debug Test - SIZE 0\n");
+    stack1 = StackCreate(0, 1ul);
+}
+
+void TestStackInvalidPtr()
+{
+	stack_t* stack1 = NULL;
+    size_t num_of_elements = 5;
+    size_t size_of_elements = sizeof(int);
+
+	printf("StackDestroy Debug Test - INVALID POINTER\n");
+    stack1 = StackCreate(num_of_elements, size_of_elements);
+
+	StackDestroy(stack1);
+	StackDestroy(stack1);
+}
+#endif

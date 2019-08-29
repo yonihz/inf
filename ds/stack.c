@@ -17,71 +17,66 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#define NDEBUG
 #include <assert.h>
+
 #include "stack.h"
 
+#ifndef NDEBUG
 #define ACTIVE 0xDEADBEEF
-
 int isValidStack(const stack_t *stack);
+#endif
 
 struct stack
 {
-    size_t status;
-    void* head;
+	void* head;
     void* current;
     void* end;
     size_t size_of_element;
+
+#ifndef NDEBUG
+    size_t status;
+#endif
 };
 
 stack_t *StackCreate(size_t num_of_elements, size_t size_of_element)
 {
-	size_t max_size = 1e6;
 	size_t total_size = size_of_element * num_of_elements;
+	stack_t* new_stack = NULL;
+	void* new = NULL;
 
-    stack_t* new = malloc(sizeof(stack_t));
-    new->head = malloc(size_of_element * num_of_elements);
+	assert(0 != total_size);
 
-    if (0 == total_size || max_size < total_size)
-    {
-        return (NULL);
-    } 
+	new = malloc(sizeof(stack_t) + total_size);
 
-    if (NULL == new || NULL == new->head)
-    {
-		free(new->head);
-		free(new);
-        return (NULL);
-    } 
+	assert(NULL != new);
 
-    new->size_of_element = size_of_element;
-    new->status = ACTIVE;
-    new->current = new->head;
-    new->end = (char*)new->head + total_size;
-    
+	new_stack = new;
+	new_stack->head = (char*)new_stack + sizeof(stack_t);
+    new_stack->size_of_element = size_of_element;
+    new_stack->current = new_stack->head;
+    new_stack->end = (char*)new_stack->head + total_size;
+
+#ifndef NDEBUG
+    new_stack->status = ACTIVE;
+#endif
+
     return (new);
 }
 
 void StackDestroy(stack_t *stack)
 {
-	assert(isValidStack(stack));
-    if (0 == isValidStack(stack))
-    {
-        return;
-    }
+	assert(NULL != stack || ACTIVE == stack->status);
 
+#ifndef NDEBUG
     stack->status = 0lu;
-    free(stack->head);
+#endif
+
     free(stack);
 }
 
 int StackPush(stack_t *stack, const void *element)
 {
-    if (0 == isValidStack(stack))
-    {
-        return (-1);
-    }
+	assert(NULL != stack || ACTIVE == stack->status);
 
     if (stack->current == stack->end)
     {
@@ -95,11 +90,7 @@ int StackPush(stack_t *stack, const void *element)
 
 void StackPop(stack_t *stack)
 {
-	assert(isValidStack(stack));
-    if (0 == isValidStack(stack))
-    {
-        return;
-    }
+	assert(NULL != stack || ACTIVE == stack->status);
 
     if (stack->current == stack->head)
     {
@@ -111,11 +102,7 @@ void StackPop(stack_t *stack)
 
 const void *StackPeek(const stack_t *stack)
 {
-	assert(isValidStack(stack));
-    if (0 == isValidStack(stack))
-    {
-        return (NULL);
-    }
+	assert(NULL != stack || ACTIVE == stack->status);
     
     if (stack->current == stack->head)
     {
@@ -127,11 +114,7 @@ const void *StackPeek(const stack_t *stack)
 
 size_t StackSize(const stack_t *stack)
 {
-	assert(isValidStack(stack));
-    if (0 == isValidStack(stack))
-    {
-        return (0ul);
-    }
+	assert(NULL != stack || ACTIVE == stack->status);
     
     return
     ( ((char*)stack->current - (char*)stack->head) / stack->size_of_element); 
@@ -139,27 +122,7 @@ size_t StackSize(const stack_t *stack)
 
 int StackIsEmpty(const stack_t *stack)
 {
-	assert(isValidStack(stack));
-    if (0 == isValidStack(stack))
-    {
-        return (0);
-    }
+	assert(NULL != stack || ACTIVE == stack->status);
 
     return (stack->current == stack->head);
 }
-
-int isValidStack(const stack_t *stack)
-{
-    if (NULL == stack)
-    {
-        return (0);
-    }
-	
-    if (ACTIVE != stack->status)
-    {
-        return (0);
-    }
-	
-    return (1); 
-}
-
