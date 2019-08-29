@@ -1,3 +1,19 @@
+/****************************************************************
+* 																*
+* FILE NAME: stack_test.c										*
+* 																*
+* PURPOSE: Testing stack functions								*
+*                                                               *
+* VERSION: 0.1													*
+* 																*
+* DATE: 29.08.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+* Reviewer: N/A													*
+* 																*
+****************************************************************/
+
 #include <stdio.h>
 #include <string.h>
 #include "stack.h"
@@ -13,6 +29,7 @@ void TestStackPeek();
 void TestStackSize();
 void TestStackIsEmpty();
 void TestStackLIFO();
+void TestStackDestroy();
 
 int main()
 {
@@ -23,6 +40,7 @@ int main()
     TestStackSize();
     TestStackIsEmpty();
     TestStackLIFO();
+	TestStackDestroy();
     
 	return (0);
 }
@@ -84,9 +102,24 @@ void TestStackCreate()
     stack1 = StackCreate(1, 1e6+1);
 
     VerifyInt(StackPush(stack1, (a+4)), (-1),
-    "TEST 2 PASSED - CREATE SIZE>MAX AND PUSH",
-    "TEST 2 FAILED - CREATE SIZE>MAX AND PUSH");
+    "TEST 3 PASSED - CREATE SIZE>MAX AND PUSH",
+    "TEST 3 FAILED - CREATE SIZE>MAX AND PUSH");
 
+	StackDestroy(stack1);
+
+}
+
+void TestStackDestroy()
+{
+	stack_t* stack1 = NULL;
+    size_t num_of_elements = 5;
+    size_t size_of_elements = sizeof(int);
+
+	printf("StackDestroy Tests\n");
+	printf("DESTROY SAME STACK TWICE (DEBUG ONLY)\n");
+    stack1 = StackCreate(num_of_elements, size_of_elements);
+
+	StackDestroy(stack1);
 	StackDestroy(stack1);
 }
 
@@ -117,8 +150,8 @@ void TestStackPush()
 	StackDestroy(stack1);
 
     VerifyInt(StackPush(stack1, (a+4)), (-1),
-    "TEST 2 PASSED - PUSH INVALID STACK",
-    "TEST 2 FAILED - PUSH INVALID STACK");
+    "TEST 3 PASSED - PUSH INVALID STACK",
+    "TEST 3 FAILED - PUSH INVALID STACK");
 }
 
 void TestStackPop()
@@ -197,15 +230,15 @@ void TestStackSize()
 	StackPop(stack1);
 
     VerifySizet(StackSize(stack1), 2ul,
-    "TEST 2 PASSED - SIZE AFTER 1 POP",
-    "TEST 2 FAILED - SIZE AFTER 1 POP");
+    "TEST 3 PASSED - SIZE AFTER 1 POP",
+    "TEST 3 FAILED - SIZE AFTER 1 POP");
 
 	StackPop(stack1);
 	StackPop(stack1);
 
     VerifySizet(StackSize(stack1), 0ul,
-    "TEST 3 PASSED - EMPTY STACK AFTER 2 POP",
-    "TEST 3 FAILED - EMPTY STACK AFTER 2 POP");
+    "TEST 4 PASSED - EMPTY STACK AFTER 2 POP",
+    "TEST 4 FAILED - EMPTY STACK AFTER 2 POP");
 
 	StackDestroy(stack1);
 }

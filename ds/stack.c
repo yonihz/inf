@@ -1,7 +1,25 @@
+/****************************************************************
+* 																*
+* FILE NAME: stack.c											*
+* 																*
+* PURPOSE: Stack functions source file							*
+*                                                               *
+* VERSION: 0.1													*
+* 																*
+* DATE: 29.08.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+* Reviewer: N/A													*
+* 																*
+****************************************************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#define NDEBUG
+#include <assert.h>
 #include "stack.h"
 
 #define ACTIVE 0xDEADBEEF
@@ -10,11 +28,11 @@ int isValidStack(const stack_t *stack);
 
 struct stack
 {
+    size_t status;
     void* head;
     void* current;
     void* end;
     size_t size_of_element;
-    size_t status;
 };
 
 stack_t *StackCreate(size_t num_of_elements, size_t size_of_element)
@@ -32,6 +50,8 @@ stack_t *StackCreate(size_t num_of_elements, size_t size_of_element)
 
     if (NULL == new || NULL == new->head)
     {
+		free(new->head);
+		free(new);
         return (NULL);
     } 
 
@@ -45,6 +65,7 @@ stack_t *StackCreate(size_t num_of_elements, size_t size_of_element)
 
 void StackDestroy(stack_t *stack)
 {
+	assert(isValidStack(stack));
     if (0 == isValidStack(stack))
     {
         return;
@@ -74,6 +95,7 @@ int StackPush(stack_t *stack, const void *element)
 
 void StackPop(stack_t *stack)
 {
+	assert(isValidStack(stack));
     if (0 == isValidStack(stack))
     {
         return;
@@ -89,6 +111,7 @@ void StackPop(stack_t *stack)
 
 const void *StackPeek(const stack_t *stack)
 {
+	assert(isValidStack(stack));
     if (0 == isValidStack(stack))
     {
         return (NULL);
@@ -104,6 +127,7 @@ const void *StackPeek(const stack_t *stack)
 
 size_t StackSize(const stack_t *stack)
 {
+	assert(isValidStack(stack));
     if (0 == isValidStack(stack))
     {
         return (0ul);
@@ -115,6 +139,7 @@ size_t StackSize(const stack_t *stack)
 
 int StackIsEmpty(const stack_t *stack)
 {
+	assert(isValidStack(stack));
     if (0 == isValidStack(stack))
     {
         return (0);
@@ -129,12 +154,12 @@ int isValidStack(const stack_t *stack)
     {
         return (0);
     }
-
+	
     if (ACTIVE != stack->status)
     {
         return (0);
     }
-
+	
     return (1); 
 }
 
