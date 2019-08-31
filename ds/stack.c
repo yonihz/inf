@@ -64,7 +64,7 @@ stack_t *StackCreate(size_t num_of_elements, size_t size_of_element)
 
 void StackDestroy(stack_t *stack)
 {
-	assert(NULL != stack || ACTIVE == stack->status);
+	assert(NULL != stack && ACTIVE == stack->status);
 
 #ifndef NDEBUG
     stack->status = 0lu;
@@ -75,7 +75,7 @@ void StackDestroy(stack_t *stack)
 
 int StackPush(stack_t *stack, const void *element)
 {
-	assert(NULL != stack || ACTIVE == stack->status);
+	assert(NULL != stack && ACTIVE == stack->status);
 
     if (stack->current == stack->end)
     {
@@ -89,7 +89,7 @@ int StackPush(stack_t *stack, const void *element)
 
 void StackPop(stack_t *stack)
 {
-	assert(NULL != stack || ACTIVE == stack->status);
+	assert(NULL != stack && ACTIVE == stack->status);
 
     if (stack->current == stack->head)
     {
@@ -101,7 +101,7 @@ void StackPop(stack_t *stack)
 
 const void *StackPeek(const stack_t *stack)
 {
-	assert(NULL != stack || ACTIVE == stack->status);
+	assert(NULL != stack && ACTIVE == stack->status);
     
     if (stack->current == stack->head)
     {
@@ -113,7 +113,7 @@ const void *StackPeek(const stack_t *stack)
 
 size_t StackSize(const stack_t *stack)
 {
-	assert(NULL != stack || ACTIVE == stack->status);
+	assert(NULL != stack && ACTIVE == stack->status);
     
     return
     ( ((char*)stack->current - (char*)stack->head) / stack->size_of_element); 
@@ -121,7 +121,7 @@ size_t StackSize(const stack_t *stack)
 
 int StackIsEmpty(const stack_t *stack)
 {
-	assert(NULL != stack || ACTIVE == stack->status);
+	assert(NULL != stack && ACTIVE == stack->status);
 
     return (stack->current == stack->head);
 }

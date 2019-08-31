@@ -47,9 +47,9 @@ int main()
     TestStackLIFO();
 
 #ifndef NDEBUG
-/*	TestStackCreateSizeMax(); */
 /*	TestStackCreateSize0(); */
 /*	TestStackInvalidPtr(); */
+/*	TestStackCreateSizeMax(); */
 #endif
     
 	return (0);
@@ -291,21 +291,16 @@ void TestStackLIFO()
 }
 
 #ifndef NDEBUG
-
 void TestStackCreateSizeMax()
 {
-	stack_t* stack1 = NULL;
-
 	printf("StackCreate Debug Test - SIZE MAX\n");
-    stack1 = StackCreate(1, ~0ul);
+    StackCreate(~0ul, ~0ul);
 }
 
 void TestStackCreateSize0()
 {
-	stack_t* stack1 = NULL;
-
 	printf("StackCreate Debug Test - SIZE 0\n");
-    stack1 = StackCreate(0, 1ul);
+    StackCreate(0, 1ul);
 }
 
 void TestStackInvalidPtr()
