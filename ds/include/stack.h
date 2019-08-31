@@ -1,19 +1,3 @@
-/****************************************************************
-* 																*
-* FILE NAME: stack.h											*
-* 																*
-* PURPOSE: Stack functions header file							*
-*                                                               *
-* VERSION: 0.1													*
-* 																*
-* DATE: 29.08.19												*
-* 																*
-* Author: Yoni Horovitz											*
-* 																*
-* Reviewer: N/A													*
-* 																*
-****************************************************************/
-
 #ifndef _STACK_H_
 #define _STACK_H_
 

@@ -23,7 +23,6 @@
 
 #ifndef NDEBUG
 #define ACTIVE 0xDEADBEEF
-int isValidStack(const stack_t *stack);
 #endif
 
 struct stack

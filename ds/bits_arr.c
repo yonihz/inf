@@ -17,13 +17,7 @@
 static size_t set_bits_lut[256] = { SET_BITS };
 static size_t rev_bits_lut[256] = { REVERSE_BITS };
 
-static unsigned char set_bits_lut2[256];
-static unsigned char rev_bits_lut2[256];
-
 size_t word_size = sizeof(bitsarr_t) * 8;
-
-void CreateBitMirrorLUT();
-void CreateSetBitsLUT();
 
 bitsarr_t BitsArrFlip(bitsarr_t arr, size_t index)
 {
@@ -234,47 +228,4 @@ size_t BitsArrCountOnLUT(bitsarr_t arr)
 	}
 
 	return (count);
-}
-
-void CreateBitMirrorLUT()
-{
-    static int is_rev_bits_lut = 0;
-    int size = 256;
-    int i = 0, j = 0;
-
-    if (is_rev_bits_lut)
-    {
-        return;
-    }
-
-    is_rev_bits_lut = 1;
-
-    while (i < size)
-    {
-        rev_bits_lut2[i] = i;
-        j = 0;
-	    while (j < (size - 1))
-	    {
-		    rev_bits_lut2[i] <<= 1;
-		    j >>= 1;
-		    rev_bits_lut2[i] |= j & 1;
-		    j++;
-	    }
-        i++;
-	}
-}
-
-void CreateSetBitsLUT()
-{
-    static int is_set_bits_lut = 0;
-    unsigned char size = 255;
-    unsigned char i = 0, j = 0;
-
-    if (is_set_bits_lut)
-    {
-        return;
-    }
-
-    is_set_bits_lut = 1;
-
 }
