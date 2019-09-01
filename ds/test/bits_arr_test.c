@@ -1,5 +1,21 @@
-#include <stdio.h>
-#include <string.h>
+/****************************************************************
+* 																*
+* FILE NAME: bits_arr_test.c									*
+* 																*
+* PURPOSE: Testing bits array functions							*
+*                                                               *
+* VERSION: 0.1													*
+* 																*
+* DATE: 29.08.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+* Reviewer: N/A													*
+* 																*
+****************************************************************/
+
+#include <stdio.h> /* printf */
+#include <string.h> /* strcmp */
 #include "bits_arr.h"
 
 #define RED   "\x1B[31m"

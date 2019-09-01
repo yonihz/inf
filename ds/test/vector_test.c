@@ -1,8 +1,8 @@
 /****************************************************************
 * 																*
-* FILE NAME: stack_test.c										*
+* FILE NAME: vector_test.c										*
 * 																*
-* PURPOSE: Testing stack functions								*
+* PURPOSE: Testing vector functions								*
 *                                                               *
 * VERSION: 0.1													*
 * 																*
