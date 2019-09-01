@@ -10,7 +10,7 @@
 * 																*
 * Author: Yoni Horovitz											*
 * 																*
-* Reviewer: N/A													*
+* Reviewer: Tal Samucha												*
 * 																*
 ****************************************************************/
 
@@ -34,10 +34,10 @@ void TestVectorSize0();
 
 /* API test functions */
 
-void TestVectorCreate();
-void TestVectorGrow();
-void TestVectorGetItem();
-void TestVectorReserve();
+static void TestVectorCreate();
+static void TestVectorGrow();
+static void TestVectorGetItem();
+static void TestVectorReserve();
 
 int main()
 {
@@ -309,6 +309,18 @@ void TestVectorReserve()
 
     VerifySizet(VectorCapacity(vector1), 14,
     "TEST 4 - CAPACITY IS 14 AFTER RESERVE WITH 14 ELEMENTS");
+
+	VectorPopBack(vector1);
+	VectorPopBack(vector1);
+	VectorPopBack(vector1);
+
+    VerifySizet(VectorCapacity(vector1), 14,
+    "TEST 5 - CAPACITY IS 14 AFTER 3 POP");
+
+	VectorReserve(vector1, 12);
+
+    VerifySizet(VectorCapacity(vector1), 12,
+    "TEST 2 - CAPACITY IS 12 AFTER RESERVE WITH 12 ELEMENTS");
 
 	VectorDestroy(vector1);
 }

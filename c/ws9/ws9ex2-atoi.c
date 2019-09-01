@@ -3,7 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 
-int AtoiAnyBase(char* str, int b);
+int AtoiAnyBase(const char* str, int b);
 char* ItoaAnyBase(int n, int b);
 
 int main()
@@ -17,10 +17,12 @@ int main()
 	printf("%d in base %d is %s\n",n, base, str1);
 	printf("%s in base %d is %d\n", str2, base, AtoiAnyBase(str2, base));
 
+	free(str1);
+
 	return (0);
 }
 
-int AtoiAnyBase(char* str, int b)
+int AtoiAnyBase(const char*, int b)
 {
 	int i = 0;
 	int n = 0;
@@ -29,7 +31,7 @@ int AtoiAnyBase(char* str, int b)
 	
 	len = strlen(str);
 
-	while (i < len)
+	for (i=0; i < len; i++)
 	{
 		c = *(str + i);
 
@@ -40,7 +42,7 @@ int AtoiAnyBase(char* str, int b)
 		}
 		else if (isalpha(c))
 		{
-			c = toupper(c) - 55;
+			c = toupper(c) - ('A' - 10);
 		}
 		else
 		{
@@ -48,7 +50,6 @@ int AtoiAnyBase(char* str, int b)
 		}
 
 		n = n * b + c;
-		i++;
 	}
 
 	return (n);	
@@ -71,12 +72,11 @@ char* ItoaAnyBase(int n,int b)
 	
 	*(str + len) = '\0';
 
-	while (i < len)
+	for (i = 0; i < len; i++)
 	{
 		n_temp = n % b;
-		*(str + len - 1 - i) = n_temp <= 9 ? n_temp + '0' : n_temp + 55; 
+		*(str + len - 1 - i) = n_temp <= 9 ? n_temp + '0' : n_temp + 'A' - 10; 
 		n /= b;
-		i++;
 	}
 
 	return (str);

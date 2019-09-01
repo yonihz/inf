@@ -10,14 +10,14 @@
 * 																*
 * Author: Yoni Horovitz											*
 * 																*
-* Reviewer: N/A													*
+* Reviewer: Tal Samucha													*
 * 																*
 ****************************************************************/
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
+#include <stdio.h> /* printf */
+#include <stdlib.h> /* malloc */
+#include <string.h> /* memcpy */
+#include <assert.h> /* assert */
 
 #include "vector.h"
 
