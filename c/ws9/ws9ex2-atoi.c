@@ -3,7 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 
-int AtoiAnyBase(const char* str, int b);
+int AtoiAnyBase(const char* str, int base);
 char* ItoaAnyBase(int n, int b);
 
 int main()
@@ -22,7 +22,7 @@ int main()
 	return (0);
 }
 
-int AtoiAnyBase(const char*, int b)
+int AtoiAnyBase(const char* str, int base)
 {
 	int i = 0;
 	int n = 0;
@@ -31,13 +31,18 @@ int AtoiAnyBase(const char*, int b)
 	
 	len = strlen(str);
 
-	for (i=0; i < len; i++)
+	for (i = 0; i < len; i++)
 	{
 		c = *(str + i);
 
 		if (!isdigit(c) && !isalpha(c))
 		{		
 			printf("Input string must contain alphabetic or numeric chars\n");
+			exit(1);
+		}
+		if (base <= 10 && (c < '0' || c > '0' + base - 1))
+		{
+			printf("Input string does not match base\n");
 			exit(1);
 		}
 		else if (isalpha(c))
@@ -49,13 +54,13 @@ int AtoiAnyBase(const char*, int b)
 			c = c - '0';
 		}
 
-		n = n * b + c;
+		n = n * base + c;
 	}
 
 	return (n);	
 }
 
-char* ItoaAnyBase(int n,int b)
+char* ItoaAnyBase(int n,int base)
 {
 	int n_temp = n;
 	int len = 0;
@@ -64,7 +69,7 @@ char* ItoaAnyBase(int n,int b)
 	
 	while (n_temp)
 	{
-		n_temp /= b;
+		n_temp /= base;
 		len++;
 	}
 	
@@ -74,9 +79,9 @@ char* ItoaAnyBase(int n,int b)
 
 	for (i = 0; i < len; i++)
 	{
-		n_temp = n % b;
+		n_temp = n % base;
 		*(str + len - 1 - i) = n_temp <= 9 ? n_temp + '0' : n_temp + 'A' - 10; 
-		n /= b;
+		n /= base;
 	}
 
 	return (str);
