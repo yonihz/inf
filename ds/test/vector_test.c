@@ -48,7 +48,7 @@ int main()
 
 #ifndef NDEBUG
 /*	TestVectorInvalidPtr(); */  
-/*	TestVectorSize0(); */
+/*	TestVectorSize0(); */ 
 #endif
     
 	return (0);
@@ -347,6 +347,7 @@ void TestVectorInvalidPtr()
 void TestVectorSize0()
 {
 	vector_t* vector1 = NULL;
+	void* head = NULL;
     size_t size_of_element = sizeof(int);
     int a[9] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
 
