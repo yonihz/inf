@@ -1,12 +1,12 @@
 /****************************************************************
 * 																*
-* FILE NAME: SList.c											*
+* FILE NAME: slist.c											*
 * 																*
-* PURPOSE: SList functions source file							*
+* PURPOSE: slist functions source file							*
 *                                                               *
 * VERSION: 0.1													*
 * 																*
-* DATE: 02.09.19												*
+* DATE: 03.09.19												*
 * 																*
 * Author: Yoni Horovitz											*
 * 																*
@@ -17,7 +17,7 @@
 #include <stdlib.h> /* malloc */
 #include <assert.h> /* assert */
 
-#include "SList.h"
+#include "slist.h"
 
 slist_node_t *SListCreateNode(void *data, slist_node_t *next)
 {
@@ -205,8 +205,31 @@ slist_node_t* SListFindIntersection(slist_node_t* head1, slist_node_t* head2)
 		return (NULL);
 	}
 
-	/* run on longer list diff times, then check node1=node2,
-		and if equal return node1 */
-	return (NULL);
+	if (count1 > count)
+	{
+		count1 = count1 - count2;
+		node1 = head1;
+		node2 = head2;
+	}
+	else
+	{
+		count1 = count2 - count1;
+		node1 = head2;
+		node2 = head1;				
+	}
+
+	while (count1)
+	{
+		node1 = node1->next;
+		count1--;
+	}
+
+	while (node1 != node2)
+	{
+		node1 = node1->next;
+		node2 = node2->next;
+	}
+	
+	return (node1);
 }
 

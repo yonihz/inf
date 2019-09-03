@@ -1,16 +1,16 @@
 /****************************************************************
 * 																*
-* FILE NAME: vector_test.c										*
+* FILE NAME: slist_test.c										*
 * 																*
-* PURPOSE: Testing vector functions								*
+* PURPOSE: Testing slist functions								*
 *                                                               *
 * VERSION: 0.1													*
 * 																*
-* DATE: 29.08.19												*
+* DATE: 03.09.19												*
 * 																*
 * Author: Yoni Horovitz											*
 * 																*
-* Reviewer: Tal Samucha												*
+* Reviewer: N/A												*
 * 																*
 ****************************************************************/
 
@@ -18,7 +18,7 @@
 #include <string.h>	/* strcmp */
 #include <stdlib.h>	/* free */
 
-#include "SList.h"
+#include "slist.h"
 
 /* colors for test results */
 
@@ -39,6 +39,9 @@ void TestSListInsertAfter();
 void TestSListInsert();
 void TestSListRemoveAfter();
 void TestSListRemove();
+void TestSListCount();
+void TestSListFlip();
+void TestSListHasLoop();
 
 int main()
 {
@@ -47,6 +50,9 @@ int main()
 	TestSListInsert();
 	TestSListRemoveAfter();
 	TestSListRemove();
+	TestSListCount();
+	TestSListFlip();
+	TestSListHasLoop();
 
 #ifndef NDEBUG
 
@@ -474,6 +480,153 @@ void TestSListRemove()
 	
 	SListFreeAll(head_list1);
 }
+
+void TestSListCount()
+{
+	char str_test[] = "ABCDE";
+	size_t len = 0;
+	size_t i = 0;
+	slist_node_t* head_list1 = NULL;
+	
+	len = strlen(str_test);
+
+	printf("Count Tests\n");
+	
+	head_list1 = NULL;
+	
+	i = 0;
+	while (*(str_test + i))
+	{
+		head_list1 = SListCreateNode((str_test + len - 1 - i), head_list1);
+		i++;
+	}
+
+	VerifySizet(SListCount(head_list1), 5,
+	"TEST 1 - CHECK COUNT IS 5 FOR 5 NODES");
+	
+	SListFreeAll(head_list1);
+}
+
+void TestSListFlip()
+{
+	char str_test1[] = "ABCDE";
+	char str_test2[] = "AB";
+	char str_test3[] = "A";
+	size_t len1 = 0, len2 = 0, len3 = 0;
+	size_t i = 0;
+	slist_node_t* head_list1 = NULL;
+	slist_node_t* node_list1 = NULL;
+
+	len1 = strlen(str_test1);
+	len2 = strlen(str_test2);
+	len3 = strlen(str_test3);
+
+	printf("Flip Tests\n");
+	
+	head_list1 = NULL;
+	
+	i = 0;
+	while (*(str_test1 + i))
+	{
+		head_list1 = SListCreateNode((str_test1 + len1 - 1 - i), head_list1);
+		i++;
+	}
+
+	head_list1 = SListFlip(head_list1);
+	node_list1 = head_list1;
+	
+	VerifyChar(node_list1->data, (str_test1 + 4),
+	"TEST 1 - CHECK NODE 1 AFTER FLIP 5 NODES");
+
+	node_list1 = node_list1->next;
+	VerifyChar(node_list1->data, (str_test1 + 3),
+	"TEST 2 - CHECK NODE 2 AFTER FLIP 5 NODES");
+
+	node_list1 = node_list1->next;
+	VerifyChar(node_list1->data, (str_test1 + 2),
+	"TEST 3 - CHECK NODE 3 AFTER FLIP 5 NODES");
+
+	node_list1 = node_list1->next;
+	VerifyChar(node_list1->data, (str_test1 + 1),
+	"TEST 4 - CHECK NODE 4 AFTER FLIP 5 NODES");
+
+	node_list1 = node_list1->next;
+	VerifyChar(node_list1->data, (str_test1 + 0),
+	"TEST 5 - CHECK NODE 5 AFTER FLIP 5 NODES");
+	
+	SListFreeAll(head_list1);
+
+	head_list1 = NULL;
+	
+	i = 0;
+	while (*(str_test2 + i))
+	{
+		head_list1 = SListCreateNode((str_test2 + len2 - 1 - i), head_list1);
+		i++;
+	}
+
+	head_list1 = SListFlip(head_list1);
+	node_list1 = head_list1;
+	
+	VerifyChar(node_list1->data, (str_test2 + 1),
+	"TEST 6 - CHECK NODE 1 AFTER FLIP 2 NODES");
+
+	node_list1 = node_list1->next;
+	VerifyChar(node_list1->data, (str_test2 + 0),
+	"TEST 7 - CHECK NODE 2 AFTER FLIP 2 NODES");
+	
+	SListFreeAll(head_list1);
+
+	head_list1 = NULL;
+	
+	i = 0;
+	while (*(str_test3 + i))
+	{
+		head_list1 = SListCreateNode((str_test3 + len3 - 1 - i), head_list1);
+		i++;
+	}
+
+	head_list1 = SListFlip(head_list1);
+	node_list1 = head_list1;
+	
+	VerifyChar(node_list1->data, (str_test3 + 0),
+	"TEST 8 - CHECK NODE 1 AFTER FLIP 1 NODE");
+	
+	SListFreeAll(head_list1);
+}
+
+void TestSListHasLoop()
+{
+	char str_test1[] = "ABCDE";
+	size_t len1 = 0;
+	size_t i = 0;
+	slist_node_t* head_list1 = NULL;
+
+	len1 = strlen(str_test1);
+
+	printf("HasLoop Tests\n");
+	
+	head_list1 = NULL;
+	
+	i = 0;
+	while (*(str_test1 + i))
+	{
+		head_list1 = SListCreateNode((str_test1 + len1 - 1 - i), head_list1);
+		i++;
+	}
+
+	VerifyInt(SListHasLoop(head_list1), 0,
+	"TEST 1 - CHECK LIST WITHOUT LOOP");
+
+	(((head_list1->next)->next)->next)->next = (head_list1->next)->next;
+	
+	VerifyInt(SListHasLoop(head_list1), 1,
+	"TEST 1 - CHECK LIST WITH LOOP");
+
+	(((head_list1->next)->next)->next)->next = NULL;
+	SListFreeAll(head_list1);
+}
+
 
 
 
