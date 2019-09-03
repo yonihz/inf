@@ -17,6 +17,7 @@
 #include <stdio.h>	/* printf */
 #include <string.h>	/* strcmp */
 #include <stdlib.h>	/* free */
+#include <ctype.h>	/* tolower */
 
 #include "slist.h"
 
@@ -42,6 +43,12 @@ void TestSListRemove();
 void TestSListCount();
 void TestSListFlip();
 void TestSListHasLoop();
+void TestSListFindIntersection();
+void TestSListFind();
+void TestSListForEach();
+
+int isChar(const void* data, void* param);
+int ToLower(void* data, void* param);
 
 int main()
 {
@@ -53,6 +60,9 @@ int main()
 	TestSListCount();
 	TestSListFlip();
 	TestSListHasLoop();
+	TestSListFindIntersection();
+	TestSListFind();
+	TestSListForEach();
 
 #ifndef NDEBUG
 
@@ -627,7 +637,151 @@ void TestSListHasLoop()
 	SListFreeAll(head_list1);
 }
 
+void TestSListFindIntersection()
+{
+	char str_test1[] = "ABCDE";
+	char str_test2[] = "LMNOPQRS";
+	size_t len1 = 0, len2 = 0;
+	size_t i = 0;
+	slist_node_t* head_list1 = NULL;
+	slist_node_t* head_list2 = NULL;
+	slist_node_t* intersect = NULL;
 
+	len1 = strlen(str_test1);
+	len2 = strlen(str_test2);
+
+	printf("FindIntersection Tests\n");
+	
+	i = 0;
+	while (*(str_test1 + i))
+	{
+		head_list1 = SListCreateNode((str_test1 + len1 - 1 - i), head_list1);
+		i++;
+	}
+
+	i = 0;
+	while (*(str_test2 + i))
+	{
+		head_list2 = SListCreateNode((str_test2 + len2 - 1 - i), head_list2);
+		i++;
+	}
+
+	VerifySListt(intersect, NULL,
+	"TEST 1 - CHECK NON-INTERSECTING LISTS");
+
+	(((head_list1->next)->next)->next)->next = (head_list2->next)->next;
+
+	intersect = SListFindIntersection(head_list1, head_list2);
+
+	VerifyChar(intersect->data, (str_test2 + 2),
+	"TEST 2 - CHECK INTERSECTING LISTS");
+
+	SListFreeAll(head_list1);
+}
+
+void TestSListFind()
+{
+	char str_test1[] = "ABCDE";
+	char c1 = 'C';
+	char c2 = 'Z';
+	size_t len1 = 0;
+	size_t i = 0;
+	slist_node_t* head_list1 = NULL;
+	slist_node_t* node_match = NULL;
+
+	len1 = strlen(str_test1);
+
+	printf("Find Tests\n");
+	
+	i = 0;
+	while (*(str_test1 + i))
+	{
+		head_list1 = SListCreateNode((str_test1 + len1 - 1 - i), head_list1);
+		i++;
+	}
+
+	node_match = SListFind(head_list1, isChar, &c1);
+
+	VerifyChar(node_match->data, (str_test1 + 2),
+	"TEST 1 - FIND CHAR IN LIST");
+
+	node_match = SListFind(head_list1, isChar, &c2);
+
+	VerifySListt(node_match, NULL,
+	"TEST 2 - FIND CHAR NOT IN LIST");
+
+	SListFreeAll(head_list1);
+}
+
+void TestSListForEach()
+{
+	char str_test1[] = "ABCDE";
+	char str_test2[] = "abCDE";
+	char c1 = 'C';
+	size_t len1 = 0;
+	size_t i = 0;
+	slist_node_t* head_list1 = NULL;
+	slist_node_t* node_list1 = NULL;
+
+	len1 = strlen(str_test1);
+
+	printf("ForEach Tests\n");
+	
+	i = 0;
+	while (*(str_test1 + i))
+	{
+		head_list1 = SListCreateNode((str_test1 + len1 - 1 - i), head_list1);
+		i++;
+	}
+
+	SListForEach(head_list1, ToLower, &c1);
+	node_list1 = head_list1;
+
+	VerifyChar(node_list1->data, (str_test2 + 0),
+	"TEST 1 - FOR EACH - TO LOWER NODE 1");
+
+	node_list1 = node_list1->next;
+	VerifyChar(node_list1->data, (str_test2 + 1),
+	"TEST 2 - FOR EACH - TO LOWER NODE 2");
+
+	node_list1 = node_list1->next;
+	VerifyChar(node_list1->data, (str_test2 + 2),
+	"TEST 3 - FOR EACH - TO LOWER NODE 3");
+
+	node_list1 = node_list1->next;
+	VerifyChar(node_list1->data, (str_test2 + 3),
+	"TEST 4 - FOR EACH - TO LOWER NODE 4");
+
+	node_list1 = node_list1->next;
+	VerifyChar(node_list1->data, (str_test2 + 4),
+	"TEST 5 - FOR EACH - TO LOWER NODE 5");
+
+
+	SListFreeAll(head_list1);
+}
+
+/* is_match test function */
+int isChar(const void* data, void* param)
+{
+	if (*(char*)data == *(char*)param)
+	{
+		return (0);
+	}
+
+	return (1);
+}
+
+/* operation test function */
+int ToLower(void* data, void* param)
+{
+	if (*(char*)data == *(char*)param)
+	{
+		return (1);
+	}
+
+	*(char*)data = tolower(*(char*)data);
+	return (0);
+}
 
 
 /* Test functions for debug version */

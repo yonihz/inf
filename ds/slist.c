@@ -89,6 +89,12 @@ slist_node_t* SListRemove(slist_node_t *target)
 size_t SListCount(const slist_node_t *head)
 {
 	size_t i = 0;
+
+	if (SListHasLoop(head))
+	{
+		return (0);
+	}
+
 	for (i = 0; head; i++, head = head->next) {};
 	return i;
 }
@@ -96,6 +102,11 @@ size_t SListCount(const slist_node_t *head)
 void SListFreeAll(slist_node_t *head)
 {
 	slist_node_t* node_current = head->next;
+
+	if (SListHasLoop(head))
+	{
+		return;
+	}
 	
 	free(head);
 	while (node_current)
@@ -106,13 +117,18 @@ void SListFreeAll(slist_node_t *head)
 	}
 }
 
-slist_node_t *SListFind(slist_node_t *head, is_match_func *match, void *param)
+slist_node_t *SListFind(slist_node_t *head, is_match_func match, void *param)
 {
 	int found = 0;
 
+	if (SListHasLoop(head))
+	{
+		return NULL;
+	}
+
 	while (head)
 	{
-		found = (*match)(head->data, param);
+		found = match(head->data, param);
 		
 		if (0 == found)
 		{
@@ -125,14 +141,19 @@ slist_node_t *SListFind(slist_node_t *head, is_match_func *match, void *param)
 	return NULL;
 }
 
-void SListForEach(slist_node_t* head, operation_func* operation, void* param)
+void SListForEach(slist_node_t* head, operation_func operation, void* param)
 {
 	int stop = 0;
+
+	if (SListHasLoop(head))
+	{
+		return;
+	}
 
 	while (head)
 	{
 		stop = (*operation)(head->data, param);
-		if (0 == stop)
+		if (stop)
 		{
 			return;
 		}
@@ -145,6 +166,11 @@ slist_node_t* SListFlip(slist_node_t* head)
 {
 	slist_node_t* node_next = NULL;
 	slist_node_t* node_prev = NULL;
+
+	if (SListHasLoop(head))
+	{
+		return NULL;
+	}
 
 	node_next = head->next;
 	head->next = NULL;
@@ -197,6 +223,11 @@ slist_node_t* SListFindIntersection(slist_node_t* head1, slist_node_t* head2)
 	slist_node_t* node1 = head1;
 	slist_node_t* node2 = head2;
 
+	if (SListHasLoop(head1) || SListHasLoop(head2))
+	{
+		return NULL;
+	}
+
 	for (count1 = 1; node1->next; count1++, node1 = node1->next) {};
 	for (count2 = 1; node2->next; count2++, node2 = node2->next) {};
 
@@ -205,7 +236,7 @@ slist_node_t* SListFindIntersection(slist_node_t* head1, slist_node_t* head2)
 		return (NULL);
 	}
 
-	if (count1 > count)
+	if (count1 > count2)
 	{
 		count1 = count1 - count2;
 		node1 = head1;

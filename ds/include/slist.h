@@ -40,10 +40,10 @@ size_t SListCount(const slist_node_t *head);
 void SListFreeAll(slist_node_t *head);
 
 /* complexity of o(n) if loop return NULL*/
-slist_node_t *SListFind(slist_node_t *head, is_match_func *match, void *param);
+slist_node_t *SListFind(slist_node_t *head, is_match_func match, void *param);
 
 /* complexity of o(n),if loop return NULL */
-void SListForEach(slist_node_t* head, operation_func* operation, void* param);
+void SListForEach(slist_node_t* head, operation_func operation, void* param);
 
 /* complexity of o(n),if loop return NULL*/
 slist_node_t* SListFlip(slist_node_t* head);
