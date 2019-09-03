@@ -1,8 +1,8 @@
 #ifndef _SINGLY_LINKED_LIST_H_
 #define _SINGLY_LINKED_LIST_H_
 
-/* Rev. 0.7*/ 
-/* 02.09.19  18:30 */
+/* Rev. 1.0*/ 
+/* 03.09.19  10:50 */
 #include <stddef.h>
 
 typedef struct slist_node slist_node_t;
@@ -13,7 +13,7 @@ struct slist_node
     slist_node_t* next;
 };
 /*when found return 0*/
-typedef int(*is_match_func)(void* data, void* param);
+typedef int(*is_match_func)(const void* data, void* param);
 /* only 0 = continue , otherwise - stop*/
 typedef int(*operation_func)(void* data, void* param);
 
@@ -37,7 +37,7 @@ slist_node_t* SListRemove(slist_node_t *target);
 size_t SListCount(const slist_node_t *head);
 
 /* complexity of o(n) */
-void SListFreeAll(sList_node_t *head);
+void SListFreeAll(slist_node_t *head);
 
 /* complexity of o(n) if loop return NULL*/
 slist_node_t *SListFind(slist_node_t *head, is_match_func *match, void *param);
@@ -51,7 +51,7 @@ slist_node_t* SListFlip(slist_node_t* head);
 /* complexity of o(n) */
 int SListHasLoop(const slist_node_t* head);
 
-/* complexity of o(n), if loop return NULL */
+/* complexity of o(n),return the mutual node. if loop return NULL */
 slist_node_t* SListFindIntersection(slist_node_t* head1, slist_node_t* head2);
 
 #endif
