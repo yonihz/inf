@@ -10,13 +10,13 @@
 * 																*
 * Author: Yoni Horovitz											*
 * 																*
-* Reviewer: N/A													*
+* Reviewer: Tal Samucha													*
 * 																*
 ****************************************************************/
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stdio.h> /* printf */
+#include <stdlib.h> /* malloc */
+#include <string.h> /* strcmp */
 #include <assert.h>
 
 #include "stack.h"

@@ -10,7 +10,7 @@
 * 																*
 * Author: Yoni Horovitz											*
 * 																*
-* Reviewer: N/A													*
+* Reviewer: Tal Samucha												*
 * 																*
 ****************************************************************/
 
@@ -28,7 +28,7 @@ void TestStackCreateSize0();
 void TestStackInvalidPtr();
 #endif
 
-void TestStackCreate();
+void TestStackCreateAndPush();
 void TestStackPush();
 void TestStackPop();
 void TestStackPeek();
@@ -38,7 +38,7 @@ void TestStackLIFO();
 
 int main()
 {
-	TestStackCreate();
+	TestStackCreateAndPush();
     TestStackPush();
     TestStackPop();
     TestStackPeek();
@@ -95,7 +95,7 @@ void VerifyVoidptr(void* test, void* expected, char pass[], char fail[])
 	printf(RESET);
 }
 
-void TestStackCreate()
+void TestStackCreateAndPush()
 {
 	stack_t* stack1 = NULL;
     size_t num_of_elements = 5;
@@ -110,6 +110,7 @@ void TestStackCreate()
     "TEST 1 FAILED - CREATE AND PUSH");
 
 	StackDestroy(stack1);
+	stack1 = NULL;
 }
 
 void TestStackPush()
@@ -137,6 +138,7 @@ void TestStackPush()
     "TEST 2 FAILED - PUSH TO FULL STACK");
 
 	StackDestroy(stack1);
+	stack1 = NULL;
 }
 
 void TestStackPop()
@@ -165,6 +167,7 @@ void TestStackPop()
     "TEST 2 FAILED - POP AFTER STACK IS EMPTY");
 
 	StackDestroy(stack1);
+	stack1 = NULL;
 }
 
 void TestStackPeek()
@@ -189,6 +192,7 @@ void TestStackPeek()
     "TEST 2 FAILED - PEEK AFTER PUSH");
 
 	StackDestroy(stack1);
+	stack1 = NULL;
 }
 
 void TestStackSize()
@@ -226,6 +230,7 @@ void TestStackSize()
     "TEST 4 FAILED - EMPTY STACK AFTER 2 POP");
 
 	StackDestroy(stack1);
+	stack1 = NULL;
 }
 
 void TestStackIsEmpty()
@@ -251,6 +256,7 @@ void TestStackIsEmpty()
     "TEST 2 FAILED - NON-EMPTY STACK AFTER PUSH");
 
 	StackDestroy(stack1);
+	stack1 = NULL;
 }
 
 void TestStackLIFO()
@@ -288,6 +294,7 @@ void TestStackLIFO()
     "TEST 5 FAILED - POP AND PEEK");
 
 	StackDestroy(stack1);
+	stack1 = NULL;
 }
 
 #ifndef NDEBUG
