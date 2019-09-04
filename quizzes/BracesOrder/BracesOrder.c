@@ -26,19 +26,19 @@ int main()
 	braces_lut['}'] = '{';
 
 	IsBracesValid("({5+3*6+4*{(8*9)}*10}", braces_lut) ?
-	printf("SUCCESS\n\n") : printf("FAIL\n\n");
+	printf("VALID\n\n") : printf("INVALID\n\n");
 
 	IsBracesValid("({5+3*6+4*{(8*9)}*10})", braces_lut) ?
-	printf("SUCCESS\n\n") : printf("FAIL\n\n");
+	printf("VALID\n\n") : printf("INVALID\n\n");
 
 	IsBracesValid(")({5+3*6+4*{(8*9)}*10}", braces_lut) ?
-	printf("SUCCESS\n\n") : printf("FAIL\n\n");
+	printf("VALID\n\n") : printf("INVALID\n\n");
 
 	IsBracesValid("5+3*(5+3*6+4*{(8*9)}*10}", braces_lut) ?
-	printf("SUCCESS\n\n") : printf("FAIL\n\n");
+	printf("VALID\n\n") : printf("INVALID\n\n");
 
 	IsBracesValid("5+798+**777", braces_lut) ?
-	printf("SUCCESS\n\n") : printf("FAIL\n\n");
+	printf("VALID\n\n") : printf("INVALID\n\n");
 
 	return(0);
 }
@@ -57,7 +57,7 @@ int IsBracesValid(char str[], int braces_lut[])
 
 	while (*(str+i))
 	{
-		char op = braces_lut[*(char*)(str+i)];
+		char op = braces_lut[(size_t)*(char*)(str+i)];
 	
 		if (op == 1)
 		{
