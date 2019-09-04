@@ -18,6 +18,7 @@
 #include <string.h>	/* strcmp */
 #include <stdlib.h>	/* free */
 
+#include "queue.h"
 #include "slist.h"
 
 /* colors for test results */
@@ -34,8 +35,11 @@
 
 /* API test functions */
 
+void TestQCreate();
+
 int main()
 {
+	TestQCreate();
 
 #ifndef NDEBUG
 
@@ -97,6 +101,14 @@ void VerifyChar(char test[], char expected[], char test_name[])
 
 /* Test functions for API */
 
+void TestQCreate()
+{
+	queue_t* queue1 = NULL; 
+
+	printf("Create Tests\n");
+	
+	queue1 = QCreate();
+}
 
 /* Test functions for debug version */
 

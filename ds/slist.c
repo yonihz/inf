@@ -48,9 +48,9 @@ slist_node_t* SListInsertAfter(slist_node_t *target, slist_node_t *new_node)
 
 slist_node_t* SListInsert(slist_node_t *target, slist_node_t *new_node)
 {
-	void* temp = target->data;
+	void* temp_data = target->data;
 	target->data = new_node->data;
-	new_node->data = temp;	
+	new_node->data = temp_data;	
 
 	new_node->next = target->next;
 	target->next = new_node;
@@ -70,6 +70,7 @@ slist_node_t* SListRemoveAfter(slist_node_t *target)
 	target->next = (target->next)->next;
 
 	free(after_target);
+	after_target = NULL;
 
 	return (target->next);
 }
@@ -82,6 +83,7 @@ slist_node_t* SListRemove(slist_node_t *target)
 	target->next = after_target->next;
 
 	free(after_target);
+	after_targer = NULL;
 
 	return (target);
 }
