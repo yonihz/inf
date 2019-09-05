@@ -83,7 +83,7 @@ slist_node_t* SListRemove(slist_node_t *target)
 	target->next = after_target->next;
 
 	free(after_target);
-	after_targer = NULL;
+	after_target = NULL;
 
 	return (target);
 }

@@ -31,18 +31,15 @@ struct queue
 queue_t* QCreate()
 {
 	queue_t* new_queue = NULL;
-	slist_node_t* node_dummy = NULL;
 
 	new_queue = malloc(sizeof(queue_t));
 	assert(new_queue);
 
-	node_dummy = malloc(sizeof(slist_node_t));
-	assert(node_dummy);
+	new_queue->first = SListCreateNode(NULL, NULL);	
 
-	new_queue->first = node_dummy;
-	new_queue->last = node_dummy;
-	node_dummy->next = NULL;
-	node_dummy->data = NULL;
+	assert(new_queue->first);
+
+	new_queue->last = new_queue->first;
 
 	return (new_queue);
 }

@@ -103,11 +103,21 @@ void VerifyChar(char test[], char expected[], char test_name[])
 
 void TestQCreate()
 {
-	queue_t* queue1 = NULL; 
+	int a = 14;
+	queue_t* queue1 = NULL;
+	slist_node_t* node1 = NULL;
 
 	printf("Create Tests\n");
 	
 	queue1 = QCreate();
+
+	QEnqueue(queue1, &a);
+
+	node1 = (queue1->first);
+
+	VerifyVoidptr(node1->data, &a,
+	"TEST1 - CREATE AND ENQUEUE");
+
 }
 
 /* Test functions for debug version */
