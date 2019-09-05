@@ -35,11 +35,19 @@
 
 /* API test functions */
 
-void TestQCreate();
+void TestQCreateAndEnq();
+void TestQEnqDeqAndPeek();
+
+struct queue
+{
+	slist_node_t* first;
+	slist_node_t* last;
+};
 
 int main()
 {
-	TestQCreate();
+	TestQCreateAndEnq();
+	TestQEnqDeqAndPeek();
 
 #ifndef NDEBUG
 
@@ -101,22 +109,40 @@ void VerifyChar(char test[], char expected[], char test_name[])
 
 /* Test functions for API */
 
-void TestQCreate()
+void TestQCreateAndEnq()
 {
-	int a = 14;
+	int a = 14, b = 32;
 	queue_t* queue1 = NULL;
-	slist_node_t* node1 = NULL;
+	slist_node_t* dummy = NULL;
+	slist_node_t* last = NULL;
 
-	printf("Create Tests\n");
+	printf("Create and Enqueue Tests\n");
 	
 	queue1 = QCreate();
 
+	dummy = queue1->first;
+	last = queue1->last;
+
+	VerifySListt(dummy->next, NULL,
+	"TEST1 - CREATE AND CHECK DUMMY NEXT");
+
+	VerifyVoidptr(dummy->data, NULL,
+	"TEST2 - CREATE AND CHECK DUMMY DATA");
+
 	QEnqueue(queue1, &a);
+	QEnqueue(queue1, &b);
 
-	node1 = (queue1->first);
+	VerifyVoidptr((dummy->next)->data, &a,
+	"TEST3 - 2 ENQUEUE AND CHECK QUEUE STRUCT FIRST");
 
-	VerifyVoidptr(node1->data, &a,
-	"TEST1 - CREATE AND ENQUEUE");
+	VerifyVoidptr(last->data, &b,
+	"TEST4 - 2 ENQUEUE AND CHECK QUEUE STRUCT LAST");
+
+	QDestroy(queue1);
+}
+
+void TestQEnqDeqAndPeek()
+{
 
 }
 

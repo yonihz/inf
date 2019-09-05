@@ -63,9 +63,20 @@ void QDequeue(queue_t* queue)
 /* return 0=success, 1=failur no check if data=null */
 int QEnqueue(queue_t* queue, void *data)
 {
+	slist_node_t* new_node = NULL;
+
 	assert(queue);
 	
-	queue->last = SListCreateNode(data, queue->last);
+	new_node = SListCreateNode(data, NULL);
+
+	if ((queue->first)->next == NULL)
+	{
+		printf("enqueue first\n");
+		(queue->first)->next = new_node;
+	}
+
+	queue->last = SListInsertAfter(queue->last, new_node);
+	printf("enqueue\n");
 
 	if (!(queue->last))
 	{
