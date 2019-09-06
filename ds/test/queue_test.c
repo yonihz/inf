@@ -121,29 +121,83 @@ void TestQCreateAndEnq()
 	queue1 = QCreate();
 
 	dummy = queue1->first;
-	last = queue1->last;
 
 	VerifySListt(dummy->next, NULL,
-	"TEST1 - CREATE AND CHECK DUMMY NEXT");
+	"TEST1  - CREATE AND CHECK DUMMY NEXT");
 
 	VerifyVoidptr(dummy->data, NULL,
-	"TEST2 - CREATE AND CHECK DUMMY DATA");
+	"TEST2  - CREATE AND CHECK DUMMY DATA");
 
 	QEnqueue(queue1, &a);
-	QEnqueue(queue1, &b);
+	last = queue1->last;
 
 	VerifyVoidptr((dummy->next)->data, &a,
-	"TEST3 - 2 ENQUEUE AND CHECK QUEUE STRUCT FIRST");
+	"TEST3  - 1 ENQUEUE AND CHECK QUEUE STRUCT FIRST");
+
+	VerifyVoidptr(last->data, &a,
+	"TEST4  - 1 ENQUEUE AND CHECK QUEUE STRUCT LAST");
+
+	QEnqueue(queue1, &b);
+	last = queue1->last;
+
+	VerifyVoidptr((dummy->next)->data, &a,
+	"TEST5  - 2 ENQUEUE AND CHECK QUEUE STRUCT FIRST");
 
 	VerifyVoidptr(last->data, &b,
-	"TEST4 - 2 ENQUEUE AND CHECK QUEUE STRUCT LAST");
+	"TEST6  - 2 ENQUEUE AND CHECK QUEUE STRUCT LAST");
+
+	QDequeue(queue1);
+	last = queue1->last;
+
+	VerifyVoidptr((dummy->next)->data, &b,
+	"TEST7  - 1 DEQUEUE AND CHECK QUEUE STRUCT FIRST");
+
+	VerifyVoidptr(last->data, &b,
+	"TEST8  - 1 DEQUEUE AND CHECK QUEUE STRUCT LAST");
+
+	QDequeue(queue1);
+	last = queue1->last;
+
+	VerifyVoidptr((dummy->next)->data, NULL,
+	"TEST9  - 2 DEQUEUE AND CHECK QUEUE STRUCT FIRST");
+
+	QEnqueue(queue1, &a);
+	last = queue1->last;
+
+	VerifyVoidptr((dummy->next)->data, &a,
+	"TEST10 - 1 ENQUEUE AND CHECK QUEUE STRUCT FIRST");
+
+	VerifyVoidptr(last->data, &a,
+	"TEST11 - 1 ENQUEUE AND CHECK QUEUE STRUCT LAST");
 
 	QDestroy(queue1);
 }
 
 void TestQEnqDeqAndPeek()
 {
+	int a = 14, b = 32;
+	queue_t* queue1 = NULL;
 
+	printf("Enqueue Dequeue and Peek Tests\n");
+	
+	queue1 = QCreate();
+
+	QEnqueue(queue1, &a);
+
+	VerifyVoidptr(QPeek(queue1), &a,
+	"TEST1 - 2 ENQUEUE AND CHECK QUEUE STRUCT FIRST");
+
+	QEnqueue(queue1, &b);
+
+	VerifyVoidptr(QPeek(queue1), &a,
+	"TEST2 - 2 ENQUEUE AND CHECK QUEUE STRUCT FIRST");
+
+	QDequeue(queue1);
+
+	VerifyVoidptr(QPeek(queue1), &b,
+	"TEST3 - 2 ENQUEUE AND CHECK QUEUE STRUCT FIRST");
+
+	QDestroy(queue1);
 }
 
 /* Test functions for debug version */

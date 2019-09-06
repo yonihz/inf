@@ -58,6 +58,14 @@ void QDequeue(queue_t* queue)
 	assert(queue);
 
 	(queue->first)->next = SListRemoveAfter(queue->first);
+	printf("Deq\n");
+	printf("(queue->first)->next = %p\n",(void*)(queue->first)->next);
+
+	if ((queue->first)->next == NULL)
+	{
+		printf("Deq last\n");
+		queue->last = queue->first;
+	}
 }
 
 /* return 0=success, 1=failur no check if data=null */
@@ -71,12 +79,12 @@ int QEnqueue(queue_t* queue, void *data)
 
 	if ((queue->first)->next == NULL)
 	{
-		printf("enqueue first\n");
+		printf("Enq first\n");
 		(queue->first)->next = new_node;
 	}
 
+	printf("Enq\n");
 	queue->last = SListInsertAfter(queue->last, new_node);
-	printf("enqueue\n");
 
 	if (!(queue->last))
 	{
