@@ -36,7 +36,6 @@ queue_t* QCreate()
 	assert(new_queue);
 
 	new_queue->first = SListCreateNode(NULL, NULL);	
-
 	assert(new_queue->first);
 
 	new_queue->last = new_queue->first;
@@ -65,7 +64,6 @@ void QDequeue(queue_t* queue)
 
 }
 
-/* return 0=success, 1=failur no check if data=null */
 int QEnqueue(queue_t* queue, void *data)
 {
 	slist_node_t* new_node = NULL;
@@ -84,7 +82,6 @@ int QEnqueue(queue_t* queue, void *data)
 	return (0);
 }
 
-/* if empty return null, return pointer to node->data */
 void *QPeek(const queue_t* queue)
 {
 	assert(queue);
@@ -107,7 +104,6 @@ size_t QSize(const queue_t* queue)
 	return (SListCount((queue->first)->next));
 }
 
-/* 1= empty. 0=full */
 int QIsEmpty(const queue_t* queue)
 {
 	assert(queue);
@@ -117,7 +113,11 @@ int QIsEmpty(const queue_t* queue)
 
 void QAppend(queue_t* dest, queue_t* src)
 {
-	(src->last)->next = (dest->first)->next;
-	(dest->first)->next = NULL;
+	assert(dest && src);
+	
+	(dest->last)->next = (src->first)->next;
+	dest->last = src->last;
+	(src->first)->next = NULL;
+	src->last = src->first;
 }
 

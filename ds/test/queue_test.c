@@ -38,6 +38,7 @@
 void TestQFirstLast();
 void TestQEnqDeqAndPeek();
 void TestQSize();
+void TestQAppend();
 
 struct queue
 {
@@ -50,6 +51,7 @@ int main()
 	TestQFirstLast();
 	TestQEnqDeqAndPeek();
 	TestQSize();
+	TestQAppend();
 
 #ifndef NDEBUG
 
@@ -259,6 +261,72 @@ void TestQSize()
 	"TEST9 - SIZE 1 ENQUEUE");
 
 	QDestroy(queue1);
+}
+
+void TestQAppend()
+{
+	int q11 = 14, q12 = 32, q13 = 47, q14 = 9, q15 = 98;
+	int q21 = 23, q22 = 67, q23 = 89, q24 = 13, q25 = 78;
+
+	slist_node_t* last1 = NULL;
+	slist_node_t* last2 = NULL;
+	queue_t* queue1 = NULL;
+	queue_t* queue2 = NULL;
+
+	printf("Append Tests\n");
+	
+	queue1 = QCreate();
+	queue2 = QCreate();
+
+	QEnqueue(queue1, &q11);
+	QEnqueue(queue1, &q12);
+	QEnqueue(queue1, &q13);
+	QEnqueue(queue1, &q14);
+
+	QEnqueue(queue2, &q21);
+	QEnqueue(queue2, &q22);
+	QEnqueue(queue2, &q23);
+
+	VerifySizet(QSize(queue1), 4,
+	"TEST1 - SIZE QUEUE1 - 4 ENQUEUE");
+
+	VerifySizet(QSize(queue2), 3,
+	"TEST2 - SIZE QUEUE2 - 3 ENQUEUE");
+
+	QAppend(queue1, queue2);
+
+	VerifySizet(QSize(queue1), 7,
+	"TEST3 - SIZE QUEUE 1 IS 7 AFTER APPEND");
+
+	VerifyInt(QIsEmpty(queue2), 1,
+	"TEST4 - SIZE QUEUE 2 IS 0 AFTER APPEND");
+
+	VerifyVoidptr(QPeek(queue1), &q11,
+	"TEST5 - PEEK QUEUE 1 AFTER APPEND");
+
+	VerifyVoidptr(QPeek(queue2), NULL,
+	"TEST6 - PEEK QUEUE 2 AFTER APPEND");
+
+	last1 = queue1->last;
+
+	VerifyVoidptr(last1->data, &q23,
+	"TEST7  - CHECK QUEUE1 STRUCT LAST AFTER APPEND");
+
+	QEnqueue(queue1, &q15);
+	QEnqueue(queue2, &q24);
+	QEnqueue(queue2, &q25);
+
+	last1 = queue1->last;
+	last2 = queue2->last;
+
+	VerifyVoidptr(last1->data, &q15,
+	"TEST8  - CHECK QUEUE1 STRUCT LAST AFTER 1 ENQ");
+
+	VerifyVoidptr(last2->data, &q25,
+	"TEST9  - CHECK QUEUE2 STRUCT LAST AFTER 2 ENQ");
+
+	QDestroy(queue1);
+	QDestroy(queue2);
 }
 
 /* Test functions for debug version */
