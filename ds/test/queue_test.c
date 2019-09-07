@@ -10,7 +10,7 @@
 * 																*
 * Author: Yoni Horovitz											*
 * 																*
-* Reviewer: N/A												*
+* Reviewer: N/A													*
 * 																*
 ****************************************************************/
 
@@ -35,8 +35,9 @@
 
 /* API test functions */
 
-void TestQCreateAndEnq();
+void TestQFirstLast();
 void TestQEnqDeqAndPeek();
+void TestQSize();
 
 struct queue
 {
@@ -46,8 +47,9 @@ struct queue
 
 int main()
 {
-	TestQCreateAndEnq();
+	TestQFirstLast();
 	TestQEnqDeqAndPeek();
+	TestQSize();
 
 #ifndef NDEBUG
 
@@ -109,14 +111,14 @@ void VerifyChar(char test[], char expected[], char test_name[])
 
 /* Test functions for API */
 
-void TestQCreateAndEnq()
+void TestQFirstLast()
 {
 	int a = 14, b = 32;
 	queue_t* queue1 = NULL;
 	slist_node_t* dummy = NULL;
 	slist_node_t* last = NULL;
 
-	printf("Create and Enqueue Tests\n");
+	printf("Queue First Last Tests\n");
 	
 	queue1 = QCreate();
 
@@ -158,8 +160,8 @@ void TestQCreateAndEnq()
 	QDequeue(queue1);
 	last = queue1->last;
 
-	VerifyVoidptr((dummy->next)->data, NULL,
-	"TEST9  - 2 DEQUEUE AND CHECK QUEUE STRUCT FIRST");
+	VerifySListt(dummy->next, NULL,
+	"TEST9 -  2 DEQUEUE AND CHECK QUEUE STRUCT FIRST");
 
 	QEnqueue(queue1, &a);
 	last = queue1->last;
@@ -185,17 +187,76 @@ void TestQEnqDeqAndPeek()
 	QEnqueue(queue1, &a);
 
 	VerifyVoidptr(QPeek(queue1), &a,
-	"TEST1 - 2 ENQUEUE AND CHECK QUEUE STRUCT FIRST");
+	"TEST1 - 1 ENQUEUE AND PEEK");
 
 	QEnqueue(queue1, &b);
 
 	VerifyVoidptr(QPeek(queue1), &a,
-	"TEST2 - 2 ENQUEUE AND CHECK QUEUE STRUCT FIRST");
+	"TEST2 - 2 ENQUEUE AND PEEK");
 
 	QDequeue(queue1);
 
 	VerifyVoidptr(QPeek(queue1), &b,
-	"TEST3 - 2 ENQUEUE AND CHECK QUEUE STRUCT FIRST");
+	"TEST3 - 1 DEQUEUE AND PEEK");
+
+	QDequeue(queue1);
+
+	VerifyVoidptr(QPeek(queue1), NULL,
+	"TEST4 - 2 DEQUEUE (EMPTY) AND PEEK");
+
+	QEnqueue(queue1, &a);
+
+	VerifyVoidptr(QPeek(queue1), &a,
+	"TEST5 - 1 ENQUEUE AND PEEK");
+
+	QDestroy(queue1);
+}
+
+void TestQSize()
+{
+	int a = 14, b = 32;
+	queue_t* queue1 = NULL;
+
+	printf("Size Tests\n");
+	
+	queue1 = QCreate();
+
+	VerifySizet(QSize(queue1), 0,
+	"TEST1 - SIZE EMPTY QUEUE");
+
+	VerifyInt(QIsEmpty(queue1), 1,
+	"TEST2 - ISEMPTY EMPTY QUEUE");
+
+	QEnqueue(queue1, &a);
+
+	VerifySizet(QSize(queue1), 1,
+	"TEST3 - SIZE 1 ENQUEUE");
+
+	VerifyInt(QIsEmpty(queue1), 0,
+	"TEST4 - ISEMPTY NON-EMPTY QUEUE");
+
+	QEnqueue(queue1, &b);
+
+	VerifySizet(QSize(queue1), 2,
+	"TEST5 - SIZE 2 ENQUEUE");
+
+	QDequeue(queue1);
+
+	VerifySizet(QSize(queue1), 1,
+	"TEST6 - SIZE 1 DEQUEUE");
+
+	QDequeue(queue1);
+
+	VerifySizet(QSize(queue1), 0,
+	"TEST7 - SIZE 2 DEQUEUE (EMPTY)");
+
+	VerifyInt(QIsEmpty(queue1), 1,
+	"TEST8 - ISEMPTY EMPTY QUEUE");
+
+	QEnqueue(queue1, &a);
+
+	VerifySizet(QSize(queue1), 1,
+	"TEST9 - SIZE 1 ENQUEUE");
 
 	QDestroy(queue1);
 }

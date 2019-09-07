@@ -70,7 +70,6 @@ slist_node_t* SListRemoveAfter(slist_node_t *target)
 	target->next = (target->next)->next;
 
 	free(after_target);
-	after_target = NULL;
 
 	return (target->next);
 }
@@ -111,11 +110,14 @@ void SListFreeAll(slist_node_t *head)
 	}
 	
 	free(head);
+	head = NULL;
+
 	while (node_current)
 	{
 		head = node_current;
 		node_current = node_current->next;
-		free(head);		
+		free(head);
+		head = NULL;		
 	}
 }
 
