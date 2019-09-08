@@ -1,5 +1,5 @@
-#include <stdio.h>
-#include <string.h>
+#include <stdio.h> /* printf */
+#include <string.h> /* strcmp */
 
 #include "memfuncs.h"
 

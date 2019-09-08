@@ -1,6 +1,4 @@
-#include <stdio.h>
-#include <string.h>
-#include <stddef.h>
+#include <stdio.h> /* printf */
 
 #include "memfuncs.h"
 
@@ -19,7 +17,8 @@ void *Memset(void *s, int c, size_t n)
 	chunks = (n - offset_tail) / word_size;
 	offset_head = n - offset_tail - chunks * word_size;
 
-	printf("\noffset_tail: %lu | chunks: %lu | offset_head: %lu\n\n", offset_tail, chunks, offset_head);
+	printf("\noffset_tail: %lu | chunks: %lu | offset_head: %lu\n\n",
+	offset_tail, chunks, offset_head);
 
 	/* duplicate c to word size length */
 	for (i = 0; i < word_size; i++)
@@ -77,7 +76,8 @@ void *Memcpy(void *dest, const void *src, size_t n)
 	chunks = (n - tail_dest) / word_size;
 	head_src = n - tail_dest - chunks * word_size;
 
-	printf("\ntail_src: %lu | tail_dest: %lu | chunks: %lu | head_src: %lu\n\n", tail_src, tail_dest, chunks, head_src);
+	printf("\ntail_src: %lu | tail_dest: %lu | chunks: %lu | head_src: %lu\n\n",
+	tail_src, tail_dest, chunks, head_src);
 	
 	/* copy first to dest tail byte by byte */
 	for (i = 0; i < tail_dest && n > 0; i++)
@@ -105,13 +105,15 @@ void *Memcpy(void *dest, const void *src, size_t n)
 	{
 		if (tail_src >= tail_dest)
 		{
-			buffer = (*(buff1_ptr_src + i) >> (word_size - (tail_src - tail_dest))*8) | 
-					 (*(buff2_ptr_src + i) << (tail_src - tail_dest)*8);
+			buffer =
+			(*(buff1_ptr_src + i) >> (word_size - (tail_src - tail_dest))*8) | 
+			(*(buff2_ptr_src + i) << (tail_src - tail_dest)*8);
 		}
 		else
 		{
-			buffer = (*(buff1_ptr_src + i) >> (tail_dest - tail_src)*8) | 
-					 (*(buff2_ptr_src + i) << (word_size - (tail_dest-tail_src))*8);
+			buffer =
+			(*(buff1_ptr_src + i) >> (tail_dest - tail_src)*8) | 
+			(*(buff2_ptr_src + i) << (word_size - (tail_dest-tail_src))*8);
 		}
 
 		*(word_ptr_dest + i) = buffer;
@@ -149,8 +151,8 @@ void *Memmove(void *dest, const void *src, size_t n)
 
 	printf("\nchunks: %lu | head_src: %lu\n\n", chunks, head_src);
 
-	/* if src > dest : copy from start of src in chunks then head byte by byte */
-	/* if dest > src : copy from end of src head byte by byte then in chunks */
+	/* if src>dest: copy from start of src in chunks then head byte by byte */
+	/* if dest>src: copy from end of src head byte by byte then in chunks */
 	if (src > dest)
 	{
 		/* printf("src > dest\n"); */

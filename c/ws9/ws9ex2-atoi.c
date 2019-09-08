@@ -1,33 +1,39 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
+#include <stdio.h> /* printf */
+#include <stdlib.h> /* malloc */
+#include <string.h> /* strlen */
+#include <ctype.h> /* toupper */
 
-int AtoiAnyBase(const char* str, int base);
-char* ItoaAnyBase(int n, int b);
+unsigned int AtoiAnyBase(const char* str, unsigned int base);
+char* ItoaAnyBase(unsigned int n, unsigned int b);
 
 int main()
 {
-	int n = 31;
+	unsigned int n = 31;
 	char* str1 = 0;
 	char* str2 = "11111";
-	int base = 2;
+	unsigned int base = 2;
 
 	str1 = ItoaAnyBase(n,base);
 	printf("%d in base %d is %s\n",n, base, str1);
 	printf("%s in base %d is %d\n", str2, base, AtoiAnyBase(str2, base));
 
+	strcmp(str1, "11111") ?
+	printf("ITOA TEST FAILED\n") : printf("ITOA TEST PASSED\n");  
+	
+	AtoiAnyBase(str2, base) == 31 ?
+	printf("ATOI TEST PASSED\n") : printf("ATOI TEST FAILED\n");  
+	
 	free(str1);
 
 	return (0);
 }
 
-int AtoiAnyBase(const char* str, int base)
+unsigned int AtoiAnyBase(const char* str, unsigned int base)
 {
-	int i = 0;
-	int n = 0;
-	int len = 0;
-	int c = 0;
+	unsigned int i = 0;
+	unsigned int n = 0;
+	unsigned int len = 0;
+	unsigned int c = 0;
 	
 	len = strlen(str);
 
@@ -40,7 +46,12 @@ int AtoiAnyBase(const char* str, int base)
 			printf("Input string must contain alphabetic or numeric chars\n");
 			exit(1);
 		}
-		if (base <= 10 && (c < '0' || c > '0' + base - 1))
+		if (base <= 10 && (!isdigit(c) || (c > '0' + base - 1)))
+		{
+			printf("Input string does not match base\n");
+			exit(1);
+		}
+		if (base > 10 && ((unsigned int)toupper(c) > 'A' + base - 11))
 		{
 			printf("Input string does not match base\n");
 			exit(1);
@@ -60,7 +71,7 @@ int AtoiAnyBase(const char* str, int base)
 	return (n);	
 }
 
-char* ItoaAnyBase(int n,int base)
+char* ItoaAnyBase(unsigned int n, unsigned int base)
 {
 	int n_temp = n;
 	int len = 0;
