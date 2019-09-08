@@ -49,6 +49,7 @@ void QDestroy(queue_t* queue)
 
 	SListFreeAll(queue->first);
 	free(queue);
+	queue = NULL;
 }
 
 void QDequeue(queue_t* queue)
@@ -57,7 +58,7 @@ void QDequeue(queue_t* queue)
 
 	(queue->first)->next = SListRemoveAfter(queue->first);
 
-	if ((queue->first)->next == NULL)
+	if (NULL == (queue->first)->next)
 	{
 		queue->last = queue->first;
 	}
@@ -71,14 +72,14 @@ int QEnqueue(queue_t* queue, void *data)
 	assert(queue);
 	
 	new_node = SListCreateNode(data, NULL);
-	SListInsertAfter(queue->last, new_node);
-	queue->last = new_node;
 
 	if (!(queue->last))
 	{
 		return (1);
 	}
-	
+
+	SListInsertAfter(queue->last, new_node);
+	queue->last = new_node;	
 	return (0);
 }
 
