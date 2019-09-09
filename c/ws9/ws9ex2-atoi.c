@@ -3,21 +3,21 @@
 #include <string.h> /* strlen */
 #include <ctype.h> /* toupper */
 
-unsigned int AtoiAnyBase(const char* str, unsigned int base);
-char* ItoaAnyBase(unsigned int n, unsigned int b);
+int AtoiAnyBase(const char* str, int base);
+char* ItoaAnyBase(int n, int b);
 
 int main()
 {
-	unsigned int n = 31;
+	int n = 31;
 	char* str1 = 0;
-	char* str2 = "11111";
-	unsigned int base = 2;
+	char* str2 = "1F";
+	int base = 16;
 
 	str1 = ItoaAnyBase(n,base);
 	printf("%d in base %d is %s\n",n, base, str1);
 	printf("%s in base %d is %d\n", str2, base, AtoiAnyBase(str2, base));
 
-	strcmp(str1, "11111") ?
+	strcmp(str1, "1F") ?
 	printf("ITOA TEST FAILED\n") : printf("ITOA TEST PASSED\n");  
 	
 	AtoiAnyBase(str2, base) == 31 ?
@@ -28,13 +28,20 @@ int main()
 	return (0);
 }
 
-unsigned int AtoiAnyBase(const char* str, unsigned int base)
+int AtoiAnyBase(const char* str, int base)
 {
-	unsigned int i = 0;
-	unsigned int n = 0;
-	unsigned int len = 0;
-	unsigned int c = 0;
-	
+	int i = 0;
+	int n = 0;
+	int len = 0;
+	int c = 0;
+	int isNeg = 1;
+
+	if (*str == '-')
+	{
+		isNeg = -1;
+		str++;	
+	}
+
 	len = strlen(str);
 
 	for (i = 0; i < len; i++)
@@ -46,17 +53,19 @@ unsigned int AtoiAnyBase(const char* str, unsigned int base)
 			printf("Input string must contain alphabetic or numeric chars\n");
 			exit(1);
 		}
+
 		if (base <= 10 && (!isdigit(c) || (c > '0' + base - 1)))
 		{
 			printf("Input string does not match base\n");
 			exit(1);
 		}
-		if (base > 10 && ((unsigned int)toupper(c) > 'A' + base - 11))
+		else if (base > 10 && (toupper(c) > 'A' + base - 11))
 		{
 			printf("Input string does not match base\n");
 			exit(1);
 		}
-		else if (isalpha(c))
+		
+		if (isalpha(c))
 		{
 			c = toupper(c) - ('A' - 10);
 		}
@@ -68,16 +77,26 @@ unsigned int AtoiAnyBase(const char* str, unsigned int base)
 		n = n * base + c;
 	}
 
+	n *= isNeg;
+
 	return (n);	
 }
 
-char* ItoaAnyBase(unsigned int n, unsigned int base)
+char* ItoaAnyBase(int n, int base)
 {
 	int n_temp = n;
 	int len = 0;
 	int i = 0;
 	char* str = 0;
+	int isNeg = 0;
+
+	if (n < 0)
+	{
+		isNeg = 1;
+		n *= -1;
+	}
 	
+	len += isNeg;
 	while (n_temp)
 	{
 		n_temp /= base;
@@ -93,6 +112,11 @@ char* ItoaAnyBase(unsigned int n, unsigned int base)
 		n_temp = n % base;
 		*(str + len - 1 - i) = n_temp <= 9 ? n_temp + '0' : n_temp + 'A' - 10; 
 		n /= base;
+	}
+
+	if (isNeg)
+	{
+		*str = '-';
 	}
 
 	return (str);

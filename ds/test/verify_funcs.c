@@ -47,3 +47,11 @@ void VerifyChar(char test[], char expected[], char test_name[])
 	(printf(RED), printf("## TEST FAIL ## %s\n", test_name)) ;
 	printf(RESET);
 }
+
+void VerifyStrncmp(char test[], char expected[], size_t n, char test_name[])
+{
+	(!strncmp(test, expected, n)) ?
+	(printf(GRN), printf("## TEST PASS ## %s\n", test_name)) :
+	(printf(RED), printf("## TEST FAIL ## %s\n", test_name)) ;
+	printf(RESET);
+}

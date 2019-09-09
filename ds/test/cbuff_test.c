@@ -15,6 +15,9 @@
 ****************************************************************/
 
 #include <stdio.h>	/* printf */
+#include <string.h> /* strlen */
+#include <time.h> /* time */
+#include <stdlib.h> /* srand */
 
 #include "cbuff.h"
 #include "verify_funcs.h"
@@ -27,30 +30,24 @@ struct c_buff
 	size_t read_idx;
 };
 
-/* debug test functions */
-
-#ifndef NDEBUG
-
-#endif
-
 /* API test functions */
 
 void TestBasics();
 void TestWriteReadCirc();
+void CreateStr(char* str);
+void CleanStr(char* str);
+void TestStress();
 
 int main()
 {
+	srand(time(NULL));
+
 	TestBasics();
 	TestWriteReadCirc();
-
-#ifndef NDEBUG
-
-#endif
+	TestStress();
     
 	return (0);
 }
-
-
 
 /* Test functions for API */
 
@@ -102,7 +99,6 @@ void TestBasics()
 	"TEST12 - READ RETURN VALUE WHEN N>SIZE");
 
 	CBuffDestroy(cbuff1);
-
 }
 
 void TestWriteReadCirc()
@@ -135,8 +131,52 @@ void TestWriteReadCirc()
 	CBuffDestroy(cbuff1);
 }
 
-/* Test functions for debug version */
+void TestStress()
+{
+	char arr_src[8];
+	char arr_dest[8];
+	size_t i = 0;
+	cbuff_t* cbuff1 = NULL;
 
-#ifndef NDEBUG
+	printf("Write/Read stress Tests\n");
 
-#endif
+	cbuff1 = CBuffCreate(sizeof(arr_src) - 1);
+
+	for (i = 0; i < 30; i++)
+	{
+		CreateStr(arr_src);
+		CleanStr(arr_dest);
+		CBuffWrite(cbuff1, arr_src, strlen(arr_src));
+		CBuffRead(cbuff1, arr_dest, strlen(arr_src));
+		VerifyChar(arr_dest, arr_src,
+		"STRESS TEST - WRITE / READ");
+		CleanStr(arr_src);
+		CleanStr(arr_dest);
+	}
+
+	CBuffDestroy(cbuff1);
+}
+
+void CreateStr(char* str)
+{
+	size_t len = 8;
+	size_t i = 0;
+
+	len = rand() % len;	
+	for (i = 0; i < len; i++)
+	{
+		*(str+i) = 65 + rand() % 25;
+	}
+	*(str+i) = '\0';
+}
+
+void CleanStr(char* str)
+{
+	size_t len = strlen(str);
+	size_t i = 0;
+	
+	for (i = 0; i <= len; i++)
+	{
+		*(str+i) = '\0';
+	}
+}

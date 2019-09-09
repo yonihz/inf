@@ -10,15 +10,16 @@
 * 																*
 * Author: Yoni Horovitz											*
 * 																*
-* Reviewer: N/A													*
+* Reviewer: 													*
 * 																*
 ****************************************************************/
-#include <assert.h>
-#include <stdlib.h>
-#include <string.h>
+#include <assert.h> /* assert */
+#include <stdlib.h> /* malloc */
+#include <string.h> /* memcpy */
 
 #include "cbuff.h"
 
+#define MIN2(a,b) (((a) > (b)) ? (b) : (a))
 
 struct c_buff
 {
@@ -33,12 +34,16 @@ struct c_buff
 
 cbuff_t* CBuffCreate(size_t capacity)
 {
-	cbuff_t* new_cbuff = malloc(sizeof(cbuff_t));
-	assert(new_cbuff);
-	
-	new_cbuff->arr = malloc(capacity * sizeof(char));
-	assert(new_cbuff->arr);
+	void* new = malloc(sizeof(cbuff_t) + capacity * sizeof(char));
+	cbuff_t* new_cbuff = new;
+	assert(new);
 
+	if (!new)
+	{
+		return NULL;
+	}
+
+	new_cbuff->arr = (char*)new + sizeof(cbuff_t);
 	new_cbuff->cap = capacity;
 	new_cbuff->size = 0;
 	new_cbuff->read_idx = 0;
@@ -49,8 +54,6 @@ cbuff_t* CBuffCreate(size_t capacity)
 /* complexity of free */
 void CBuffDestroy(cbuff_t* cbuff)
 {
-	free(cbuff->arr);
-	cbuff->arr = NULL;
 	free(cbuff);
 	cbuff = NULL;
 }
@@ -66,19 +69,27 @@ ssize_t CBuffRead(cbuff_t* cbuff, void *dest, size_t nbytes)
 {
 	size_t nfirst = 0;	
 	
+	if (!dest)
+	{
+		return (-1);
+	}
+
 	if (CBuffIsEmpty(cbuff))
 	{
 		return (0);
 	}
 
-	nbytes = nbytes > cbuff->size ? cbuff->size : nbytes;
+	nbytes = MIN2(nbytes,cbuff->size);
+
 	nfirst = cbuff->read_idx + nbytes > cbuff->cap ?
 	cbuff->cap - cbuff->read_idx : 0;
 	
 	memcpy(dest,
 	cbuff->arr + cbuff->read_idx,
 	nfirst);
+
 	dest = (char*)dest + nfirst;
+
 	memcpy(dest,
 	cbuff->arr + (cbuff->read_idx + nfirst)%(cbuff->cap),
 	nbytes - nfirst);
@@ -94,19 +105,27 @@ ssize_t CBuffWrite(cbuff_t* cbuff, const void *src, size_t nbytes)
 {
 	size_t nfirst = 0;	
 
+	if (!src)
+	{
+		return (-1);
+	}
+
 	if (!CBuffFreeSpace(cbuff))
 	{
 		return (0);
 	}
 
-	nbytes = nbytes > CBuffFreeSpace(cbuff) ? CBuffFreeSpace(cbuff) : nbytes;
+	nbytes = MIN2(nbytes,CBuffFreeSpace(cbuff));
+	
 	nfirst = cbuff->read_idx + cbuff->size + nbytes > cbuff->cap ?
 	cbuff->cap - cbuff->size - cbuff->read_idx : 0;
 	
-	memcpy(cbuff->arr + cbuff->read_idx,
+	memcpy(cbuff->arr + cbuff->read_idx + cbuff->size,
 	src,
 	nfirst);
+
 	src = (char*)src + nfirst;
+
 	memcpy(cbuff->arr + (cbuff->read_idx + cbuff->size + nfirst)%(cbuff->cap),
 	src,
 	nbytes - nfirst);
