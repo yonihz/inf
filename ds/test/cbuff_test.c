@@ -55,7 +55,6 @@ void TestBasics()
 {
 	char arr_src[8] = "ABCDEFG";
 	char arr_dest[8];
-	char arr_src2[5] = "ABCDE";
 	cbuff_t* cbuff1 = NULL;
 
 	printf("Basic Tests\n");
@@ -84,19 +83,16 @@ void TestBasics()
 	"TEST7  - READ RETURN VALUE");
 
 	VerifySizet(CBuffFreeSpace(cbuff1), 7,
-	"TEST8  - FREESPACE AFTER WRITE");
+	"TEST8  - FREESPACE AFTER READ ALL");
 	
 	VerifyInt(CBuffIsEmpty(cbuff1), 1,
-	"TEST9  - ISEMPTY RETURNS 0 AFTER WRITE");
-
-	VerifyChar(arr_src2, arr_dest,
-	"TEST10 - CHECK READ AFTER WRITE");
+	"TEST9  - ISEMPTY RETURNS 1 AFTER READ ALL");
 
 	VerifySizet(CBuffWrite(cbuff1, arr_src, 9), 7,
-	"TEST11 - WRITE RETURN VALUE WHEN N>SIZE");
+	"TEST10 - WRITE RETURN VALUE WHEN N>SIZE");
 
 	VerifySizet(CBuffRead(cbuff1, arr_dest, 20), 7,
-	"TEST12 - READ RETURN VALUE WHEN N>SIZE");
+	"TEST11 - READ RETURN VALUE WHEN N>SIZE");
 
 	CBuffDestroy(cbuff1);
 }
@@ -120,7 +116,7 @@ void TestWriteReadCirc()
 
 	CBuffWrite(cbuff1, arr_src, 5);
 
-	VerifyChar(cbuff1->arr, "CDEDEAB",
+	VerifyStrncmp(cbuff1->arr, "CDEDEAB",strlen("CDEDEAB"),
 	"TEST2 - CHECK ARR AFTER WRITE");
 
 	CBuffRead(cbuff1, arr_dest, 5);
@@ -133,8 +129,8 @@ void TestWriteReadCirc()
 
 void TestStress()
 {
-	char arr_src[8];
-	char arr_dest[8];
+	char arr_src[8] = {0,0,0,0,0,0,0,0};
+	char arr_dest[8] = {0,0,0,0,0,0,0,0};
 	size_t i = 0;
 	cbuff_t* cbuff1 = NULL;
 

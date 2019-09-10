@@ -9,4 +9,6 @@ void VerifyVoidptr(void* test, void* expected, char test_name[]);
 
 void VerifyChar(char test[], char expected[], char test_name[]);
 
+void VerifyStrncmp(char test[], char expected[], size_t n, char test_name[]);
+
 #endif
