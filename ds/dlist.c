@@ -15,14 +15,19 @@
 ****************************************************************/
 
 #include <stdlib.h> /* malloc */
+#include <assert.h>
+
+#include "dlist.h"
 
 #define UNUSED(x) (void)(x)
+
+typedef struct dlist_node_t dlist_node_t;
 
 struct dlist
 {
 	dlist_node_t* front;
 	dlist_node_t* back;
-}
+};
 
 struct dlist_node_t
 {
@@ -31,17 +36,25 @@ struct dlist_node_t
 	dlist_node_t* prev;
 };
 
+int DListOpSize(void* data, void* size);
+dlist_node_t* DListCreateNode(void* data);
+
 dlist_t* DListCreate(void)
 {
 	dlist_t* new_dlist = NULL;
 	new_dlist = malloc(sizeof(dlist_t));
 	assert(new_dlist);
 
-	new_dlist->front = DlistCreateNode(NULL);
+	new_dlist->front = DListCreateNode(NULL);
 	new_dlist->back = DListCreateNode(NULL);
 
+	(new_dlist->front)->prev = new_dlist->back;
+	(new_dlist->front)->next = NULL;
+	(new_dlist->back)->prev = NULL;
+	(new_dlist->back)->next = new_dlist->front;
+
 	return (new_dlist);
-};	
+}
 
 void DListDestroy(dlist_t* dlist)
 {
@@ -67,7 +80,7 @@ size_t DListSize(const dlist_t* dlist)
 	return (size);
 }
 
-int DListIsEmpty(const dlist_t* dlist);
+int DListIsEmpty(const dlist_t* dlist)
 {
 	return ((dlist->front)->prev == (dlist->back));
 }
@@ -84,7 +97,7 @@ int DListForEach(dlist_iter_t iter_start, dlist_iter_t iter_end,
 
 	while (iter_start != iter_end)
 	{
-		stop = (*operation)((iter->start)->data, param);
+		stop = (*operation)((iter_start)->data, param);
 
 		if (stop)
 		{
@@ -117,7 +130,7 @@ dlist_iter_t DListFind(dlist_iter_t iter_start, dlist_iter_t iter_end,
 }
 
 dlist_iter_t DListSplice(dlist_iter_t dest, dlist_iter_t src_start,
-                         dlist_iter_t src_stop);
+                         dlist_iter_t src_stop)
 {
 	dlist_node_t* node_temp1 = NULL;
 	dlist_node_t* node_temp2 = NULL;
@@ -125,14 +138,16 @@ dlist_iter_t DListSplice(dlist_iter_t dest, dlist_iter_t src_start,
 	node_temp1 = dest->prev;
 	dest->prev = src_stop->prev;
 	node_temp1->next = src_start;
-	node_temp2 = start->prev;
+	node_temp2 = src_start->prev;
 	src_start->prev = node_temp1;
 	node_temp1->next = src_stop;
 	(src_stop->prev)->next = dest;
 	src_stop->prev = node_temp2;
+
+	return (dest);
 }
 
-dlist_iter_t DListBegin(const dlist_t* dlist);
+dlist_iter_t DListBegin(const dlist_t* dlist)
 {
 	return (dlist->front);
 }
@@ -170,7 +185,7 @@ dlist_iter_t DListInsert(dlist_t* dlist, dlist_iter_t iter, void* data)
 	
 	(iter->prev)->next = new_node;
 	(new_node->prev) = (iter->prev);
-	(iter->next)->prev = new_node;
+	iter->prev = new_node;
 	(new_node->next) = iter;
 	return new_node;
 }
@@ -179,6 +194,8 @@ dlist_iter_t DListInsert(dlist_t* dlist, dlist_iter_t iter, void* data)
 complexity O(1) */
 dlist_iter_t DListRemove(dlist_iter_t iter)
 {
+	dlist_iter_t target = NULL;
+
 	if (iter->next == NULL)
 	{
 		return (NULL);	
@@ -195,18 +212,18 @@ dlist_iter_t DListRemove(dlist_iter_t iter)
 
 dlist_iter_t DListPushFront(dlist_t* dlist, void* data)
 {
-	return(Insert(dlist, dlist->front, data));
+	return(DListInsert(dlist, dlist->front, data));
 }
 
-dlist_iter_t DListPushBack(dlist_t* dlist, void* data);
+dlist_iter_t DListPushBack(dlist_t* dlist, void* data)
 {
-	return(Insert(dlist, (dlist->back)->next, data));
+	return(DListInsert(dlist, (dlist->back)->next, data));
 }
 
 void* DListPopFront(dlist_t* dlist)
 {
 	void* data = ((dlist->front)->prev)->data;
-	Remove((dlist->front)->prev);
+	DListRemove((dlist->front)->prev);
 
 	return (data);	
 }
@@ -214,14 +231,14 @@ void* DListPopFront(dlist_t* dlist)
 void* DListPopBack(dlist_t* dlist)
 {
 	void* data = ((dlist->back)->next)->data;
-	Remove((dlist->back)->next);
+	DListRemove((dlist->back)->next);
 
 	return (data);
 }
 
-dlist_node t* DListCreateNode(void* data)
+dlist_node_t* DListCreateNode(void* data)
 {
-	dlist_node_t* new_node = malloc(dlist_node_t);
+	dlist_node_t* new_node = malloc(sizeof(dlist_node_t));
 	assert(new_node);
 
 	if (NULL == new_node)
@@ -239,7 +256,7 @@ int DListOpSize(void* data, void* size)
 {
 	UNUSED(data);
 
-	++(*size);
+	++(*(size_t*)size);
 	return (0);
 }
 
