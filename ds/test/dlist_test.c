@@ -88,9 +88,27 @@ void TestTraverseFuncs()
 	printf("Traverse Functions Tests\n");
 
 	dlist1 = DListCreate();
+
+	VerifySizet(DListSize(dlist1), 0,
+	"TEST1 - SIZE OF EMPTY LIST AFTER CREATE (FOREACH)");
+	VerifyInt(DListIsEmpty(dlist1), 1,
+	"TEST2 - ISEMPTY OF EMPTY LIST AFTER CREATE");
 	DListInsert(dlist1, DListBegin(dlist1), (&a + 0));
 	DListInsert(dlist1, DListBegin(dlist1), (&a + 1));
-
+	DListInsert(dlist1, DListBegin(dlist1), (&a + 2));
+	DListInsert(dlist1, DListBegin(dlist1), (&a + 3));
+	VerifySizet(DListSize(dlist1), 4,
+	"TEST3 - SIZE OF LIST AFTER INSERT (FOREACH)");
+	VerifyInt(DListIsEmpty(dlist1), 0,
+	"TEST4 - ISEMPTY OF LIST AFTER INSERT");
+	DListPopFront(dlist1);
+	DListPopFront(dlist1);
+	DListPopFront(dlist1);
+	DListPopFront(dlist1);
+	VerifySizet(DListSize(dlist1), 0,
+	"TEST5 - SIZE OF EMPTY LIST AFTER REMOVE (FOREACH)");
+	VerifyInt(DListIsEmpty(dlist1), 1,
+	"TEST6 - ISEMPTY OF EMPTY LIST AFTER REMOVE");
 
 	DListDestroy(dlist1);
 }
