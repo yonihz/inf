@@ -48,18 +48,18 @@ dlist_t* DListCreate(void)
 	new_dlist->front = DListCreateNode(NULL);
 	new_dlist->back = DListCreateNode(NULL);
 
-	(new_dlist->front)->prev = new_dlist->back;
-	(new_dlist->front)->next = NULL;
-	(new_dlist->back)->prev = NULL;
-	(new_dlist->back)->next = new_dlist->front;
+	(new_dlist->front)->next = new_dlist->back;
+	(new_dlist->front)->prev = NULL;
+	(new_dlist->back)->next = NULL;
+	(new_dlist->back)->prev = new_dlist->front;
 
 	return (new_dlist);
 }
 
 void DListDestroy(dlist_t* dlist)
 {
-	dlist_iter_t iter = (dlist->back)->next;
-	while (iter != dlist->front)
+	dlist_iter_t iter = (dlist->front)->next;
+	while (iter != dlist->back)
 	{
 		iter = DListRemove(iter);
 	}
@@ -76,13 +76,13 @@ size_t DListSize(const dlist_t* dlist)
 {
 	size_t size = 0;
 	
-	DListForEach((dlist->back)->next, (dlist->front), &DListOpSize, &size);
+	DListForEach((dlist->front)->next, (dlist->back), &DListOpSize, &size);
 	return (size);
 }
 
 int DListIsEmpty(const dlist_t* dlist)
 {
-	return ((dlist->front)->prev == (dlist->back));
+	return ((dlist->front)->next == (dlist->back));
 }
 
 void* DListGetData(dlist_iter_t iter)
@@ -114,9 +114,9 @@ dlist_iter_t DListFind(dlist_iter_t iter_start, dlist_iter_t iter_end,
 {
 	int found = 0;
 
-	while (iter_start != iter_end)
+	while (iter_start != iter_end || NULL == iter_start)
 	{
-		found = match(iter_start, param);
+		found = match(iter_start->data, param);
 
 		if (0 == found)
 		{
@@ -126,7 +126,7 @@ dlist_iter_t DListFind(dlist_iter_t iter_start, dlist_iter_t iter_end,
 		iter_start = iter_start->next;
 	}
 
-	return iter_start;
+	return iter_start ? iter_start : iter_end;
 }
 
 dlist_iter_t DListSplice(dlist_iter_t dest, dlist_iter_t src_start,
@@ -140,7 +140,7 @@ dlist_iter_t DListSplice(dlist_iter_t dest, dlist_iter_t src_start,
 	node_temp1->next = src_start;
 	node_temp2 = src_start->prev;
 	src_start->prev = node_temp1;
-	node_temp1->next = src_stop;
+	node_temp2->next = src_stop;
 	(src_stop->prev)->next = dest;
 	src_stop->prev = node_temp2;
 
@@ -149,28 +149,26 @@ dlist_iter_t DListSplice(dlist_iter_t dest, dlist_iter_t src_start,
 
 dlist_iter_t DListBegin(const dlist_t* dlist)
 {
-	return (dlist->front);
+	return ((dlist->front)->next);
 }
 
 dlist_iter_t DListEnd(const dlist_t* dlist)
 {
-	return ((dlist->back)->next);
+	return (dlist->back);
 }
 
 dlist_iter_t DListNext(dlist_iter_t iter)
 {
-	return (iter->next);
+	return ((iter->next) ? (iter->next) : (iter));
 }
 
 dlist_iter_t DListPrev(dlist_iter_t iter)
 {
-	return (iter->prev);
+	return ((iter->prev) ? (iter->prev) : (iter));
 }
 
 int DListIsSame(dlist_iter_t iter1, dlist_iter_t iter2)
 {
-	/* (iter1>next == iter2->next) && (iter1>prev == iter2->prev)
-	&& (iter1>data == iter2->data) */
 	return (iter1 == iter2);
 }
 
@@ -183,11 +181,11 @@ dlist_iter_t DListInsert(dlist_t* dlist, dlist_iter_t iter, void* data)
 		return DListEnd(dlist);
 	}
 	
+	new_node->prev = iter->prev;
+	new_node->next = iter;
 	(iter->prev)->next = new_node;
-	(new_node->prev) = (iter->prev);
 	iter->prev = new_node;
-	(new_node->next) = iter;
-	return new_node;
+	return (new_node);
 }
 
 /* return the iter after removed one or DListEnd in case of last iter,
@@ -212,26 +210,26 @@ dlist_iter_t DListRemove(dlist_iter_t iter)
 
 dlist_iter_t DListPushFront(dlist_t* dlist, void* data)
 {
-	return(DListInsert(dlist, dlist->front, data));
+	return(DListInsert(dlist, (dlist->front)->next, data));
 }
 
 dlist_iter_t DListPushBack(dlist_t* dlist, void* data)
 {
-	return(DListInsert(dlist, (dlist->back)->next, data));
+	return(DListInsert(dlist, dlist->back, data));
 }
 
 void* DListPopFront(dlist_t* dlist)
 {
-	void* data = ((dlist->front)->prev)->data;
-	DListRemove((dlist->front)->prev);
+	void* data = ((dlist->front)->next)->data;
+	DListRemove((dlist->front)->next);
 
 	return (data);	
 }
 
 void* DListPopBack(dlist_t* dlist)
 {
-	void* data = ((dlist->back)->next)->data;
-	DListRemove((dlist->back)->next);
+	void* data = ((dlist->back)->prev)->data;
+	DListRemove((dlist->back)->prev);
 
 	return (data);
 }
