@@ -46,33 +46,33 @@ void TestBasic()
 	printf("Basic Tests\n");
 
 	dlist1 = DListCreate();
-	i1 = DListInsert(dlist1, DListBegin(dlist1), (&a + 0));
-	i2 = DListInsert(dlist1, DListBegin(dlist1), (&a + 1));
-	VerifyVoidptr(DListGetData(i1), (&a + 0),
+	i1 = DListInsert(dlist1, DListBegin(dlist1), &a[0]);
+	i2 = DListInsert(dlist1, DListBegin(dlist1), &a[1]);
+	VerifyVoidptr(DListGetData(i1), &a[0],
 	"TEST1 - CREATE, INSERT TO BEGIN AND GET DATA");
-	VerifyVoidptr(DListGetData(i2), (&a + 1),
+	VerifyVoidptr(DListGetData(i2), &a[1],
 	"TEST2 - INSERT TO BEGIN AND GET DATA");
-	i3 = DListInsert(dlist1, DListEnd(dlist1), (&a + 2));
-	DListInsert(dlist1, DListEnd(dlist1), (&a + 3));
-	VerifyVoidptr(DListGetData(DListPrev(DListEnd(dlist1))), (&a + 3),
+	i3 = DListInsert(dlist1, DListEnd(dlist1), &a[2]);
+	DListInsert(dlist1, DListEnd(dlist1), &a[3]);
+	VerifyVoidptr(DListGetData(DListPrev(DListEnd(dlist1))), &a[3],
 	"TEST3 - GET DATA OF LAST ELEMENT (END-PREV)");
-	VerifyVoidptr(DListGetData(DListPrev(DListPrev(DListEnd(dlist1)))), (&a + 2),
+	VerifyVoidptr(DListGetData(DListPrev(DListPrev(DListEnd(dlist1)))), &a[2],
 	"TEST4 - GET DATA OF NEXT TO LAST ELEMENT (END-PREV-PREV)");
-	VerifyVoidptr(DListGetData(DListBegin(dlist1)), (&a + 1),
+	VerifyVoidptr(DListGetData(DListBegin(dlist1)), &a[1],
 	"TEST5 - GET DATA OF FIRST ELEMENT (BEGIN)");
-	VerifyVoidptr(DListGetData(DListRemove(i3)), (&a + 3),
+	VerifyVoidptr(DListGetData(DListRemove(i3)), &a[3],
 	"TEST6 - REMOVE AND GET DATA OF RETURNED ITER");
-	DListPushFront(dlist1, (&a + 4));
-	DListPushBack(dlist1, (&a + 5));
-	VerifyVoidptr(DListGetData(DListPrev(DListEnd(dlist1))), (&a + 5),
+	DListPushFront(dlist1, &a[4]);
+	DListPushBack(dlist1, &a[5]);
+	VerifyVoidptr(DListGetData(DListPrev(DListEnd(dlist1))), &a[5],
 	"TEST7 - PUSHBACK GET DATA OF LAST ELEMENT (END PREV)");
-	VerifyVoidptr(DListGetData(DListBegin(dlist1)), (&a + 4),
+	VerifyVoidptr(DListGetData(DListBegin(dlist1)), &a[4],
 	"TEST8 - PUSHFRONT AND GET DATA OF FIRST ELEMENT (BEGIN)");
 	DListPopFront(dlist1);
 	DListPopBack(dlist1);
-	VerifyVoidptr(DListGetData((DListPrev(DListEnd(dlist1)))), (&a + 3),
+	VerifyVoidptr(DListGetData((DListPrev(DListEnd(dlist1)))), &a[3],
 	"TEST9 - POPBACK GET DATA OF LAST ELEMENT (END PREV)");
-	VerifyVoidptr(DListGetData(DListBegin(dlist1)), (&a + 1),
+	VerifyVoidptr(DListGetData(DListBegin(dlist1)), &a[1],
 	"TEST10 - POPFRONT AND GET DATA OF FIRST ELEMENT (BEGIN PREV)");
 
 	DListDestroy(dlist1);
@@ -91,18 +91,18 @@ void TestTraverseFuncs()
 	"TEST1 - SIZE OF EMPTY LIST AFTER CREATE (FOREACH)");
 	VerifyInt(DListIsEmpty(dlist1), 1,
 	"TEST2 - ISEMPTY OF EMPTY LIST AFTER CREATE");
-	DListInsert(dlist1, DListBegin(dlist1), (&a + 0));
-	DListInsert(dlist1, DListBegin(dlist1), (&a + 1));
-	DListInsert(dlist1, DListBegin(dlist1), (&a + 2));
-	DListInsert(dlist1, DListBegin(dlist1), (&a + 3));
+	DListInsert(dlist1, DListBegin(dlist1), &a[0]);
+	DListInsert(dlist1, DListBegin(dlist1), &a[1]);
+	DListInsert(dlist1, DListBegin(dlist1), &a[2]);
+	DListInsert(dlist1, DListBegin(dlist1), &a[3]);
 	VerifySizet(DListSize(dlist1), 4,
 	"TEST3 - SIZE OF LIST AFTER INSERT (FOREACH)");
 	VerifyInt(DListIsEmpty(dlist1), 0,
 	"TEST4 - ISEMPTY OF LIST AFTER INSERT");
-	i1 = DListFind(DListBegin(dlist1), DListEnd(dlist1), &isNum, (&a + 2)); 
-	VerifyVoidptr(DListGetData(i1), (&a + 2),
+	i1 = DListFind(DListBegin(dlist1), DListEnd(dlist1), &isNum, &a[2]); 
+	VerifyVoidptr(DListGetData(i1), &a[2],
 	"TEST5 - FIND EXISTING DATA IN LIST");
-	i1 = DListFind(DListBegin(dlist1), DListEnd(dlist1), &isNum, (&a + 9));
+	i1 = DListFind(DListBegin(dlist1), DListEnd(dlist1), &isNum, &a[9]);
 	VerifyInt(DListIsSame(i1, DListEnd(dlist1)), 1,
 	"TEST6 - FIND NON-EXISTING DATA AND LIST AND USE ISSAME");
 	DListPopFront(dlist1);
@@ -128,10 +128,10 @@ void TestSplice()
 	dlist_iter_t iter_list2 = NULL;
 	int a[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 	int b[10] = {20, 21, 22, 23, 24, 25, 26, 27, 28, 29};
-	int a_splice[14] = {0, 1, 22, 23, 24, 25, 2, 3, 4, 5, 6, 7, 8, 9};
+	int a_splice[14] = {0, 1, 2, 22, 23, 24, 25, 3, 4, 5, 6, 7, 8, 9};
 	int b_splice[6] = {20, 21, 26, 27, 28, 29};
-	size_t i = 0;
-	size_t size = 10;
+	int i = 0;
+	int size = 10;
 
 	printf("Splice Tests\n");
 
@@ -139,8 +139,8 @@ void TestSplice()
 	dlist2 = DListCreate();
 	for (i = 0; i < size; i++)
 	{
-		DListPushFront(dlist1, (&a + i));
-		DListPushFront(dlist2, (&b + i));	
+		DListPushBack(dlist1, &a[i]);
+		DListPushBack(dlist2, &b[i]);	
 	}
 
 	iter_src_start = DListBegin(dlist2);
@@ -169,19 +169,20 @@ void TestSplice()
 
 	for (i = 0; i < 14; i++)
 	{
-		iter_list1 = DListNext(iter_list1);
-		VerifyVoidptr(DListGetData(iter_list1), (&a_splice + i),
+		VerifyVoidptr(DListGetData(iter_list1), &a_splice[i],
 		"TEST - GETDATA OF SPLICE DEST LIST");
+		iter_list1 = DListNext(iter_list1);
 	}
 
 	for (i = 0; i < 6; i++)
 	{
-		iter_list2 = DListNext(iter_list2);
-		VerifyVoidptr(DListGetData(iter_list1), (&b_splice + i),
+		VerifyVoidptr(DListGetData(iter_list2), &b_splice[i],
 		"TEST - GETDATA OF SPLICE SRC LIST");
+		iter_list2 = DListNext(iter_list2);
 	}
 
 	DListDestroy(dlist1);
+	DListDestroy(dlist2);
 }
 
 int isNum(const void* data, void* param)

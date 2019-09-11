@@ -59,22 +59,27 @@ dlist_t* DListCreate(void)
 void DListDestroy(dlist_t* dlist)
 {
 	dlist_iter_t iter = (dlist->front)->next;
+
+	assert(dlist);
+
 	while (iter != dlist->back)
 	{
 		iter = DListRemove(iter);
 	}
 		free(dlist->front);
 		free(dlist->back);
-		free(dlist);
+		dlist->back = NULL;
+		dlist->front = NULL;
 
-	dlist->back = NULL;
-	dlist->front = NULL;
-	dlist = NULL;
+		free(dlist);
+		dlist = NULL;
 }
 
 size_t DListSize(const dlist_t* dlist)
 {
 	size_t size = 0;
+
+	assert(dlist);
 	
 	DListForEach((dlist->front)->next, (dlist->back), &DListOpSize, &size);
 	return (size);
@@ -82,6 +87,8 @@ size_t DListSize(const dlist_t* dlist)
 
 int DListIsEmpty(const dlist_t* dlist)
 {
+	assert(dlist);
+
 	return ((dlist->front)->next == (dlist->back));
 }
 
@@ -149,11 +156,15 @@ dlist_iter_t DListSplice(dlist_iter_t dest, dlist_iter_t src_start,
 
 dlist_iter_t DListBegin(const dlist_t* dlist)
 {
+	assert(dlist);
+
 	return ((dlist->front)->next);
 }
 
 dlist_iter_t DListEnd(const dlist_t* dlist)
 {
+	assert(dlist);
+
 	return (dlist->back);
 }
 
@@ -173,9 +184,15 @@ int DListIsSame(dlist_iter_t iter1, dlist_iter_t iter2)
 }
 
 dlist_iter_t DListInsert(dlist_t* dlist, dlist_iter_t iter, void* data)
-{
-	dlist_node_t* new_node = DListCreateNode(data);
+{	
+	dlist_node_t* new_node = NULL;
+
+	assert(dlist);
+
+	new_node = DListCreateNode(data);
 	
+	assert(new_node);
+
 	if (NULL == new_node)
 	{
 		return DListEnd(dlist);
@@ -210,17 +227,23 @@ dlist_iter_t DListRemove(dlist_iter_t iter)
 
 dlist_iter_t DListPushFront(dlist_t* dlist, void* data)
 {
+	assert(dlist);
+
 	return(DListInsert(dlist, (dlist->front)->next, data));
 }
 
 dlist_iter_t DListPushBack(dlist_t* dlist, void* data)
 {
+	assert(dlist);
 	return(DListInsert(dlist, dlist->back, data));
 }
 
 void* DListPopFront(dlist_t* dlist)
 {
 	void* data = ((dlist->front)->next)->data;
+
+	assert(dlist);
+
 	DListRemove((dlist->front)->next);
 
 	return (data);	
@@ -229,6 +252,9 @@ void* DListPopFront(dlist_t* dlist)
 void* DListPopBack(dlist_t* dlist)
 {
 	void* data = ((dlist->back)->prev)->data;
+
+	assert(dlist);
+
 	DListRemove((dlist->back)->prev);
 
 	return (data);
