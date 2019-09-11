@@ -1,8 +1,8 @@
-#ifndef _SORT_LIST_H_
-#define _SORT_LIST_H_
+#ifndef _SORTED_LIST_H_
+#define _SORTED_LIST_H_
 
 /* Rev. 0.5*/ 
-/* 11.09.19  16:25 */
+/* 11.09.19  19:10 */
 #include <stddef.h> /*size_t, NULL*/
 
 #include "dlist.h"
@@ -70,7 +70,7 @@ srlist_iter_t SortedListFind(srlist_t* srlist, srlist_iter_t start,
 
 /*complexity o(n),  if found- return the first that found. else- return the stop*/
 srlist_iter_t SortedListFindIf(srlist_iter_t start, srlist_iter_t stop,
-                            int(*match)(const void* data,const void* param), void* param);
+                            int(*match)(const void* data,const void* param), const void* param);
 
 #endif
 
