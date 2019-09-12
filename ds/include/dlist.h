@@ -1,22 +1,21 @@
 #ifndef _DLIST_H_
 #define _DLIST_H_
 
-/* Rev. 1.3*/ 
-/* 10.09.19  15:15 */
+/* Rev. 1.7*/ 
+/* 11.09.19  09:45 */
 #include <stddef.h> /*size_t, NULL*/
 
 typedef struct dlist dlist_t;
 typedef struct dlist_node_t* dlist_iter_t;
 
 
-
 /* in case of match return 0 */
-typedef int(*is_match_func)(const void* data, void* param);
-/* param: 0 = continue , otherwise - stop */
+typedef int(*is_match_func)(const void* data, const void* param);
+/* return value: 0 = continue , otherwise - stop */
 typedef int(*oper_func_t)(void* data, void* param);
 
 
-/*complexity of malloc */
+/*in case of failure return NULL, complexity of malloc */
 dlist_t* DListCreate(void);
 
 /*complexity of free*/
@@ -31,19 +30,21 @@ int DListIsEmpty(const dlist_t* dlist);
 /*complexity O(1), get data from end is undefined*/
 void* DListGetData(dlist_iter_t iter);
 
-/* return the return-value of the last operation
+/* return the return-value of the last operation. interate over [iter_start, iter_end)
 , complexity O(n) */
 int DListForEach(dlist_iter_t iter_start, dlist_iter_t iter_end,
                     oper_func_t operation, void* param); 
 
-/*return the first found iter (not including iter_end)
-or iter_end if not found, complexity O(n)*/
+/*return the first found iter or iter_end if not found,
+interate over [iter_start, iter_end) complexity O(n)*/
 dlist_iter_t DListFind(dlist_iter_t iter_start, dlist_iter_t iter_end,
                        is_match_func match, void* param);
+
 /* return dest, insert new iters before dest, including iters from
 src_start to the one before src_stop, complexity O(1)*/
 dlist_iter_t DListSplice(dlist_iter_t dest, dlist_iter_t src_start,
                          dlist_iter_t src_stop);
+
 /*returns the first iter or DListEnd if the list is empty, complexity O(1)*/
 dlist_iter_t DListBegin(const dlist_t* dlist);
 

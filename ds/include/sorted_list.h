@@ -1,15 +1,18 @@
 #ifndef _SORTED_LIST_H_
 #define _SORTED_LIST_H_
 
-/* Rev. 0.5*/ 
-/* 11.09.19  19:10 */
+/* Rev. 0.8*/ 
+/* 12.09.19  07:50 */
 #include <stddef.h> /*size_t, NULL*/
 
 #include "dlist.h"
 
 typedef struct sorted_list srlist_t;
 
-typedef struct srlist_iter srlist_iter_t;
+typedef struct 
+{
+    dlist_iter_t internal_itr;
+} sorted_list_iter_t;
 
 
 /* return 1 in if data1 is before data2, else 0 */
@@ -28,25 +31,25 @@ size_t SortedListSize(const srlist_t* srlist);
 int SortedListIsEmpty(const srlist_t* srlist);
 
 /* complexity o(1) */
-void* SortedListGetData(srlist_iter_t iter);
+void* SortedListGetData(sorted_list_iter_t iter);
 
 /* return the first node */
-srlist_iter_t SortedListBegin(srlist_t* srlist);
+sorted_list_iter_t SortedListBegin(srlist_t* srlist);
 
 /* complexity o(1) */
-srlist_iter_t SortedListEnd(srlist_t* srlist);
+sorted_list_iter_t SortedListEnd(srlist_t* srlist);
 
 /* complexity o(1) */
-srlist_iter_t SortedListPrev(srlist_iter_t iter);
+sorted_list_iter_t SortedListPrev(sorted_list_iter_t iter);
 
 /* complexity o(1) */
-srlist_iter_t SortedListNext(srlist_iter_t iter);
+sorted_list_iter_t SortedListNext(sorted_list_iter_t iter);
 
 /* return the inserted iter, complexity o(1) */
-srlist_iter_t SortedListInsert(srlist_t* srlist, void* data);
+sorted_list_iter_t SortedListInsert(srlist_t* srlist, void* data);
 
 /* complexity o(1). return the next iter affter the removed one */
-srlist_iter_t SortedListRemove(srlist_iter_t iter);
+sorted_list_iter_t SortedListRemove(sorted_list_iter_t iter);
 
 /* complexity o(1) */
 void* SortedListPopFront(srlist_t* srlist);
@@ -55,21 +58,21 @@ void* SortedListPopFront(srlist_t* srlist);
 void* SortedListPopBack(srlist_t* srlist);
 
 /* complextiy o(1) */
-int SortedListIsSameIter(srlist_iter_t iter1, srlist_iter_t iter2);
+int SortedListIsSameIter(sorted_list_iter_t iter1, sorted_list_iter_t iter2);
 
 /* complexity o(n) */
-int SortedListForEach(srlist_iter_t start, srlist_iter_t stop, 
+int SortedListForEach(sorted_list_iter_t start, sorted_list_iter_t stop, 
                             int(*operation)(void* data, void* param), void* param);
 
 /* empties the src list, complexity o(n+m) */
 void SortedListMerge(srlist_t* dest, srlist_t* src);
 
 /* complexity o(n), if found- return the first that found. else- return the stop*/
-srlist_iter_t SortedListFind(srlist_t* srlist, srlist_iter_t start,
-                            srlist_iter_t stop, const void* to_find);
+sorted_list_iter_t SortedListFind(srlist_t* srlist, sorted_list_iter_t start,
+                            sorted_list_iter_t stop, const void* to_find);
 
 /*complexity o(n),  if found- return the first that found. else- return the stop*/
-srlist_iter_t SortedListFindIf(srlist_iter_t start, srlist_iter_t stop,
+sorted_list_iter_t SortedListFindIf(sorted_list_iter_t start, sorted_list_iter_t stop,
                             int(*match)(const void* data,const void* param), const void* param);
 
 #endif
