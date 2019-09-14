@@ -37,6 +37,7 @@ void TestCreate()
 	size_t size = 3;
 	ilrd_uid_t uid_arr[3];
 
+	printf("TEST 1 - CREATE 3 UID'S WITH 1SEC DELAY\n");
 	for (i = 0; i < size; i++)
 	{
 		uid_arr[i] = UIDCreate();
@@ -51,8 +52,17 @@ void TestCreate()
 	}
 
 	VerifyInt(UIDIsSame(uid_arr[0],uid_arr[0]), 1,
-	"TEST1 - ISSAME FOR SAME UID'S");
+	"TEST2 - ISSAME TRUE FOR SAME UID'S");
 
 	VerifyInt(UIDIsSame(uid_arr[0],uid_arr[1]), 0,
-	"TEST1 - ISSAME FOR DIFFERENT UID'S");
+	"TEST3 - ISSAME FALSE FOR DIFFERENT UID'S");
+
+	uid_arr[1].time = -1;
+
+	VerifyInt(UIDIsBad(uid_arr[0]), 0,
+	"TEST4 - ISBAD FALSE FOR VALID UID");
+
+	VerifyInt(UIDIsBad(uid_arr[1]), 1,
+	"TEST5 - ISBAD TRUE FOR INVALID UID (TIME = -1)");
+
 }

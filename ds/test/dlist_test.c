@@ -24,7 +24,7 @@
 void TestBasic();
 void TestTraverseFuncs();
 void TestSplice();
-int isNum(const void* data, void* param);
+int isNum(const void* data, const void* param);
 
 int main()
 {
@@ -185,7 +185,7 @@ void TestSplice()
 	DListDestroy(dlist2);
 }
 
-int isNum(const void* data, void* param)
+int isNum(const void* data, const void* param)
 {
 	if (*(int*)data == *(int*)param)
 	{

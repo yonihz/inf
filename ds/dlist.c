@@ -10,7 +10,7 @@
 * 																*
 * Author: Yoni Horovitz											*
 * 																*
-* Reviewer: N/A													*
+* Reviewer: Eliraz												*
 * 																*
 ****************************************************************/
 
@@ -36,21 +36,23 @@ struct dlist_node_t
 	dlist_node_t* prev;
 };
 
-int DListOpSize(void* data, void* size);
-dlist_node_t* DListCreateNode(void* data);
+static int DListOpSize(void* data, void* size);
+static dlist_node_t* DListCreateNode(void* data);
 
 dlist_t* DListCreate(void)
 {
 	dlist_t* new_dlist = NULL;
 	new_dlist = malloc(sizeof(dlist_t));
-	assert(new_dlist);
+
+	if (NULL == new_dlist)
+	{
+		return (NULL);
+	}
 
 	new_dlist->front = DListCreateNode(NULL);
 	new_dlist->back = DListCreateNode(NULL);
 
 	(new_dlist->front)->next = new_dlist->back;
-	(new_dlist->front)->prev = NULL;
-	(new_dlist->back)->next = NULL;
 	(new_dlist->back)->prev = new_dlist->front;
 
 	return (new_dlist);
@@ -81,7 +83,7 @@ size_t DListSize(const dlist_t* dlist)
 
 	assert(dlist);
 	
-	DListForEach((dlist->front)->next, (dlist->back), &DListOpSize, &size);
+	DListForEach((dlist->front)->next, (dlist->back), DListOpSize, &size);
 	return (size);
 }
 
@@ -102,15 +104,9 @@ int DListForEach(dlist_iter_t iter_start, dlist_iter_t iter_end,
 {
 	int stop = 0;
 
-	while (iter_start != iter_end)
+	while (iter_start != iter_end && !stop)
 	{
 		stop = (*operation)((iter_start)->data, param);
-
-		if (stop)
-		{
-			break;
-		}
-	
 		iter_start = iter_start->next;
 	}
 	return (stop);
@@ -119,37 +115,24 @@ int DListForEach(dlist_iter_t iter_start, dlist_iter_t iter_end,
 dlist_iter_t DListFind(dlist_iter_t iter_start, dlist_iter_t iter_end,
                        is_match_func match, void* param)
 {
-	int found = 0;
-
-	while (iter_start != iter_end || NULL == iter_start)
+	while (iter_start != iter_end && (*match)(iter_start->data, param))
 	{
-		found = match(iter_start->data, param);
-
-		if (0 == found)
-		{
-			break;
-		}
-
 		iter_start = iter_start->next;
 	}
 
-	return iter_start ? iter_start : iter_end;
+	return iter_start;
 }
 
 dlist_iter_t DListSplice(dlist_iter_t dest, dlist_iter_t src_start,
                          dlist_iter_t src_stop)
 {
-	dlist_node_t* node_temp1 = NULL;
-	dlist_node_t* node_temp2 = NULL;
-
-	node_temp1 = dest->prev;
-	dest->prev = src_stop->prev;
-	node_temp1->next = src_start;
-	node_temp2 = src_start->prev;
-	src_start->prev = node_temp1;
-	node_temp2->next = src_stop;
-	(src_stop->prev)->next = dest;
-	src_stop->prev = node_temp2;
+	src_stop = src_stop->prev;
+	(src_start->prev)->next = src_stop->next;
+	(src_stop->next)->prev = src_start->prev;
+	src_start->prev = dest->prev;
+	(dest->prev)->next = src_start;
+	dest->prev = src_stop;
+	src_stop->next = dest;
 
 	return (dest);
 }
@@ -240,9 +223,11 @@ dlist_iter_t DListPushBack(dlist_t* dlist, void* data)
 
 void* DListPopFront(dlist_t* dlist)
 {
-	void* data = ((dlist->front)->next)->data;
+	void* data = NULL;
 
 	assert(dlist);
+
+	data = ((dlist->front)->next)->data;
 
 	DListRemove((dlist->front)->next);
 
@@ -251,16 +236,18 @@ void* DListPopFront(dlist_t* dlist)
 
 void* DListPopBack(dlist_t* dlist)
 {
-	void* data = ((dlist->back)->prev)->data;
+	void* data = NULL;
 
 	assert(dlist);
+
+	data = ((dlist->back)->prev)->data;
 
 	DListRemove((dlist->back)->prev);
 
 	return (data);
 }
 
-dlist_node_t* DListCreateNode(void* data)
+static dlist_node_t* DListCreateNode(void* data)
 {
 	dlist_node_t* new_node = malloc(sizeof(dlist_node_t));
 	assert(new_node);
@@ -276,7 +263,7 @@ dlist_node_t* DListCreateNode(void* data)
 	return (new_node);
 }
 
-int DListOpSize(void* data, void* size)
+static int DListOpSize(void* data, void* size)
 {
 	UNUSED(data);
 
