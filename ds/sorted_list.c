@@ -39,6 +39,13 @@ srlist_t* SortedListCreate(is_before_t is_before)
 	}
 
 	new_srlist->dlist = DListCreate();
+
+	if (NULL == new_srlist->dlist)
+	{
+		free(new_srlist);
+		return (NULL);
+	}
+
 	new_srlist->is_before = is_before;
 
 	return (new_srlist);
@@ -46,6 +53,8 @@ srlist_t* SortedListCreate(is_before_t is_before)
 /* complexity o(1) */
 void SortedListDestroy(srlist_t* srlist)
 {
+	assert(srlist);
+
 	srlist->is_before = NULL;
 	DListDestroy(srlist->dlist);
 	srlist->dlist = NULL;
@@ -56,12 +65,16 @@ void SortedListDestroy(srlist_t* srlist)
 /* complexity o(n)*/
 size_t SortedListSize(const srlist_t* srlist)
 {
+	assert(srlist);
+
 	return (DListSize(srlist->dlist));
 }
 
 /* complexity o(1) */
 int SortedListIsEmpty(const srlist_t* srlist)
 {
+	assert(srlist);
+
 	return (DListIsEmpty(srlist->dlist));
 }
 
@@ -75,6 +88,9 @@ void* SortedListGetData(sorted_list_iter_t iter)
 sorted_list_iter_t SortedListBegin(srlist_t* srlist)
 {
 	sorted_list_iter_t iter;
+
+	assert(srlist);
+
 	iter.internal_itr = DListBegin(srlist->dlist);
 	return (iter);
 }
@@ -83,6 +99,9 @@ sorted_list_iter_t SortedListBegin(srlist_t* srlist)
 sorted_list_iter_t SortedListEnd(srlist_t* srlist)
 {
 	sorted_list_iter_t iter;
+
+	assert(srlist);
+
 	iter.internal_itr = DListEnd(srlist->dlist);
 	return (iter);
 }
@@ -107,6 +126,8 @@ sorted_list_iter_t SortedListNext(sorted_list_iter_t iter)
 sorted_list_iter_t SortedListInsert(srlist_t* srlist, void* data)
 {
 	sorted_list_iter_t iter;
+	assert(srlist);
+
 	iter = SortedListBegin(srlist);
 	while (!SortedListIsSameIter(iter, SortedListEnd(srlist)))
 	{
@@ -131,30 +152,31 @@ sorted_list_iter_t SortedListRemove(sorted_list_iter_t iter)
 /* complexity o(1) */
 void* SortedListPopFront(srlist_t* srlist)
 {
+	assert(srlist);
+
 	return (DListPopFront(srlist->dlist));
 }
 
 /* complexity o(1) */
 void* SortedListPopBack(srlist_t* srlist)
 {
+	assert(srlist);
+
 	return (DListPopBack(srlist->dlist));
 }
 
 /* complextiy o(1) */
 int SortedListIsSameIter(sorted_list_iter_t iter1, sorted_list_iter_t iter2)
 {
-	int ret = 
-	DListIsSame(iter1.internal_itr, iter2.internal_itr);
-	return (ret); 
+	return (DListIsSame(iter1.internal_itr, iter2.internal_itr));
 }
 
 /* complexity o(n) */
 int SortedListForEach(sorted_list_iter_t start, sorted_list_iter_t stop, 
                             int(*operation)(void* data, void* param), void* param)
 {
-	int ret =
-	DListForEach(start.internal_itr, stop.internal_itr, operation, param);
-	return ret;
+	return DListForEach(start.internal_itr,
+			stop.internal_itr, operation, param);
 }
 
 /* empties the src list, complexity o(n+m) */
@@ -162,6 +184,8 @@ void SortedListMerge(srlist_t* dest, srlist_t* src)
 {
 	sorted_list_iter_t iter_src = SortedListBegin(src);
 	sorted_list_iter_t iter_dest = SortedListBegin(dest);
+
+	assert(dest && src);
 
 	/* if dest is empty and src is non-empty, splice all src to dest */
 	if (SortedListIsSameIter(iter_dest, SortedListEnd(dest)) &&
@@ -203,6 +227,8 @@ void SortedListMerge(srlist_t* dest, srlist_t* src)
 sorted_list_iter_t SortedListFind(srlist_t* srlist, sorted_list_iter_t start,
                             sorted_list_iter_t stop, const void* to_find)
 {
+	assert(srlist);
+
 	while (!SortedListIsSameIter(start,stop))
 	{
 		if (!srlist->is_before(to_find, SortedListGetData(start)) &&
