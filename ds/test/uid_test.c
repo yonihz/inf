@@ -57,7 +57,9 @@ void TestCreate()
 	VerifyInt(UIDIsSame(uid_arr[0],uid_arr[1]), 0,
 	"TEST3 - ISSAME FALSE FOR DIFFERENT UID'S");
 
-	uid_arr[1].time = -1;
+	uid_arr[1].counter = 0;
+	uid_arr[1].time = (time_t)-1;
+	uid_arr[1].pid = 0;
 
 	VerifyInt(UIDIsBad(uid_arr[0]), 0,
 	"TEST4 - ISBAD FALSE FOR VALID UID");

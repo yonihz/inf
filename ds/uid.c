@@ -16,7 +16,8 @@
 
 #include "uid.h"
 
-static size_t counter = 0; 
+static size_t counter = 0;
+const ilrd_uid_t bad_uid = {0, (time_t)-1, 0};
 
 ilrd_uid_t UIDCreate(void)
 {
@@ -32,16 +33,12 @@ ilrd_uid_t UIDCreate(void)
 
 int UIDIsSame(ilrd_uid_t uid1, ilrd_uid_t uid2)
 {
-	if (uid1.counter == uid2.counter &&
+	return (uid1.counter == uid2.counter &&
 		uid1.time == uid2.time &&
-		uid1.pid == uid2.pid)
-	{
-		return (1);
-	}
-	return (0);
+		uid1.pid == uid2.pid);
 }
 
 int UIDIsBad(ilrd_uid_t uid)
 {
-	return (uid.time == -1);
+	return (UIDIsSame(uid, bad_uid));
 }	

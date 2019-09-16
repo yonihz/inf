@@ -1,8 +1,8 @@
 #ifndef _UID_H_
 #define _UID_H_
 
-/* Rev. 1.2*/ 
-/* 12.09.19  16:41 */
+/* Rev. 1.4*/ 
+/* 15.09.19  18:40 */
 
 #include <stddef.h> /*size_t*/
 #include <time.h> /*time()*/
@@ -15,6 +15,8 @@ typedef struct
     time_t time;
     pid_t pid;
 } ilrd_uid_t;
+
+const ilrd_uid_t bad_uid;
 
 /*complexity of time() and getpid()*/
 ilrd_uid_t UIDCreate(void);

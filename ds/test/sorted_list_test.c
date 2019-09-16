@@ -20,9 +20,11 @@
 #include "dlist.h"
 #include "verify_funcs.h"
 
+#define UNUSED(x) (void)(x)
+
 /* API test functions */
 
-int int_is_smaller(const void* data1, const void* data2);
+int int_is_smaller(const void* data1, const void* data2, const void* param);
 int is_div_by(const void* data,const void* param);
 int set_to_zero(void* data, void* param);
 void TestBasic();
@@ -51,7 +53,7 @@ void TestBasic()
 
 	printf("Basic Tests\n");
 
-	sorted_list1 = SortedListCreate(&int_is_smaller);
+	sorted_list1 = SortedListCreate(&int_is_smaller, NULL);
 
 	VerifySizet(SortedListSize(sorted_list1), 0,
 	"TEST 1 - SIZE 0 AFTER CREATE");
@@ -115,7 +117,7 @@ void TestFindForEach()
 
 	printf("Find and ForEach Tests\n");
 
-	sorted_list1 = SortedListCreate(&int_is_smaller);
+	sorted_list1 = SortedListCreate(&int_is_smaller, NULL);
 
 	for (i = 0; i < size; i++)
 	{
@@ -177,8 +179,8 @@ void TestMerge()
 
 	printf("Merge Tests\n");
 
-	sorted_list1 = SortedListCreate(&int_is_smaller);
-	sorted_list2 = SortedListCreate(&int_is_smaller);
+	sorted_list1 = SortedListCreate(&int_is_smaller, NULL);
+	sorted_list2 = SortedListCreate(&int_is_smaller, NULL);
 
 	for (i = 0; i < size; i++)
 	{
@@ -209,8 +211,10 @@ void TestMerge()
 	SortedListDestroy(sorted_list1);
 }
 
-int int_is_smaller(const void* data1, const void* data2)
+int int_is_smaller(const void* data1, const void* data2, const void* param)
 {
+	UNUSED(param);
+
 	if (*(int*)data1 < *(int*)data2)
 	{
 		return (1);

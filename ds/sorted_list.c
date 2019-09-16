@@ -24,10 +24,11 @@ struct sorted_list
 {
 	is_before_t is_before;
 	dlist_t* dlist;
+	const void* param;
 };
 
 /* in case of failure return NULL, complexity o(1) */
-srlist_t* SortedListCreate(is_before_t is_before)
+srlist_t* SortedListCreate(is_before_t is_before, const void* param)
 {
 	srlist_t* new_srlist = malloc(sizeof(srlist_t));
 
@@ -47,6 +48,7 @@ srlist_t* SortedListCreate(is_before_t is_before)
 	}
 
 	new_srlist->is_before = is_before;
+	new_srlist->param = param;
 
 	return (new_srlist);
 }
@@ -131,7 +133,7 @@ sorted_list_iter_t SortedListInsert(srlist_t* srlist, void* data)
 	iter = SortedListBegin(srlist);
 	while (!SortedListIsSameIter(iter, SortedListEnd(srlist)))
 	{
-		if (srlist->is_before(data, DListGetData(iter.internal_itr)))
+		if (srlist->is_before(data, DListGetData(iter.internal_itr), srlist->param))
 		{
 			break;
 		}
@@ -202,7 +204,7 @@ void SortedListMerge(srlist_t* dest, srlist_t* src)
 
 		/* increment dest until src node is after dest node */
 		while (!(dest->is_before(SortedListGetData(iter_src),
-				SortedListGetData(iter_dest))))
+				SortedListGetData(iter_dest), src->param)))
 		{
 			iter_dest = SortedListNext(iter_dest);
 			
@@ -231,8 +233,8 @@ sorted_list_iter_t SortedListFind(srlist_t* srlist, sorted_list_iter_t start,
 
 	while (!SortedListIsSameIter(start,stop))
 	{
-		if (!srlist->is_before(to_find, SortedListGetData(start)) &&
-			!srlist->is_before(SortedListGetData(start), to_find))
+		if (!srlist->is_before(to_find, SortedListGetData(start), srlist->param) &&
+			!srlist->is_before(SortedListGetData(start), to_find, srlist->param))
 		{
 			break;
 		}

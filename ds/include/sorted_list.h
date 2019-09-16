@@ -1,8 +1,8 @@
 #ifndef _SORTED_LIST_H_
 #define _SORTED_LIST_H_
 
-/* Rev. 0.8*/ 
-/* 12.09.19  07:50 */
+/* Rev. 3.14*/ 
+/* 16.09.19  15:00 */
 #include <stddef.h> /*size_t, NULL*/
 
 #include "dlist.h"
@@ -16,10 +16,10 @@ typedef struct
 
 
 /* return 1 in if data1 is before data2, else 0 */
-typedef int(*is_before_t)(const void* data1, const void* data2);
+typedef int(*is_before_t)(const void* data1, const void* data2, const void* param);
 
 /* in case of failure return NULL, complexity o(1) */
-srlist_t* SortedListCreate(is_before_t is_before);
+srlist_t* SortedListCreate(is_before_t is_before, const void* param);
 
 /* complexity o(1) */
 void SortedListDestroy(srlist_t* srlist);
