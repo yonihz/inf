@@ -23,6 +23,7 @@
 
 /* API test functions */
 
+int int_compare(const void* data1, const void* data2, const void* param);
 int int_is_smaller(const void* data1, const void* data2, const void* param);
 int isNum(const void* data, const void* param);
 void TestBasic();
@@ -49,7 +50,7 @@ void TestBasic()
 
 	printf("Basic Tests\n");
 
-	pq1 = PQCreate(&int_is_smaller, NULL);
+	pq1 = PQCreate(&int_compare, NULL);
 
 	VerifySizet(PQSize(pq1), 0,
 	"TEST 1 - SIZE 0 AFTER CREATE");
@@ -99,11 +100,18 @@ int int_is_smaller(const void* data1, const void* data2, const void* param)
 {
 	UNUSED(param);
 
-	if (*(int*)data1 < *(int*)data2)
+	if (*(int*)data1 > *(int*)data2)
 	{
 		return (1);
 	}
 	return (0);
+}
+
+int int_compare(const void* data1, const void* data2, const void* param)
+{
+	UNUSED(param);
+
+	return (*(int*)data2 - *(int*)data1);
 }
 
 int isNum(const void* data, const void* param)

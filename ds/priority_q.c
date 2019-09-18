@@ -3,19 +3,25 @@
 #include "sorted_list.h"
 #include "priority_q.h"
 
-	
+int is_before_pq (const void* data1, const void* data2, const void* param);
+
+typedef struct
+{
+	const void* param;
+	comp_func_t comp_func;
+} is_before_comp_t;
+
 struct pq
 {
 	srlist_t* list;
-	const void* param;
-	comp_func_t comp_func;
+	is_before_comp_t is_before_comp;
 };
 
 /* in case of failure return NULL, complexity o(1) */
 pq_t* PQCreate(comp_func_t comp_priority, const void* param)
 {
 	pq_t* new_pq = NULL;
-	
+
 	new_pq = malloc(sizeof(pq_t));
 
 	if (NULL == new_pq)
@@ -23,10 +29,9 @@ pq_t* PQCreate(comp_func_t comp_priority, const void* param)
 		return (NULL);
 	}
 
-	new_pq->list = SortedListCreate(comp_priority, param);
-	new_pq->param = param;
-	new_pq->comp_func = comp_priority;
-
+	new_pq->is_before_comp.param = param;
+	new_pq->is_before_comp.comp_func = comp_priority;
+	new_pq->list = SortedListCreate(&is_before_pq, &(new_pq->is_before_comp));
 	return (new_pq);
 }
 
@@ -34,7 +39,7 @@ pq_t* PQCreate(comp_func_t comp_priority, const void* param)
 void PQDestroy(pq_t* pq)
 {
 	SortedListDestroy(pq->list);
-	free(pq);	
+	free(pq);
 }
 
 /* return: 0- success, 1- fail. complexity o(n) */
@@ -75,7 +80,7 @@ size_t PQSize(const pq_t* pq)
 void PQClear(pq_t* pq)
 {
 	SortedListDestroy(pq->list);
-	pq->list = SortedListCreate(pq->comp_func, pq->param);
+	pq->list = SortedListCreate(&is_before_pq, &(pq->is_before_comp));
 }
 
 /* complexity o(n) */
@@ -96,3 +101,9 @@ void* PQErase(pq_t* pq, match_func_t match_func, const void* data)
 	return (data_match);
 }
 
+int is_before_pq (const void* data1, const void* data2, const void* param)
+{
+	int res = ((is_before_comp_t*)param)->comp_func(data1,data2,
+				((is_before_comp_t*)param)->param);
+	return (res > 0) ? 1 : 0;
+}
