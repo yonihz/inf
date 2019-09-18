@@ -131,12 +131,9 @@ sorted_list_iter_t SortedListInsert(srlist_t* srlist, void* data)
 	assert(srlist);
 
 	iter = SortedListBegin(srlist);
-	while (!SortedListIsSameIter(iter, SortedListEnd(srlist)))
+	while (!SortedListIsSameIter(iter, SortedListEnd(srlist)) &&
+		!srlist->is_before(data, DListGetData(iter.internal_itr), srlist->param))
 	{
-		if (srlist->is_before(data, DListGetData(iter.internal_itr), srlist->param))
-		{
-			break;
-		}
 		iter = SortedListNext(iter);
 	}
 	iter.internal_itr = DListInsert(srlist->dlist, iter.internal_itr, data);
