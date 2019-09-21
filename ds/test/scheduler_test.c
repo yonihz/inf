@@ -72,26 +72,33 @@ void TestBasic()
     task_user_t task_user2 = {NULL, 0, NULL, NULL, {0, 0, 0}};
     task_user_t task_user3 = {NULL, 0, NULL, NULL, {0, 0, 0}};
 
-    task_user1.interval = 30;
+    task_user1.interval = 7;
     task_user1.scheduler = scheduler1;
-    task_user1.param = "Added while scheduler is running";
+    task_user1.param = "new task with 7sec interval";
     task_user1.op_func = PrintString;
 
     task_uid[0] = TSAdd(scheduler1, 5, PrintString, "task with 5sec interval");
-    task_uid[1] = TSAdd(scheduler1, 12, PrintString, "task with 12sec interval");
-    task_uid[4] = TSAdd(scheduler1, 28, AddTaskAtRun, &task_user1);
+    task_uid[1] = TSAdd(scheduler1, 6, PrintString, "task with 6sec interval");
+    task_uid[4] = TSAdd(scheduler1, 7, AddTaskAtRun, &task_user1);
 
 
     task_user2.scheduler = scheduler1;
     task_user2.uid = task_uid[0];
 
-    task_uid[5] = TSAdd(scheduler1, 17, TSRemoveAtRun, &task_user2);
+    task_uid[5] = TSAdd(scheduler1, 12, TSRemoveAtRun, &task_user2);
 
     task_user3.scheduler = scheduler1;
-    task_uid[6] = TSAdd(scheduler1, 60, TSClearAtRun, &task_user3);
+    task_uid[6] = TSAdd(scheduler1, 60, TSStopAtRun, &task_user3);
+    task_uid[7] = TSAdd(scheduler1, 70, TSClearAtRun, &task_user3);
+
+    printf("Size: %lu\n",TSSize(scheduler1));
 
     TSRun(scheduler1);
-    TSAdd(scheduler1, 180, TSStopAtRun, &task_user3);
+    printf("Size: %lu\n",TSSize(scheduler1));
+    TSRun(scheduler1);
+    printf("Size: %lu\n",TSSize(scheduler1));
+
+    TSDestroy(scheduler1);
 }
 
 int int_is_smaller(const void* data1, const void* data2, const void* param)
@@ -131,6 +138,7 @@ int PrintString(const void* str)
 int AddTaskAtRun(const void* task)
 {
     task_user_t* task_add = (task_user_t*)task;
+    printf("Added task at run\n");
     TSAdd(task_add->scheduler, task_add->interval, task_add->op_func, (void*)(task_add->param));
     return (1);
 }

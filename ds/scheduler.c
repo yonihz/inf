@@ -97,12 +97,12 @@ int TSRun(scheduler_t* scheduler)
 
 	if (!scheduler->run)
 	{
-		printf("Scheduler stopped with TSStop()");
+		printf("Scheduler stopped with TSStop()\n");
 	}
 
 	if (TSIsEmpty(scheduler))
 	{
-		printf("No more tasks to run");
+		printf("No more tasks to run\n");
 	}
 
 	return (status);
