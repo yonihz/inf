@@ -8,7 +8,7 @@
 #include <stddef.h> /* size_t */
 #include "uid.h"
 
-typedef int (*op_func_t)(void* param);
+typedef int (*op_func_t)(const void* param);
 typedef struct scheduler scheduler_t;
 
 scheduler_t* TSCreate();

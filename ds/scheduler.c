@@ -1,4 +1,5 @@
 #include <stdlib.h> /* malloc, free */
+#include <stdio.h> /* printf */
 
 #include "scheduler.h"
 #include "priority_q.h"
@@ -93,6 +94,17 @@ int TSRun(scheduler_t* scheduler)
 		TaskPriorityUpdate(task_to_run);
 		PQEnqueue(scheduler->pq, (void*)task_to_run);
 	}
+
+	if (!scheduler->run)
+	{
+		printf("Scheduler stopped with TSStop()");
+	}
+
+	if (TSIsEmpty(scheduler))
+	{
+		printf("No more tasks to run");
+	}
+
 	return (status);
 }
 

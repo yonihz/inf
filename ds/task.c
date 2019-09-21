@@ -37,7 +37,7 @@ int TaskCompare(const void* data1, const void* data2, const void* param)
 {
     UNUSED(param);
 
-    if (*(size_t*)data1 < *(size_t*)data2)
+    if (((task_t*)data1)->next_time < ((task_t*)data2)->next_time)
     {
         return  (1);
     }
