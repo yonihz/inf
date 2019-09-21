@@ -1,18 +1,20 @@
+#include <stdlib.h> /* malloc, free */
+
 #include "scheduler.h"
 #include "priority_q.h"
 #include "task.h"
 
 struct scheduler
 {
-	pq_t pq;
+	pq_t* pq;
 	int run;
-}
+};
 
-scheduler_t* TSCreate();
+scheduler_t* TSCreate()
 {
-	scheduler_t new_scheduler = malloc(sizeof(scheduler_t));
+	scheduler_t* new_scheduler = malloc(sizeof(scheduler_t));
 	
-	if (NULL = new_scheduler)
+	if (NULL == new_scheduler)
 	{
 		return (NULL);
 	}
@@ -31,20 +33,20 @@ void TSDestroy(scheduler_t* scheduler)
 	scheduler = NULL;
 }
 
-int TSIsEmpty(const scheduler_t* scheduler);
+int TSIsEmpty(const scheduler_t* scheduler)
 {
 	return (PQIsEmpty(scheduler->pq));
 }
 
-size_t TSSize(const scheduler_t* scheduler);
+size_t TSSize(const scheduler_t* scheduler)
 {
 	return (PQSize(scheduler->pq));
 }
 
 /* if the op_func_t return 1 - the task is removed */
-ilrd_uid_t TSAdd(scheduler_t* scheduler, size_t interval, op_func_t operation, const void* param);
+ilrd_uid_t TSAdd(scheduler_t* scheduler, size_t interval, op_func_t operation, void* param)
 {
-	task_t new_task;
+	task_t* new_task;
 	new_task = TaskCreate(interval, operation, param);
 	PQEnqueue(scheduler->pq, new_task);
 	return (TaskGetUID(new_task));
@@ -53,7 +55,7 @@ ilrd_uid_t TSAdd(scheduler_t* scheduler, size_t interval, op_func_t operation, c
 /* returns 0 if successful */
 int TSRemove(scheduler_t* scheduler, ilrd_uid_t task_uid)
 {
-	task_t task_remove = PQErase(scheduler->pq, match_uid);
+	task_t* task_remove = PQErase(scheduler->pq, TaskIsMatchUID, (void*)&task_uid);
 	if (task_remove)
 	{
 		TaskDestroy(task_remove);
@@ -63,7 +65,7 @@ int TSRemove(scheduler_t* scheduler, ilrd_uid_t task_uid)
 	return (1);
 }
 
-void TSClear(scheduler_t* scheduler);
+void TSClear(scheduler_t* scheduler)
 {
 	PQClear(scheduler->pq);	
 }
@@ -74,22 +76,27 @@ void TSClear(scheduler_t* scheduler);
 int TSRun(scheduler_t* scheduler)
 {
 	task_t* task_to_run;
-	scheduler.run = 1;
 	int status = 0;
+	scheduler->run = 1;
 
-	while(scheduler.run && !TSIsEmpty(scheduler))
+	while(scheduler->run && !TSIsEmpty(scheduler))
 	{
 		task_to_run = (task_t*)PQPeek(scheduler->pq);
-		sleep(TaskGetNextTime(task_to_run) - time(NULL));
-		PQDEqueue(scheduler);
+		sleep(TaskGetPriority(task_to_run) - time(NULL));
+		PQDequeue(scheduler->pq);
 		status = TaskRunOperation(task_to_run);
-		TaskPriorityUpdate(task_to_run);
-
-		if (1 == status)
+		if (1 == status || 2 == status)
 		{
-			return (2);
+			TaskDestroy(task_to_run);
+			continue;
 		}
+		TaskPriorityUpdate(task_to_run);
+		PQEnqueue(scheduler->pq, (void*)task_to_run);
 	}
+	return (status);
 }
 
-void TSStop(scheduler_t* scheduler);
+void TSStop(scheduler_t* scheduler)
+{
+	scheduler->run = 0;
+}
