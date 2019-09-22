@@ -79,17 +79,17 @@ void TestBasic()
 
     task_uid[0] = TSAdd(scheduler1, 5, PrintString, "task with 5sec interval");
     task_uid[1] = TSAdd(scheduler1, 6, PrintString, "task with 6sec interval");
-    task_uid[4] = TSAdd(scheduler1, 7, AddTaskAtRun, &task_user1);
+    task_uid[2] = TSAdd(scheduler1, 7, AddTaskAtRun, &task_user1);
 
 
     task_user2.scheduler = scheduler1;
     task_user2.uid = task_uid[0];
 
-    task_uid[5] = TSAdd(scheduler1, 12, TSRemoveAtRun, &task_user2);
+    task_uid[3] = TSAdd(scheduler1, 13, TSRemoveAtRun, &task_user2);
 
     task_user3.scheduler = scheduler1;
-    task_uid[6] = TSAdd(scheduler1, 60, TSStopAtRun, &task_user3);
-    task_uid[7] = TSAdd(scheduler1, 70, TSClearAtRun, &task_user3);
+    task_uid[4] = TSAdd(scheduler1, 60, TSStopAtRun, &task_user3);
+    task_uid[5] = TSAdd(scheduler1, 70, TSClearAtRun, &task_user3);
 
     printf("Size: %lu\n",TSSize(scheduler1));
 

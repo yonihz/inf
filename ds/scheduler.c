@@ -57,6 +57,7 @@ ilrd_uid_t TSAdd(scheduler_t* scheduler, size_t interval, op_func_t operation, v
 int TSRemove(scheduler_t* scheduler, ilrd_uid_t task_uid)
 {
 	task_t* task_remove = PQErase(scheduler->pq, TaskIsMatchUID, (void*)&task_uid);
+	
 	if (task_remove)
 	{
 		TaskDestroy(task_remove);
@@ -86,7 +87,7 @@ int TSRun(scheduler_t* scheduler)
 		sleep(TaskGetPriority(task_to_run) - time(NULL));
 		PQDequeue(scheduler->pq);
 		status = TaskRunOperation(task_to_run);
-		if (1 == status || 2 == status)
+		if (1 == status)
 		{
 			TaskDestroy(task_to_run);
 			continue;
