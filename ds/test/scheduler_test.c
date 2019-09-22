@@ -14,13 +14,7 @@
 * 																*
 ****************************************************************/
 
-/*
-gd -Iinclude uid.c dlist.c sorted_list.c priority_q.c task.c scheduler.c test/scheduler_test.c test/verify_funcs.c
-*/
-
-/*
-op_func return: 0 - continue, 1 - task does not return to queue and destroyed, 2 - stop
-*/
+/* gd -Iinclude uid.c dlist.c sorted_list.c priority_q.c task.c scheduler.c test/scheduler_test.c test/verify_funcs.c */
 
 
 #include <stdio.h>	/* printf */
@@ -36,11 +30,11 @@ int int_compare(const void* data1, const void* data2, const void* param);
 int int_is_smaller(const void* data1, const void* data2, const void* param);
 int isNum(const void* data, const void* param);
 
-int PrintString(const void* str);
-int AddTaskAtRun(const void* task);
-int TSRemoveAtRun(const void* task);
-int TSClearAtRun(const void* task);
-int TSStopAtRun(const void* task);
+int PrintString(void* str);
+int AddTaskAtRun(void* task);
+int TSRemoveAtRun(void* task);
+int TSClearAtRun(void* task);
+int TSStopAtRun(void* task);
 
 void TestBasic();
 
@@ -67,36 +61,43 @@ void TestBasic()
 {
     scheduler_t* scheduler1 = TSCreate();
     ilrd_uid_t task_uid[20];
+    int status = 0;
 
     task_user_t task_user1 = {NULL, 0, NULL, NULL, {0, 0, 0}};
     task_user_t task_user2 = {NULL, 0, NULL, NULL, {0, 0, 0}};
     task_user_t task_user3 = {NULL, 0, NULL, NULL, {0, 0, 0}};
 
-    task_user1.interval = 7;
+    task_user1.interval = 6;
     task_user1.scheduler = scheduler1;
-    task_user1.param = "new task with 7sec interval";
+    task_user1.param = "task3: print with 6sec interval";
     task_user1.op_func = PrintString;
 
-    task_uid[0] = TSAdd(scheduler1, 5, PrintString, "task with 5sec interval");
-    task_uid[1] = TSAdd(scheduler1, 6, PrintString, "task with 6sec interval");
-    task_uid[2] = TSAdd(scheduler1, 7, AddTaskAtRun, &task_user1);
-
+    task_uid[0] = TSAdd(scheduler1, 5, PrintString, "task1: print with 5sec interval");
+    task_uid[1] = TSAdd(scheduler1, 7, PrintString, "task2: print with 7sec interval");
+    task_uid[2] = TSAdd(scheduler1, 12, AddTaskAtRun, &task_user1);
 
     task_user2.scheduler = scheduler1;
-    task_user2.uid = task_uid[0];
+    task_user2.uid = task_uid[1];
 
-    task_uid[3] = TSAdd(scheduler1, 13, TSRemoveAtRun, &task_user2);
+    task_uid[3] = TSAdd(scheduler1, 16, TSRemoveAtRun, &task_user2);
 
     task_user3.scheduler = scheduler1;
-    task_uid[4] = TSAdd(scheduler1, 60, TSStopAtRun, &task_user3);
-    task_uid[5] = TSAdd(scheduler1, 70, TSClearAtRun, &task_user3);
+    task_uid[4] = TSAdd(scheduler1, 30, TSStopAtRun, &task_user3);
+    task_uid[5] = TSAdd(scheduler1, 40, TSClearAtRun, &task_user3);
 
-    printf("Size: %lu\n",TSSize(scheduler1));
+    VerifySizet(TSSize(scheduler1), 6, 
+    "SIZE IS 6 BEFORE RUN");
 
-    TSRun(scheduler1);
-    printf("Size: %lu\n",TSSize(scheduler1));
-    TSRun(scheduler1);
-    printf("Size: %lu\n",TSSize(scheduler1));
+    status = TSRun(scheduler1);
+    VerifyInt(status, 1,
+    "RUN RETURNED 1 AFTER STOP");
+    VerifySizet(TSSize(scheduler1), 3, 
+    "SIZE IS 3 AFTER STOP");
+    status = TSRun(scheduler1);
+    VerifyInt(status, 0,
+    "RUN RETURNED 0 AFTER CLEAR");
+    VerifySizet(TSSize(scheduler1), 0, 
+    "SIZE IS 0 AFTER CLEAR");
 
     TSDestroy(scheduler1);
 }
@@ -129,29 +130,29 @@ int isNum(const void* data, const void* param)
 	return (1);
 }
 
-int PrintString(const void* str)
+int PrintString(void* str)
 {
     printf("%s\n",(char*)str);
     return (0);
 }
 
-int AddTaskAtRun(const void* task)
+int AddTaskAtRun(void* task)
 {
     task_user_t* task_add = (task_user_t*)task;
-    printf("Added task at run\n");
+    printf("Added task3 at run\n");
     TSAdd(task_add->scheduler, task_add->interval, task_add->op_func, (void*)(task_add->param));
     return (1);
 }
 
-int TSRemoveAtRun(const void* task)
+int TSRemoveAtRun(void* task)
 {
     task_user_t* task_remove = (task_user_t*)task;
-    printf("Removed task at run\n");
+    printf("Removed task2 at run\n");
     TSRemove(task_remove->scheduler, task_remove->uid);
     return (1);
 }
 
-int TSClearAtRun(const void* task)
+int TSClearAtRun(void* task)
 {
     task_user_t* task_clear = (task_user_t*)task;
     printf("Clear\n");
@@ -159,7 +160,7 @@ int TSClearAtRun(const void* task)
     return (1);
 }
 
-int TSStopAtRun(const void* task)
+int TSStopAtRun(void* task)
 {
     task_user_t* task_stop = (task_user_t*)task;
     printf("Stop task\n");

@@ -28,6 +28,7 @@ scheduler_t* TSCreate()
 
 void TSDestroy(scheduler_t* scheduler)
 {
+	TSClear(scheduler);
 	PQDestroy(scheduler->pq);
 	scheduler->pq = NULL;
 	free(scheduler);
@@ -56,7 +57,7 @@ ilrd_uid_t TSAdd(scheduler_t* scheduler, size_t interval, op_func_t operation, v
 /* returns 0 if successful */
 int TSRemove(scheduler_t* scheduler, ilrd_uid_t task_uid)
 {
-	task_t* task_remove = PQErase(scheduler->pq, TaskIsMatchUID, (void*)&task_uid);
+	task_t* task_remove = PQErase(scheduler->pq, TaskMatchUID, (void*)&task_uid);
 	
 	if (task_remove)
 	{
@@ -69,7 +70,10 @@ int TSRemove(scheduler_t* scheduler, ilrd_uid_t task_uid)
 
 void TSClear(scheduler_t* scheduler)
 {
-	PQClear(scheduler->pq);	
+	while (!TSIsEmpty(scheduler))
+	{
+		free(PQDequeue(scheduler->pq));
+	}	
 }
 
 /* return 0 if no more tasks to run */
@@ -81,13 +85,13 @@ int TSRun(scheduler_t* scheduler)
 	int status = 0;
 	scheduler->run = 1;
 
-	while(scheduler->run && !TSIsEmpty(scheduler))
+	while(scheduler->run && !TSIsEmpty(scheduler) && 2 != status)
 	{
 		task_to_run = (task_t*)PQPeek(scheduler->pq);
 		sleep(TaskGetPriority(task_to_run) - time(NULL));
 		PQDequeue(scheduler->pq);
 		status = TaskRunOperation(task_to_run);
-		if (1 == status)
+		if (1 == status || 2 == status)
 		{
 			TaskDestroy(task_to_run);
 			continue;
@@ -96,16 +100,34 @@ int TSRun(scheduler_t* scheduler)
 		PQEnqueue(scheduler->pq, (void*)task_to_run);
 	}
 
+#ifndef NDEBUG
+	if (2 == status)
+	{
+		printf("Scheduler stopped - operation failed \n");
+	}
+
 	if (!scheduler->run)
 	{
-		printf("Scheduler stopped with TSStop()\n");
+		printf("Scheduler stopped by user \n");
 	}
 
 	if (TSIsEmpty(scheduler))
 	{
-		printf("No more tasks to run\n");
+		printf("Scheduler stopped - No more tasks to run\n");
+	}
+#endif
+
+	if (TSIsEmpty(scheduler))
+	{
+		status = 0;
 	}
 
+	if (!scheduler->run)
+	{
+		status = 1;
+	}
+
+	scheduler->run = 0;
 	return (status);
 }
 

@@ -1,14 +1,14 @@
 #ifndef _SCHEDULER_H_
 #define _SCHEDULER_H_
 
-/* version 0.7 */
-/* date 19.09.19 */
-/* time 15:30 */
+/* version 1.0 */
+/* date 21.09.19 */
+/* time 12:45 */
 
 #include <stddef.h> /* size_t */
 #include "uid.h"
 
-typedef int (*op_func_t)(const void* param);
+typedef int (*op_func_t)(void* param);
 typedef struct scheduler scheduler_t;
 
 scheduler_t* TSCreate();
@@ -16,7 +16,9 @@ void TSDestroy(scheduler_t* scheduler);
 int TSIsEmpty(const scheduler_t* scheduler);
 size_t TSSize(const scheduler_t* scheduler);
 
-/* if the op_func_t return 1 - loop is stopped and run() returns 2 */
+/* return 0 if all is ok and the task in returned to the scheduler */
+/* return 1 if the task should be removed after execution */
+/* return 2 if an error occurred, breaking the scheduler loop */
 ilrd_uid_t TSAdd(
 	scheduler_t* scheduler,
 	size_t interval, 

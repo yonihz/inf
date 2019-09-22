@@ -50,7 +50,7 @@ void TaskPriorityUpdate(task_t* task)
     task->next_time += task->interval;
 }
 
-ilrd_uid_t TaskGetUID(task_t* task)
+ilrd_uid_t TaskGetUID(const task_t* task)
 {
     return (task->uid);
 }
@@ -65,7 +65,7 @@ int TaskRunOperation(task_t* task)
     return (task->op_func((void*)task->param));
 }
 
-int TaskIsMatchUID(const void* task, const void* task_uid)
+int TaskMatchUID(const void* task, const void* task_uid)
 {
-    return (UIDIsSame(((task_t*)task)->uid, *(ilrd_uid_t*)task_uid));
+    return (!UIDIsSame(((task_t*)task)->uid, *(ilrd_uid_t*)task_uid));
 }
