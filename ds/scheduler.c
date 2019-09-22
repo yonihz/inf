@@ -1,9 +1,11 @@
 #include <stdlib.h> /* malloc, free */
 #include <stdio.h> /* printf */
+#include <assert.h>
 
 #include "scheduler.h"
 #include "priority_q.h"
 #include "task.h"
+#include "uid.h"
 
 struct scheduler
 {
@@ -21,6 +23,14 @@ scheduler_t* TSCreate()
 	}
 
 	new_scheduler->pq = PQCreate(TaskCompare, NULL);
+
+	if (NULL == new_scheduler->pq)
+	{
+		free(new_scheduler);
+		new_scheduler = NULL;
+		return (NULL);
+	}
+
 	new_scheduler->run = 0;
 
 	return (new_scheduler);
@@ -28,6 +38,8 @@ scheduler_t* TSCreate()
 
 void TSDestroy(scheduler_t* scheduler)
 {
+	assert(scheduler);
+
 	TSClear(scheduler);
 	PQDestroy(scheduler->pq);
 	scheduler->pq = NULL;
@@ -37,11 +49,15 @@ void TSDestroy(scheduler_t* scheduler)
 
 int TSIsEmpty(const scheduler_t* scheduler)
 {
+	assert(scheduler);
+
 	return (PQIsEmpty(scheduler->pq));
 }
 
 size_t TSSize(const scheduler_t* scheduler)
 {
+	assert(scheduler);
+
 	return (PQSize(scheduler->pq));
 }
 
@@ -49,8 +65,26 @@ size_t TSSize(const scheduler_t* scheduler)
 ilrd_uid_t TSAdd(scheduler_t* scheduler, size_t interval, op_func_t operation, void* param)
 {
 	task_t* new_task;
+	int status = 0;
+
+	assert(scheduler);
+
 	new_task = TaskCreate(interval, operation, param);
-	PQEnqueue(scheduler->pq, new_task);
+
+	if (NULL == new_task)
+	{
+		return (bad_uid);
+	}
+
+	status = PQEnqueue(scheduler->pq, new_task);
+	
+	if (1 == status)
+	{
+		TaskDestroy(new_task);
+		new_task = NULL;
+		return (bad_uid);
+	}
+
 	return (TaskGetUID(new_task));
 }
 
@@ -59,6 +93,8 @@ int TSRemove(scheduler_t* scheduler, ilrd_uid_t task_uid)
 {
 	task_t* task_remove = PQErase(scheduler->pq, TaskMatchUID, (void*)&task_uid);
 	
+	assert(scheduler);
+
 	if (task_remove)
 	{
 		TaskDestroy(task_remove);
@@ -70,6 +106,8 @@ int TSRemove(scheduler_t* scheduler, ilrd_uid_t task_uid)
 
 void TSClear(scheduler_t* scheduler)
 {
+	assert(scheduler);
+
 	while (!TSIsEmpty(scheduler))
 	{
 		TaskDestroy(PQDequeue(scheduler->pq));
@@ -83,6 +121,9 @@ int TSRun(scheduler_t* scheduler)
 {
 	task_t* task_to_run;
 	int status = 0;
+
+	assert(scheduler);
+
 	scheduler->run = 1;
 
 	while(scheduler->run && !TSIsEmpty(scheduler) && 2 != status)
@@ -91,40 +132,29 @@ int TSRun(scheduler_t* scheduler)
 		sleep(TaskGetPriority(task_to_run) - time(NULL));
 		PQDequeue(scheduler->pq);
 		status = TaskRunOperation(task_to_run);
-		if (1 == status || 2 == status)
+		switch (status)
 		{
-			TaskDestroy(task_to_run);
-			continue;
+			case 0:
+				{
+					TaskPriorityUpdate(task_to_run);
+					status = PQEnqueue(scheduler->pq, (void*)task_to_run);
+					status = (status == 1) ? 2 : 0;
+					status = !scheduler->run ? 1 : status;
+					break;
+				}
+			case 1:
+				{
+					TaskDestroy(task_to_run);
+					status = !scheduler->run ? 1 : status;
+					status = TSIsEmpty(scheduler) ? 0 : status;
+					break;
+				}
+			case 2:
+				{
+					TaskDestroy(task_to_run);
+					break;
+				}
 		}
-		TaskPriorityUpdate(task_to_run);
-		PQEnqueue(scheduler->pq, (void*)task_to_run);
-	}
-
-#ifndef NDEBUG
-	if (2 == status)
-	{
-		printf("Scheduler stopped - operation failed \n");
-	}
-
-	if (!scheduler->run)
-	{
-		printf("Scheduler stopped by user \n");
-	}
-
-	if (TSIsEmpty(scheduler))
-	{
-		printf("Scheduler stopped - No more tasks to run\n");
-	}
-#endif
-
-	if (TSIsEmpty(scheduler))
-	{
-		status = 0;
-	}
-
-	if (!scheduler->run)
-	{
-		status = 1;
 	}
 
 	scheduler->run = 0;
@@ -133,5 +163,7 @@ int TSRun(scheduler_t* scheduler)
 
 void TSStop(scheduler_t* scheduler)
 {
+	assert(scheduler);
+
 	scheduler->run = 0;
 }
