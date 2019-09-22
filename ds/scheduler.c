@@ -72,7 +72,7 @@ void TSClear(scheduler_t* scheduler)
 {
 	while (!TSIsEmpty(scheduler))
 	{
-		free(PQDequeue(scheduler->pq));
+		TaskDestroy(PQDequeue(scheduler->pq));
 	}	
 }
 
