@@ -91,9 +91,11 @@ ilrd_uid_t TSAdd(scheduler_t* scheduler, size_t interval, op_func_t operation, v
 /* returns 0 if successful */
 int TSRemove(scheduler_t* scheduler, ilrd_uid_t task_uid)
 {
-	task_t* task_remove = PQErase(scheduler->pq, TaskMatchUID, (void*)&task_uid);
+	task_t* task_remove = NULL;
 	
 	assert(scheduler);
+
+	task_remove = PQErase(scheduler->pq, TaskMatchUID, &task_uid);
 
 	if (task_remove)
 	{
@@ -137,7 +139,7 @@ int TSRun(scheduler_t* scheduler)
 			case 0:
 				{
 					TaskPriorityUpdate(task_to_run);
-					status = PQEnqueue(scheduler->pq, (void*)task_to_run);
+					status = PQEnqueue(scheduler->pq, task_to_run);
 					status = (status == 1) ? 2 : 0;
 					status = !scheduler->run ? 1 : status;
 					break;
