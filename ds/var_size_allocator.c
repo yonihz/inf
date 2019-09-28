@@ -27,7 +27,7 @@ vsa_t* VSAInit(void* seg, size_t total_size)
 {
     ptrdiff_t word_size = 0;
     ptrdiff_t nwords_node, nwords_vsa = 0, nwords_free = 0;
-    ptrdiff_t seg_tail = 0, total_tail = 0;
+    ptrdiff_t seg_tail = 0, seg_head = 0;
     node_vsa_t* first_node = NULL;
     vsa_t* vsa = NULL;
 
@@ -35,8 +35,9 @@ vsa_t* VSAInit(void* seg, size_t total_size)
     nwords_node = sizeof(node_vsa_t) / word_size;
     nwords_vsa = sizeof(vsa_t) / word_size;
     seg_tail = (word_size - (size_t)seg % word_size) % word_size;
-    total_tail = total_size % word_size;
-    total_size = total_size - seg_tail - total_tail - nwords_vsa * word_size;
+    seg_head = ((size_t)seg + total_size) % word_size;
+    total_size = total_size - seg_tail - seg_head - nwords_vsa * word_size;
+    printf("total size %ld\n",total_size);
     nwords_free = total_size / word_size;
 
     if (nwords_free < nwords_node + 1)
@@ -63,19 +64,18 @@ void* VSAAlloc(vsa_t* vsa, size_t block_size)
     wnode = sizeof(node_vsa_t) / word;
     curr = (node_vsa_t*)((vsa_t*)vsa + 1);
     wcount = labs(curr->offset) + wnode;
-
-    while (wcount < vsa->total_size && wblock > curr->offset)
+    while (wcount < vsa->total_size && wblock >= curr->offset)
     {
-        next = (node_vsa_t*)((ptrdiff_t*)curr + wnode + curr->offset);
+        next = (node_vsa_t*)((ptrdiff_t*)curr + wnode + labs(curr->offset));
         /* if next space is used, continue to next */
-        if (next->offset < 0)
+        if (curr->offset < 0)
         {
             curr = next;
             wcount += (-1) * curr->offset + wnode;
             continue;
         }
         /* defrag current and next spaces */
-        curr->offset += next->offset + wnode;
+        curr->offset += (next->offset > 0) * (next->offset + wnode);
         wcount += curr->offset + wnode;
     }
     /* return NULL if not enough space was found */
