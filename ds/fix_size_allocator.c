@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "fix_size_allocator.h"
 
 struct allocator
