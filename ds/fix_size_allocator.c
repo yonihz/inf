@@ -1,5 +1,7 @@
 #include "fix_size_allocator.h"
 
+#define WORD sizeof(size_t)
+
 struct allocator
 {
     void** next_free;
@@ -10,31 +12,37 @@ struct allocator
 
 size_t FSASuggestSize(size_t block_size, size_t num_of_blocks)
 {
-    size_t word = 0, meta_size = 0, suggest_size = 0;
+    size_t meta_size = 0, suggest_size = 0;
     
-    word = sizeof(size_t);
-    meta_size = word;
-    block_size += (word - block_size % word) % word;
+    meta_size = WORD;
+    block_size += (WORD - block_size % WORD) % WORD;
     suggest_size = (block_size + meta_size) * num_of_blocks + 
-                    sizeof(allocator_t) + (word - 1);
+                    sizeof(allocator_t) + (WORD - 1);
+    suggest_size = (!block_size || !num_of_blocks) ? 0 : suggest_size;
     return (suggest_size);
 }
 
 allocator_t* FSAInit(void* dest, size_t block_size, size_t total_size)
 {
-    size_t word = 0, meta_size = 0, dest_tail = 0, i = 0, ablock_size = 0;
+    size_t meta_size = 0, dest_tail = 0, i = 0, ablock_size = 0;
     void** node = NULL;
     allocator_t* alloc = NULL;
 
-    word = sizeof(size_t);
-    meta_size = word;
-    dest_tail = (word - (size_t)dest % word) % word;
+    meta_size = WORD;
+    dest_tail = (WORD - (size_t)dest % WORD) % WORD;
     dest = (void*)((char*)dest + dest_tail);
-    ablock_size = block_size + (word - block_size % word) % word;
+    ablock_size = block_size + (WORD - block_size % WORD) % WORD;
 
     alloc = (allocator_t*)dest;
+
+    if (total_size < FSASuggestSize(block_size, 1))
+    {
+        return (NULL);
+    }
+
     alloc->nblocks = (total_size - dest_tail - sizeof(allocator_t)) / 
                         (ablock_size + meta_size);
+
     alloc->block_size = block_size;
     alloc->nfree = alloc->nblocks;
     alloc->next_free = (void*)(alloc + 1);
