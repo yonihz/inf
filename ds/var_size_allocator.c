@@ -5,6 +5,7 @@
 #include "var_size_allocator.h"
 
 #define VALID 0xDEADBEEF
+#define WORD sizeof(ptrdiff_t)
 
 /* Offset convention: used (-) / free (+), type is ptrdiff_t */
 struct node_vsa
@@ -25,19 +26,17 @@ struct var_alloc
 
 vsa_t* VSAInit(void* seg, size_t total_size)
 {
-    ptrdiff_t word_size = 0;
     ptrdiff_t nwords_node, nwords_vsa = 0, nwords_free = 0;
     ptrdiff_t seg_tail = 0, seg_head = 0;
     node_vsa_t* first_node = NULL;
     vsa_t* vsa = NULL;
 
-    word_size = sizeof(size_t);
-    nwords_node = sizeof(node_vsa_t) / word_size;
-    nwords_vsa = sizeof(vsa_t) / word_size;
-    seg_tail = (word_size - (size_t)seg % word_size) % word_size;
-    seg_head = ((size_t)seg + total_size) % word_size;
-    total_size = total_size - seg_tail - seg_head - nwords_vsa * word_size;
-    nwords_free = total_size / word_size;
+    nwords_node = sizeof(node_vsa_t) / WORD;
+    nwords_vsa = sizeof(vsa_t) / WORD;
+    seg_tail = (WORD - (size_t)seg % WORD) % WORD;
+    seg_head = ((size_t)seg + total_size) % WORD;
+    total_size = total_size - seg_tail - seg_head - nwords_vsa * WORD;
+    nwords_free = total_size / WORD;
 
     if (nwords_free < nwords_node + 1)
     {
@@ -58,11 +57,10 @@ vsa_t* VSAInit(void* seg, size_t total_size)
 void* VSAAlloc(vsa_t* vsa, size_t block_size)
 {
     node_vsa_t *curr = NULL, *next = NULL;
-    ptrdiff_t word = sizeof(size_t);
     ptrdiff_t wblock = 0, wnode = 0, wcount = 0;
   
-    wblock = ((word - block_size % word) % word + block_size) / word; 
-    wnode = sizeof(node_vsa_t) / word;
+    wblock = ((WORD - block_size % WORD) % WORD + block_size) / WORD; 
+    wnode = sizeof(node_vsa_t) / WORD;
     curr = (node_vsa_t*)((vsa_t*)vsa + 1);
     wcount = labs(curr->offset) + wnode;
     while (wcount < vsa->total_size && wblock >= curr->offset)
@@ -120,10 +118,9 @@ void VSAFree(void *block)
 size_t VSAGetLargestBlock(const vsa_t* vsa)
 {
     node_vsa_t *curr = NULL, *next = NULL;
-    ptrdiff_t word = sizeof(size_t);
     ptrdiff_t wnode = 0, wcount = 0, largest = 0;
 
-    wnode = sizeof(node_vsa_t) / word;
+    wnode = sizeof(node_vsa_t) / WORD;
     curr = (node_vsa_t*)((vsa_t*)vsa + 1);
     largest = (curr->offset > 0) ? curr->offset : 0;
     wcount = labs(curr->offset) + wnode;
@@ -142,5 +139,5 @@ size_t VSAGetLargestBlock(const vsa_t* vsa)
         largest = largest >= curr->offset ? largest : curr->offset;
         wcount += curr->offset + wnode;
     }
-    return (largest * word);
+    return (largest * WORD);
 }
