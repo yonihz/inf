@@ -47,9 +47,6 @@ vsa_t* VSAInit(void* seg, size_t total_size)
     vsa = (vsa_t*)seg;
     vsa->total_size = nwords_free;
     first_node = (node_vsa_t*)((vsa_t*)seg + 1);
-#ifndef NDEBUG
-    first_node->magic = VALID;
-#endif
     first_node->offset = nwords_free - nwords_node;
     return (seg);
 }
