@@ -11,13 +11,13 @@ struct task
 	size_t interval;
     size_t next_time;
 	ilrd_uid_t uid;
-    const void* param;
+    const void *param;
     op_func_t op_func;
 };
 
-task_t* TaskCreate(size_t interval, op_func_t operation, void* param)
+task_t *TaskCreate(size_t interval, op_func_t operation, void *param)
 {
-    task_t* new_task = malloc(sizeof(task_t));
+    task_t *new_task = (task_t *)malloc(sizeof(task_t));
 
     if (NULL == new_task)
     {
@@ -33,7 +33,7 @@ task_t* TaskCreate(size_t interval, op_func_t operation, void* param)
 	return (new_task);
 }
 
-void TaskDestroy(task_t* task)
+void TaskDestroy(task_t *task)
 {
     assert(task);
 
@@ -41,7 +41,7 @@ void TaskDestroy(task_t* task)
     task = NULL;
 }
 
-int TaskCompare(const void* data1, const void* data2, const void* param)
+int TaskCompare(const void *data1, const void *data2, const void *param)
 {
     UNUSED(param);
 
@@ -53,35 +53,35 @@ int TaskCompare(const void* data1, const void* data2, const void* param)
     return (0);
 }
 
-void TaskPriorityUpdate(task_t* task)
+void TaskPriorityUpdate(task_t *task)
 {
     assert(task);
 
     task->next_time += task->interval;
 }
 
-ilrd_uid_t TaskGetUID(const task_t* task)
+ilrd_uid_t TaskGetUID(const task_t *task)
 {
     assert(task);
 
     return (task->uid);
 }
 
-size_t TaskGetPriority(const task_t* task)
+size_t TaskGetPriority(const task_t *task)
 {
     assert(task);
 
     return (task->next_time);
 }
 
-int TaskRunOperation(task_t* task)
+int TaskRunOperation(task_t *task)
 {
     assert(task);
 
     return (task->op_func((void*)task->param));
 }
 
-int TaskMatchUID(const void* task, const void* task_uid)
+int TaskMatchUID(const void *task, const void *task_uid)
 {
     assert(task);
 

@@ -19,14 +19,14 @@ return: the pointer to the memory management unit
     be carefull when you free the segment
 - if the total_size is not enouth to initiate VSA - return NULL
 */
-vsa_t* VSAInit(void* seg, size_t total_size);
+vsa_t *VSAInit(void *seg, size_t total_size);
 
 /* O(N)
 vsa: pointer to the memory management unit
 return: the address of the allocated block 
 if the block_size is zero - return NULL
 */ 
-void* VSAAlloc(vsa_t* vsa, size_t block_size);
+void* VSAAlloc(vsa_t *vsa, size_t block_size);
 
 /* O(1)
 block - the pointer of the block to free
@@ -37,12 +37,6 @@ void VSAFree(void *block);
 /* O(N)
 returns the size of the largest block avaliable
 */
-size_t VSAGetLargestBlock(const vsa_t* vsa);
+size_t VSAGetLargestBlock(const vsa_t *vsa);
 
 #endif
-
-/* 
-in use = positive offset
-avaliable = negative offset
-the type of offset is ptrdiff_t
-*/

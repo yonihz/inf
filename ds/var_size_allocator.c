@@ -4,8 +4,15 @@
 
 #include "var_size_allocator.h"
 
-#define VALID 0xDEADBEEF
-#define WORD sizeof(ptrdiff_t)
+#ifndef NDEBUG
+#define VALID_NODE 0xDEADBEEF
+#endif
+
+#define WORD (sizeof(ptrdiff_t))
+#define NWORDS(x) (sizeof(x) / WORD)
+#define TAIL_END(x) ((size_t)(x) % WORD)
+#define TAIL_START(x) ((WORD - (size_t)(x) % WORD) % WORD)
+#define ALIGN(x) ((x) + TAIL_START(x))
 
 /* Offset convention: used (-) / free (+), type is ptrdiff_t */
 struct node_vsa
@@ -26,28 +33,24 @@ struct var_alloc
 
 vsa_t* VSAInit(void* seg, size_t total_size)
 {
-    ptrdiff_t nwords_node, nwords_vsa = 0, nwords_free = 0;
-    ptrdiff_t seg_tail = 0, seg_head = 0;
     node_vsa_t* first_node = NULL;
+    void* seg_end = NULL;
     vsa_t* vsa = NULL;
 
-    nwords_node = sizeof(node_vsa_t) / WORD;
-    nwords_vsa = sizeof(vsa_t) / WORD;
-    seg_tail = (WORD - (size_t)seg % WORD) % WORD;
-    seg_head = ((size_t)seg + total_size) % WORD;
-    total_size = total_size - seg_tail - seg_head - nwords_vsa * WORD;
-    nwords_free = total_size / WORD;
+    seg_end = (void*)((char*)seg + total_size);
+    total_size = total_size - TAIL_START(seg) - TAIL_END(seg_end) 
+                    - NWORDS(vsa_t) * WORD;
 
-    if (nwords_free < nwords_node + 1)
+    if ((total_size / WORD) < (NWORDS(node_vsa_t) + 1))
     {
         return (NULL);
     }
 
-    seg = (vsa_t*)((char*)seg + seg_tail);
+    seg = (vsa_t*)((char*)seg + TAIL_START(seg));
     vsa = (vsa_t*)seg;
-    vsa->total_size = nwords_free;
+    vsa->total_size = total_size / WORD;
     first_node = (node_vsa_t*)((vsa_t*)seg + 1);
-    first_node->offset = nwords_free - nwords_node;
+    first_node->offset = total_size / WORD - NWORDS(node_vsa_t);
     return (seg);
 }
 
@@ -56,8 +59,8 @@ void* VSAAlloc(vsa_t* vsa, size_t block_size)
     node_vsa_t *curr = NULL, *next = NULL;
     ptrdiff_t wblock = 0, wnode = 0, wcount = 0;
   
-    wblock = ((WORD - block_size % WORD) % WORD + block_size) / WORD; 
-    wnode = sizeof(node_vsa_t) / WORD;
+    wblock = ALIGN(block_size) / WORD;
+    wnode = NWORDS(node_vsa_t);
     curr = (node_vsa_t*)((vsa_t*)vsa + 1);
     wcount = labs(curr->offset) + wnode;
     while (wcount < vsa->total_size && wblock >= curr->offset)
@@ -88,7 +91,7 @@ void* VSAAlloc(vsa_t* vsa, size_t block_size)
     }
     curr->offset *= (-1);
 #ifndef NDEBUG
-    curr->magic = VALID;
+    curr->magic = VALID_NODE;
 #endif
     return (curr + 1);
 }
@@ -105,7 +108,7 @@ void VSAFree(void *block)
     node_tofree = (node_vsa_t*)block - 1;
 
 #ifndef NDEBUG
-    assert(VALID == node_tofree->magic);
+    assert(VALID_NODE == node_tofree->magic);
     node_tofree->magic = 0; 
 #endif
 
@@ -117,7 +120,7 @@ size_t VSAGetLargestBlock(const vsa_t* vsa)
     node_vsa_t *curr = NULL, *next = NULL;
     ptrdiff_t wnode = 0, wcount = 0, largest = 0;
 
-    wnode = sizeof(node_vsa_t) / WORD;
+    wnode = NWORDS(node_vsa_t);
     curr = (node_vsa_t*)((vsa_t*)vsa + 1);
     largest = (curr->offset > 0) ? curr->offset : 0;
     wcount = labs(curr->offset) + wnode;

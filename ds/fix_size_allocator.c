@@ -1,10 +1,14 @@
 #include "fix_size_allocator.h"
 
 #define WORD sizeof(size_t)
+#define NWORDS(x) (sizeof(x) / WORD)
+#define TAIL_END(x) ((size_t)(x) % WORD)
+#define TAIL_START(x) ((WORD - (size_t)(x) % WORD) % WORD)
+#define ALIGN(x) ((x) + TAIL_START(x))
 
 struct allocator
 {
-    void** next_free;
+    void **next_free;
     size_t block_size;
     size_t nblocks;
     size_t nfree;
@@ -15,23 +19,23 @@ size_t FSASuggestSize(size_t block_size, size_t num_of_blocks)
     size_t meta_size = 0, suggest_size = 0;
     
     meta_size = WORD;
-    block_size += (WORD - block_size % WORD) % WORD;
+    block_size = ALIGN(block_size);
     suggest_size = (block_size + meta_size) * num_of_blocks + 
                     sizeof(allocator_t) + (WORD - 1);
     suggest_size = (!block_size || !num_of_blocks) ? 0 : suggest_size;
     return (suggest_size);
 }
 
-allocator_t* FSAInit(void* dest, size_t block_size, size_t total_size)
+allocator_t *FSAInit(void *dest, size_t block_size, size_t total_size)
 {
     size_t meta_size = 0, dest_tail = 0, i = 0, ablock_size = 0;
-    void** node = NULL;
-    allocator_t* alloc = NULL;
+    void **node = NULL;
+    allocator_t *alloc = NULL;
 
     meta_size = WORD;
-    dest_tail = (WORD - (size_t)dest % WORD) % WORD;
+    dest_tail = TAIL_START(dest);
     dest = (void*)((char*)dest + dest_tail);
-    ablock_size = block_size + (WORD - block_size % WORD) % WORD;
+    ablock_size = ALIGN(block_size);
 
     alloc = (allocator_t*)dest;
 
@@ -57,10 +61,10 @@ allocator_t* FSAInit(void* dest, size_t block_size, size_t total_size)
     return (alloc);
 }
 
-void* FSAAlloc(allocator_t *allocator)
+void *FSAAlloc(allocator_t *allocator)
 {
-    void* block = NULL;
-    void** meta_block = NULL;
+    void *block = NULL;
+    void **meta_block = NULL;
 
     if (allocator->nfree == 0)
     {
@@ -77,7 +81,7 @@ void* FSAAlloc(allocator_t *allocator)
 
 void FSAFree(void *block)
 {
-    void** meta_block = NULL;
+    void **meta_block = NULL;
     allocator_t* alloc = NULL;
 
     meta_block = (void**)block - 1;
