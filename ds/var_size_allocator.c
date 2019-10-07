@@ -1,5 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h> /* labs */
 #include <assert.h>
 
 #include "var_size_allocator.h"
@@ -15,15 +14,13 @@
 #define ALIGN(x) ((x) + TAIL_START(x))
 
 /* Offset convention: used (-) / free (+), type is ptrdiff_t */
-struct node_vsa
+typedef struct
 {
     ptrdiff_t offset;
 #ifndef NDEBUG
     size_t magic;
 #endif
-};
-
-typedef struct node_vsa node_vsa_t; 
+} node_vsa_t;
 
 /* total_size = allocated - align_tails - sizeof(vsa_t) */
 struct var_alloc
@@ -61,7 +58,7 @@ void* VSAAlloc(vsa_t* vsa, size_t block_size)
   
     wblock = ALIGN(block_size) / WORD;
     wnode = NWORDS(node_vsa_t);
-    curr = (node_vsa_t*)((vsa_t*)vsa + 1);
+    curr = (node_vsa_t*)(vsa + 1);
     wcount = labs(curr->offset) + wnode;
     while (wcount < vsa->total_size && wblock >= curr->offset)
     {
@@ -121,7 +118,7 @@ size_t VSAGetLargestBlock(const vsa_t* vsa)
     ptrdiff_t wnode = 0, wcount = 0, largest = 0;
 
     wnode = NWORDS(node_vsa_t);
-    curr = (node_vsa_t*)((vsa_t*)vsa + 1);
+    curr = (node_vsa_t*)(vsa + 1);
     largest = (curr->offset > 0) ? curr->offset : 0;
     wcount = labs(curr->offset) + wnode;
 
