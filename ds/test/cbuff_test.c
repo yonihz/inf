@@ -3,24 +3,23 @@
 * FILE NAME: cbuff_test.c										*
 * 																*
 * PURPOSE: Testing cbuff functions								*
-*                                                               *
-* VERSION: 0.1													*
 * 																*
 * DATE: 08.09.19												*
 * 																*
 * Author: Yoni Horovitz											*
 * 																*
-* Reviewer: N/A													*
-* 																*
 ****************************************************************/
 
 #include <stdio.h>	/* printf */
-#include <string.h> /* strlen */
+#include <string.h> /* strlen, strcmp */
 #include <time.h> /* time */
 #include <stdlib.h> /* srand */
 
 #include "cbuff.h"
-#include "verify_funcs.h"
+
+#define RED   "\x1B[31m"
+#define GRN   "\x1B[32m"
+#define RESET "\x1B[0m"
 
 struct c_buff
 {
@@ -29,6 +28,12 @@ struct c_buff
 	size_t size;
 	size_t read_idx;
 };
+
+void VerifyInt(int test, int expected, char test_name[]);
+void VerifySizet(size_t test,size_t expected, char test_name[]);
+void VerifyVoidptr(void* test, void* expected, char test_name[]);
+void VerifyChar(char test[], char expected[], char test_name[]);
+void VerifyStrncmp(char test[], char expected[], size_t n, char test_name[]);
 
 /* API test functions */
 
@@ -175,4 +180,53 @@ void CleanStr(char* str)
 	{
 		*(str+i) = '\0';
 	}
+}
+
+void VerifyInt(int test, int expected, char test_name[])
+{
+	(test == expected) ?
+	(printf(GRN), printf("## TEST PASS ## %s\n", test_name)) :
+	(printf(RED), printf("## TEST FAIL ## %s\n", test_name)) ;
+	printf(RESET);
+}
+
+void VerifySizet(size_t test,size_t expected, char test_name[])
+{
+	(test == expected) ?
+	(printf(GRN), printf("## TEST PASS ## %s\n", test_name)) :
+	(printf(RED), printf("## TEST FAIL ## %s\n", test_name)) ;
+	printf(RESET);
+}
+
+void VerifyVoidptr(void* test, void* expected, char test_name[])
+{
+	if (NULL == expected)
+	{
+		(test == NULL) ?
+		(printf(GRN), printf("## TEST PASS ## %s\n", test_name)) :
+		(printf(RED), printf("## TEST FAIL ## %s\n", test_name)) ;
+		printf(RESET);
+		return;
+	}
+
+	(*(int*)test == *(int*)expected) ?
+	(printf(GRN), printf("## TEST PASS ## %s\n", test_name)) :
+	(printf(RED), printf("## TEST FAIL ## %s\n", test_name)) ;
+	printf(RESET);
+}
+
+void VerifyChar(char test[], char expected[], char test_name[])
+{
+	(!strcmp(test, expected)) ?
+	(printf(GRN), printf("## TEST PASS ## %s\n", test_name)) :
+	(printf(RED), printf("## TEST FAIL ## %s\n", test_name)) ;
+	printf(RESET);
+}
+
+void VerifyStrncmp(char test[], char expected[], size_t n, char test_name[])
+{
+	(!strncmp(test, expected, n)) ?
+	(printf(GRN), printf("## TEST PASS ## %s\n", test_name)) :
+	(printf(RED), printf("## TEST FAIL ## %s\n", test_name)) ;
+	printf(RESET);
 }

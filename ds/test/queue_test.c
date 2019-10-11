@@ -4,13 +4,9 @@
 * 																*
 * PURPOSE: Testing queue functions								*
 *                                                               *
-* VERSION: 0.1													*
-* 																*
 * DATE: 04.09.19												*
 * 																*
 * Author: Yoni Horovitz											*
-* 																*
-* Reviewer: N/A													*
 * 																*
 ****************************************************************/
 

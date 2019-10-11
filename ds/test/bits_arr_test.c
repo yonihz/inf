@@ -3,14 +3,10 @@
 * FILE NAME: bits_arr_test.c									*
 * 																*
 * PURPOSE: Testing bits array functions							*
-*                                                               *
-* VERSION: 0.1													*
 * 																*
 * DATE: 29.08.19												*
 * 																*
 * Author: Yoni Horovitz											*
-* 																*
-* Reviewer: N/A													*
 * 																*
 ****************************************************************/
 

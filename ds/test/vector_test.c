@@ -3,14 +3,10 @@
 * FILE NAME: vector_test.c										*
 * 																*
 * PURPOSE: Testing vector functions								*
-*                                                               *
-* VERSION: 0.1													*
 * 																*
 * DATE: 29.08.19												*
 * 																*
 * Author: Yoni Horovitz											*
-* 																*
-* Reviewer: Tal Samucha												*
 * 																*
 ****************************************************************/
 
@@ -347,7 +343,6 @@ void TestVectorInvalidPtr()
 void TestVectorSize0()
 {
 	vector_t* vector1 = NULL;
-	void* head = NULL;
     size_t size_of_element = sizeof(int);
     int a[9] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
 

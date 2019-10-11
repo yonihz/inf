@@ -3,14 +3,10 @@
 * FILE NAME: slist_test.c										*
 * 																*
 * PURPOSE: Testing slist functions								*
-*                                                               *
-* VERSION: 0.1													*
 * 																*
 * DATE: 03.09.19												*
 * 																*
 * Author: Yoni Horovitz											*
-* 																*
-* Reviewer: N/A												*
 * 																*
 ****************************************************************/
 

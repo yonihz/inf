@@ -1,26 +1,52 @@
-SOURCES = $(wildcard *.c)
-OBJECTS = $(SRCS:.c=.o)
-TESTS = $(SRCS:.c=.out)
+SRCS := $(wildcard *.c)
+OBJS := $(SRCS:.c=.o)
+TESTS := $(SRCS:.c=.out)
+EXCLUDE_FILES := task.out
+TESTS := $(filter-out $(EXCLUDE_FILES),$(TESTS))
+LIB := ./lib/libds.so
+
+SRC_DIR := ./
+OBJ_DIR := ./obj/
+INC_DIR := ./include/
+TEST_DIR := ./test/
+
 CC = gcc
-CFLAGS = -ansi -pedantic-errors -Wall -Wextra -Iinclude
+CFLAGS = -ansi -pedantic-errors -Wall -Wextra -I$(INC_DIR)
 DEBUGFLAGS = -g
 RELEASEFLAGS = -DNDEBUG -O3
-TARGET = dlist_test sorted_list_test priority_q_test scheduler_test
 
-OBJECTS = $(patsubst %.c, %.o, $(wildcard *.c)) $(patsubst %.c, %.o, $(wildcard $(TDIR)/*_test.c))
+OBJS1 := $(addprefix $(OBJ_DIR),$(OBJS))
+TESTS1 := $(TESTS:.out=_test.out)
 
 default: all
 
-all: $(TARGET)
+all: $(OBJS1) $(LIB)
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+$(OBJ_DIR)%.o: $(SRC_DIR)%.c
+	$(CC) $(CFLAGS) -fPIC -c $< -o $@
 
-dlist_test: $(OBJECTS_DLIST)
-	$(CC) $(CFLAGS) $(DEBUGFLAGS) $(OBJECTS_DLIST) -o $@
+$(LIB) : $(OBJS1)
+	$(CC) -shared $^ -o $@
 
-clean:
-	-rm -f $(OBJECTS)
-	-rm -f $(TARGET)
+%_test.out : $(TEST_DIR)%_test.c $(SRCS)
+	-$(CC) $(CFLAGS) $^ -o $@
+
+.PHONY : debug
+debug : CFLAGS += $(DEBUGFLAGS)
+debug : all
+
+.PHONY : release
+release : CFLAGS += $(RELEASEFLAGS)
+release : all
+
+.PHONY : test
+test : debug
+test : $(TESTS1) 
+
+.PHONY : clean
+clean :
+	rm -f $(OBJS1)
+	rm -f $(LIB)
+	rm -f $(TESTS1)
 
 .PHONY: all

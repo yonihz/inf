@@ -3,23 +3,29 @@
 * FILE NAME: sorted_list_test.c									*
 * 																*
 * PURPOSE: Testing sorted list functions						*
-*                                                               *
-* VERSION: 0.1													*
 * 																*
 * DATE: 12.09.19												*
 * 																*
 * Author: Yoni Horovitz											*
 * 																*
-* Reviewer: N/A													*
-* 																*
 ****************************************************************/
 
 #include <stdio.h>	/* printf */
+#include <string.h>	/* strcmp */
 
 #include "priority_q.h"
-#include "verify_funcs.h"
+
+#define RED   "\x1B[31m"
+#define GRN   "\x1B[32m"
+#define RESET "\x1B[0m"
 
 #define UNUSED(x) (void)(x)
+
+void VerifyInt(int test, int expected, char test_name[]);
+void VerifySizet(size_t test,size_t expected, char test_name[]);
+void VerifyVoidptr(void* test, void* expected, char test_name[]);
+void VerifyChar(char test[], char expected[], char test_name[]);
+void VerifyStrncmp(char test[], char expected[], size_t n, char test_name[]);
 
 /* API test functions */
 
@@ -122,4 +128,53 @@ int isNum(const void* data, const void* param)
 	}
 
 	return (1);
+}
+
+void VerifyInt(int test, int expected, char test_name[])
+{
+	(test == expected) ?
+	(printf(GRN), printf("## TEST PASS ## %s\n", test_name)) :
+	(printf(RED), printf("## TEST FAIL ## %s\n", test_name)) ;
+	printf(RESET);
+}
+
+void VerifySizet(size_t test,size_t expected, char test_name[])
+{
+	(test == expected) ?
+	(printf(GRN), printf("## TEST PASS ## %s\n", test_name)) :
+	(printf(RED), printf("## TEST FAIL ## %s\n", test_name)) ;
+	printf(RESET);
+}
+
+void VerifyVoidptr(void* test, void* expected, char test_name[])
+{
+	if (NULL == expected)
+	{
+		(test == NULL) ?
+		(printf(GRN), printf("## TEST PASS ## %s\n", test_name)) :
+		(printf(RED), printf("## TEST FAIL ## %s\n", test_name)) ;
+		printf(RESET);
+		return;
+	}
+
+	(*(int*)test == *(int*)expected) ?
+	(printf(GRN), printf("## TEST PASS ## %s\n", test_name)) :
+	(printf(RED), printf("## TEST FAIL ## %s\n", test_name)) ;
+	printf(RESET);
+}
+
+void VerifyChar(char test[], char expected[], char test_name[])
+{
+	(!strcmp(test, expected)) ?
+	(printf(GRN), printf("## TEST PASS ## %s\n", test_name)) :
+	(printf(RED), printf("## TEST FAIL ## %s\n", test_name)) ;
+	printf(RESET);
+}
+
+void VerifyStrncmp(char test[], char expected[], size_t n, char test_name[])
+{
+	(!strncmp(test, expected, n)) ?
+	(printf(GRN), printf("## TEST PASS ## %s\n", test_name)) :
+	(printf(RED), printf("## TEST FAIL ## %s\n", test_name)) ;
+	printf(RESET);
 }
