@@ -9,23 +9,34 @@
 #define RESET "\x1B[0m"
 
 #define ARR_SIZE 5000
+#define ARR3_SIZE 10
+#define ARR4_SIZE 5
 
 void PrintArr(int *arr, size_t size);
+void PrintArrUL(unsigned long *arr, size_t size);
+void PrintArrX(unsigned long *arr, size_t size);
 void InitArr(int *arr, size_t size);
 int* CopyArr(int *dest, int *src, size_t size);
+int IsEqualArr(int *arr1, int* arr2, size_t size);
+int IsEqualArrUL(unsigned long *arr1, unsigned long* arr2, size_t size);
 int MinVal(int* arr, size_t size);
 int MaxVal(int* arr, size_t size);
-int IsEqualArr(int *arr1, int* arr2, size_t size);
+
 void VerifyInt(int test, int expected, char test_name[]);
+
 void TestInsertionSort(int* input, int* expected);
 void TestSelectionSort(int* input, int* expected);
 void TestCountingSort(int* input, int* expected);
+void TestRadixSort10(unsigned long* input, unsigned long* expected);
+void TestRadixSort2(unsigned long* input, unsigned long* expected);
 
 int main()
 {
     int arr1[ARR_SIZE] = {0};
     int arr1_copy[ARR_SIZE] = {0};
     int arr2_bubble[ARR_SIZE] = {0};
+    unsigned long arr3[ARR3_SIZE] = {1003, 17, 801, 6, 2324, 461, 89, 103, 680, 1090};
+    unsigned long arr4[ARR4_SIZE] = {0x10001001, 0x20001230, 0x10001100, 0x10001321, 0x10001021};    
 
     srand(time(0));
 
@@ -39,6 +50,10 @@ int main()
     TestInsertionSort(CopyArr(arr1_copy, arr1, ARR_SIZE) ,arr2_bubble);
     TestSelectionSort(CopyArr(arr1_copy, arr1, ARR_SIZE) ,arr2_bubble);
     TestCountingSort(CopyArr(arr1_copy, arr1, ARR_SIZE) ,arr2_bubble);
+    PrintArrUL(arr3, ARR3_SIZE);
+    TestRadixSort10(arr3, arr3);
+    PrintArrX(arr4, ARR4_SIZE);    
+    TestRadixSort2(arr4, arr4);
 
     return (0);
 }
@@ -66,12 +81,49 @@ void TestCountingSort(int* input, int* expected)
     VerifyInt(IsEqualArr(arr_counting_dest, expected, ARR_SIZE), 1, "COUNTING SORT");    
 }
 
+void TestRadixSort10(unsigned long* input, unsigned long* expected)
+{
+    unsigned long arr_radix10_dest[ARR3_SIZE] = {0};
+    RadixSort10(input, arr_radix10_dest, ARR3_SIZE);
+    VerifyInt(IsEqualArrUL(input, expected, ARR3_SIZE), 1, "RADIX 10 SORT");    
+    PrintArrUL(arr_radix10_dest, ARR3_SIZE);
+}
+
+void TestRadixSort2(unsigned long* input, unsigned long* expected)
+{
+    unsigned long arr_radix2_dest[ARR4_SIZE] = {0};
+    size_t base = 16;
+    RadixSort2(input, arr_radix2_dest, ARR4_SIZE, base);
+    VerifyInt(IsEqualArrUL(input, expected, ARR4_SIZE), 1, "RADIX 2 SORT");
+    PrintArrX(arr_radix2_dest, ARR4_SIZE);
+}
+
 void PrintArr(int *arr, size_t size)
 {
     size_t i = 0;
     for (i = 0; i < size; ++i)
     {
         printf("%d ", arr[i]);
+    }
+    printf("\n");
+}
+
+void PrintArrUL(unsigned long *arr, size_t size)
+{
+    size_t i = 0;
+    for (i = 0; i < size; ++i)
+    {
+        printf("%lu ", arr[i]);
+    }
+    printf("\n");
+}
+
+void PrintArrX(unsigned long *arr, size_t size)
+{
+    size_t i = 0;
+    for (i = 0; i < size; ++i)
+    {
+        printf("0x%lX ", arr[i]);
     }
     printf("\n");
 }
@@ -129,6 +181,20 @@ int MaxVal(int* arr, size_t size)
 }
 
 int IsEqualArr(int *arr1, int* arr2, size_t size)
+{
+    size_t i = 0;
+
+    for (i = 0; i < size; i++)
+    {
+        if (arr1[i] != arr2[i])
+        {
+            return (0);
+        }
+    }
+    return (1);
+}
+
+int IsEqualArrUL(unsigned long *arr1, unsigned long* arr2, size_t size)
 {
     size_t i = 0;
 

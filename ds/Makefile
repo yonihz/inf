@@ -22,9 +22,7 @@ LDFLAGS = -shared
 OBJS1 := $(addprefix $(OBJ_DIR)/,$(OBJS))
 OBJS_TEST1 := $(addprefix $(OBJ_DIR)/,$(OBJS_TEST))
 
-default: all
-
-all: debug release
+default: release
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(COMPILE) -fPIC -c $< -o $@
@@ -49,6 +47,9 @@ debug : $(LIB_DEBUG) $(OBJS1)
 release : COMPILE = $(CFLAGS) $(RELEASEFLAGS)
 release : $(LIB_RELEASE) $(OBJS1)
 
+.PHONY: all
+all: debug release
+
 .PHONY : test
 test : debug
 test : COMPILE = $(CFLAGS) $(DEBUGFLAGS)
@@ -66,7 +67,5 @@ clean :
 	rm -f $(LIB_DEBUG)
 	rm -f $(BINS_TESTS)
 
-.PHONY: all
-
-#TODO: make all - do release, then delete objects then debug
-#TODO: Wlrpath in make test need to be added instead of L.
+#TODO: make all - do release, delete objects, debug and recreate objects 
+#TODO: make test - not sure if to include both wl,rpath and L. 
