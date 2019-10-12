@@ -2,15 +2,11 @@
 * 																*
 * FILE NAME: bits_arr.c											*
 * 																*
-* PURPOSE: Bits array functions source file							*
+* PURPOSE: Bits array functions source file						*
 *                                                               *
-* VERSION: 0.1													*
-* 																*
 * DATE: 29.08.19												*
 * 																*
 * Author: Yoni Horovitz											*
-* 																*
-* Reviewer: N/A													*
 * 																*
 ****************************************************************/
 

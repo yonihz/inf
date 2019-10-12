@@ -3,14 +3,10 @@
 * FILE NAME: queue.c											*
 * 																*
 * PURPOSE: Queue functions source file							*
-*                                                               *
-* VERSION: 0.1													*
 * 																*
 * DATE: 04.09.19												*
 * 																*
 * Author: Yoni Horovitz											*
-* 																*
-* Reviewer: N/A													*
 * 																*
 ****************************************************************/
 

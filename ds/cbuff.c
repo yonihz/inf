@@ -4,13 +4,9 @@
 * 																*
 * PURPOSE: Circular Buffer functions source file				*
 *                                                               *
-* VERSION: 0.1													*
-* 																*
 * DATE: 08.09.19												*
 * 																*
 * Author: Yoni Horovitz											*
-* 																*
-* Reviewer: Pasha												*
 * 																*
 ****************************************************************/
 #include <assert.h> /* assert */

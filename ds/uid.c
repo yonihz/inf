@@ -3,14 +3,10 @@
 * FILE NAME: uid.c												*
 * 																*
 * PURPOSE: UID functions source file							*
-*                                                               *
-* VERSION: 0.1													*
 * 																*
 * DATE: 12.09.19												*
 * 																*
 * Author: Yoni Horovitz											*
-* 																*
-* Reviewer: N/A													*
 * 																*
 ****************************************************************/
 

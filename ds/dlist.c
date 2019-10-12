@@ -3,14 +3,10 @@
 * FILE NAME: dlist.c											*
 * 																*
 * PURPOSE: Doubly Linked List functions source file				*
-*                                                               *
-* VERSION: 0.1													*
 * 																*
 * DATE: 10.09.19												*
 * 																*
 * Author: Yoni Horovitz											*
-* 																*
-* Reviewer: Eliraz												*
 * 																*
 ****************************************************************/
 

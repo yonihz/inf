@@ -3,14 +3,10 @@
 * FILE NAME: slist.c											*
 * 																*
 * PURPOSE: slist functions source file							*
-*                                                               *
-* VERSION: 0.1													*
 * 																*
 * DATE: 03.09.19												*
 * 																*
 * Author: Yoni Horovitz											*
-* 																*
-* Reviewer: Aviv Duek													*
 * 																*
 ****************************************************************/
 

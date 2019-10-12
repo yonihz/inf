@@ -3,14 +3,10 @@
 * FILE NAME: stack.c											*
 * 																*
 * PURPOSE: Stack functions source file							*
-*                                                               *
-* VERSION: 0.1													*
 * 																*
 * DATE: 29.08.19												*
 * 																*
 * Author: Yoni Horovitz											*
-* 																*
-* Reviewer: Tal Samucha													*
 * 																*
 ****************************************************************/
 
