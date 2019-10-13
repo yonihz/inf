@@ -12,6 +12,8 @@
 #define ARR3_SIZE 10
 #define ARR4_SIZE 5
 
+#define UNUSED(x) (void)(x)
+
 void PrintArr(int *arr, size_t size);
 void PrintArrUL(unsigned long *arr, size_t size);
 void PrintArrX(unsigned long *arr, size_t size);
@@ -50,9 +52,7 @@ int main()
     TestInsertionSort(CopyArr(arr1_copy, arr1, ARR_SIZE) ,arr2_bubble);
     TestSelectionSort(CopyArr(arr1_copy, arr1, ARR_SIZE) ,arr2_bubble);
     TestCountingSort(CopyArr(arr1_copy, arr1, ARR_SIZE) ,arr2_bubble);
-    PrintArrUL(arr3, ARR3_SIZE);
-    TestRadixSort10(arr3, arr3);
-    PrintArrX(arr4, ARR4_SIZE);    
+    TestRadixSort10(arr3, arr3);   
     TestRadixSort2(arr4, arr4);
 
     return (0);
@@ -83,19 +83,30 @@ void TestCountingSort(int* input, int* expected)
 
 void TestRadixSort10(unsigned long* input, unsigned long* expected)
 {
-    unsigned long arr_radix10_dest[ARR3_SIZE] = {0};
-    RadixSort10(input, arr_radix10_dest, ARR3_SIZE);
-    VerifyInt(IsEqualArrUL(input, expected, ARR3_SIZE), 1, "RADIX 10 SORT");    
-    PrintArrUL(arr_radix10_dest, ARR3_SIZE);
+    size_t base = 10;
+    UNUSED(expected);
+    printf("Radix Sort Base 10 Test\n");
+    printf("Input:\n");    
+    PrintArrUL(input, ARR3_SIZE);
+    printf("Sorting stages:\n");  
+    RadixSort(input, ARR3_SIZE, base);
+    /*VerifyInt(IsEqualArrUL(input, expected, ARR3_SIZE), 1, "RADIX 10 SORT");*/  
+    printf("Output:\n"); 
+    PrintArrUL(input, ARR3_SIZE);
 }
 
 void TestRadixSort2(unsigned long* input, unsigned long* expected)
 {
-    unsigned long arr_radix2_dest[ARR4_SIZE] = {0};
     size_t base = 16;
-    RadixSort2(input, arr_radix2_dest, ARR4_SIZE, base);
-    VerifyInt(IsEqualArrUL(input, expected, ARR4_SIZE), 1, "RADIX 2 SORT");
-    PrintArrX(arr_radix2_dest, ARR4_SIZE);
+    UNUSED(expected);
+    printf("Radix Sort Base 16 Test\n");
+    printf("Input:\n");
+    PrintArrX(input, ARR4_SIZE);
+    printf("Sorting stages:\n");      
+    RadixSort(input, ARR4_SIZE, base);
+    /*VerifyInt(IsEqualArrUL(input, expected, ARR4_SIZE), 1, "RADIX 2 SORT");*/
+    printf("Output:\n"); 
+    PrintArrX(input, ARR4_SIZE);
 }
 
 void PrintArr(int *arr, size_t size)

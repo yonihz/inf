@@ -77,29 +77,48 @@ void CountingSort(int *arr, int *dest, size_t size, int min, int max)
     free(count);
 }
 
-void RadixSort10(unsigned long *arr, unsigned long *dest, size_t size)
+void RadixSort(unsigned long *arr, size_t size, size_t base)
 {
-    size_t i = 0, n = 0;
-    
-    n = CountDigits(MaxVal(arr, size));
+    size_t i = 0, n = 0, shift = 0;
+    unsigned long *dest = (unsigned long*)calloc(size, sizeof(arr[0]));
 
-    for (i = 0; i < n; ++i)
+    if (!isPow2(base))
     {
-        CountingSort10(arr, dest, size, i);
-        SwapPtrUL(&arr, &dest);
+        printf("Base %lu (not base 2)\n", base);      
+        n = CountDigits(MaxVal(arr, size));
+        for (i = 0; i < n; ++i)
+        {
+            shift = Pow(i, base);  
+            CountingSortAnyBase(arr, dest, size, base, shift);
+            SwapPtrUL(&arr, &dest);
+        }
+    }
+    else
+    {
+        printf("Base %lu (base 2)\n", base);         
+        for (shift = 1, i = 0; shift < base; ++i)
+        {
+            shift <<= 1;
+        }
+        shift = i;
+        n = sizeof(arr[0]) * WORD / shift;
+        for (i = 0; i < n; ++i)
+        {
+            CountingSortBase2(arr, dest, size, base, shift * i);
+            SwapPtrUL(&arr, &dest);
+        }
     }
     CopyArrUL(dest, arr, size);
+    free(dest);
 }
 
-void CountingSort10(unsigned long *arr, unsigned long *dest, size_t size, size_t n)
+void CountingSortAnyBase(unsigned long *arr, unsigned long *dest, size_t size, size_t base, size_t shift)
 {
     size_t i = 0;
-    size_t base = 10;
     unsigned long *count = (unsigned long*)calloc(base, sizeof(arr[0]));
-    n = Pow(n, base);
     for (i = 0; i < size; ++i)
     {
-        ++(count[(arr[i] / n) % base]);
+        ++(count[(arr[i] / shift) % base]);
     }
 
     for (i = 1; i < base; ++i)
@@ -109,41 +128,15 @@ void CountingSort10(unsigned long *arr, unsigned long *dest, size_t size, size_t
 
     for (i = 0; i < size; ++i)
     {
-        --(count[(arr[size - i - 1] / n) % base]);
-        dest[count[(arr[size - i - 1] / n) % base]] = arr[size - i - 1];
+        --(count[(arr[size - i - 1] / shift) % base]);
+        dest[count[(arr[size - i - 1] / shift) % base]] = arr[size - i - 1];
     }
     PrintArrUL(dest, size);
 
     free(count);
 }
 
-void RadixSort2(unsigned long *arr, unsigned long *dest, size_t size, size_t base)
-{
-    size_t i = 0, n = 0, shift = 0;
-
-    if (!isPow2(base))
-    {
-        printf("Error: Base %lu is not a power of 2\n", base);
-        return;
-    }
-    
-    for (shift = 1, i = 0; shift < base; ++i)
-    {
-        shift <<= 1;
-    }
-
-    shift = i;
-    n = sizeof(arr[0]) * WORD / shift;
-
-    for (i = 0; i < n; ++i)
-    {
-        CountingSort2(arr, dest, size, base, shift * i);
-        SwapPtrUL(&arr, &dest);
-    }
-    CopyArrUL(dest, arr, size);
-}
-
-void CountingSort2(unsigned long *arr, unsigned long *dest, size_t size, size_t base, size_t shift)
+void CountingSortBase2(unsigned long *arr, unsigned long *dest, size_t size, size_t base, size_t shift)
 {
     size_t i = 0;
     unsigned long *count = (unsigned long*)calloc(base, sizeof(arr[0]));
@@ -231,14 +224,14 @@ static size_t Pow(size_t n, size_t base)
     return (num);
 }
 
-static int isPow2(unsigned long n)
+static int isPow2(size_t n)
 {
 	if (0 == n)
 	{
 		return (0);
 	}
 
-	else if ( (n & (n - 1)) == 0)
+	else if ((n & (n - 1)) == 0)
 	{
 		return (1);
 	}
