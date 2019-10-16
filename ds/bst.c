@@ -102,23 +102,48 @@ bst_itr_t BSTInsert(bst_t *bst, void *data)
 void BSTRemove(bst_itr_t itr)
 {
     int parent_pos = 0; /* position relative to parent: 1 is right, 0 is left */
+    bst_itr_t child = NULL;
     parent_pos = (itr->parent->child[1] == itr);
-    if (itr->child[1])
+    
+    /* case 1: itr has no children */ 
+    if (itr->child[0] == NULL && itr->child[1] == NULL)
     {
-        itr->parent->child[parent_pos] = itr->child[1];
-        if (itr->child[1]->child[0])
-        {
-            itr->child[1]->child[0]->child[0] = itr->child[0];
-        }  
+        itr->parent->child[parent_pos] = NULL;
+        free(itr);
+        return;
     }
-    else if (itr->child[0])
+
+    /* case 2: itr has only one child */ 
+    if ((itr->child[0] != NULL) ^ (itr->child[1] != NULL))
     {
-        itr->parent->child[parent_pos] = itr->child[0];
+        child = itr->child[1] ? itr->child[1] : itr->child[0];
+        itr->parent->child[parent_pos] = child;
+        child->parent = itr->parent;
+        free(itr);
+        return;
     }
-    free(itr);
+
+    /* case 3: itr has two children */ 
+    child = itr->child[1];
+    while (itr->child[0])
+    {
+        itr = itr->child[0];
+    }
+    itr->data = child->data;
+    child->parent->child[0] = child->child[1];
+    free(child);
 }
 
-/*int BSTForEach(bst_itr_t itr_start, bst_itr_t itr_end, op_func_t op_func, void *param)*/
+int BSTForEach(bst_itr_t itr_start, bst_itr_t itr_end, op_func_t op_func, void *param)
+{
+    int status = 1;
+    while ((0 != status) || BSTIsSame(itr_start, itr_end))
+    {
+        status = op_func(itr_start->data, param);
+        itr_start = BSTNext(itr_start);
+    }
+    return status;
+}
 
 size_t BSTSize(const bst_t *bst)
 {
@@ -187,7 +212,7 @@ bst_itr_t BSTPrev(bst_itr_t itr)
 
 bst_itr_t BSTBegin(const bst_t *bst)
 {
-    bst_itr_t itr = (const bst_itr_t)&(bst->end);
+    bst_itr_t itr = (bst_itr_t)&(bst->end);
     
     while (itr->child[0])
     {
@@ -198,7 +223,7 @@ bst_itr_t BSTBegin(const bst_t *bst)
 
 bst_itr_t BSTEnd(const bst_t *bst)
 {
-    return ((const bst_itr_t)&(bst->end));
+    return ((bst_itr_t)&(bst->end));
 }
 
 int BSTIsSame(bst_itr_t itr1, bst_itr_t itr2)
