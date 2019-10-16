@@ -1,4 +1,5 @@
-#include <stdlib.h>
+#include <stdlib.h> /* malloc, free */
+#include <assert.h>
 
 #include "bst.h"
 
@@ -30,6 +31,8 @@ bst_t *BSTCreate(cmp_func_t cmp_func, void *param)
     bst->cmp_func = cmp_func;
     bst->param = param;
     bst->end.child[0] = NULL;
+    bst->end.child[1] = NULL;
+    bst->end.parent = NULL;
     return (bst);
 }
 
@@ -59,6 +62,7 @@ void BSTDestroy(bst_t *bst)
             itr = parent;
         }   
     }
+    free(bst);
 }
 
 bst_itr_t BSTFind(bst_t *bst, const void *data)
@@ -84,18 +88,25 @@ bst_itr_t BSTInsert(bst_t *bst, void *data)
     bst_itr_t new = (bst_itr_t)malloc(sizeof(bst_node_t));
     bst_itr_t itr;
     int cmp_res = 0;
-    itr = (const bst_itr_t)&(bst->end);
+
+    if (NULL == new)
+    {
+        return (NULL);
+    }
+    itr = (bst_itr_t)&(bst->end);
 
     while (itr->child[cmp_res])
     {
         itr = itr->child[cmp_res];
-        if (0 == cmp_res)
-        {
-            return BSTEnd(bst);
-        }
-        cmp_res = ((bst->cmp_func(data, itr->data, bst->param)) > 0);
+        cmp_res = (bst->cmp_func(data, itr->data, bst->param));
+        assert(0 != cmp_res);
+        cmp_res = cmp_res > 0;
     }
     itr->child[cmp_res] = new;
+    new->data = data;
+    new->parent = itr;
+    new->child[0] = NULL;
+    new->child[1] = NULL;
     return new;
 }
 
@@ -124,20 +135,31 @@ void BSTRemove(bst_itr_t itr)
     }
 
     /* case 3: itr has two children */ 
-    child = itr->child[1];
-    while (itr->child[0])
+    child = BSTNext(itr);
+    if (BSTIsSame(child, itr->child[1]))
     {
-        itr = itr->child[0];
+        itr->data = child->data;
+        itr->child[1] = child->child[1];    
+        if (child->child[1])
+        {
+            child->child[1]->parent = itr;
+        }    
+        free(child);
+        return;               
     }
     itr->data = child->data;
     child->parent->child[0] = child->child[1];
+    if (child->child[1])
+    {
+        child->child[1]->parent = child->parent;
+    }
     free(child);
 }
 
 int BSTForEach(bst_itr_t itr_start, bst_itr_t itr_end, op_func_t op_func, void *param)
 {
-    int status = 1;
-    while ((0 != status) || BSTIsSame(itr_start, itr_end))
+    int status = 0;
+    while ((0 == status) && !BSTIsSame(itr_start, itr_end))
     {
         status = op_func(itr_start->data, param);
         itr_start = BSTNext(itr_start);
@@ -165,11 +187,17 @@ int BSTIsEmpty(const bst_t *bst)
 
 void *BSTGetData(bst_itr_t itr)
 {
+    if (itr == NULL)
+    {
+        return (NULL);
+    }
     return (itr->data);
 }
 
 bst_itr_t BSTNext(bst_itr_t itr)
 {
+    assert(itr->parent);
+
     if (itr->child[1])
     {
         itr = itr->child[1];
@@ -193,7 +221,7 @@ bst_itr_t BSTPrev(bst_itr_t itr)
 {
     if (itr->child[0])
     {
-        itr = itr->child[1];
+        itr = itr->child[0];
         while (itr->child[1])
         {
             itr = itr->child[1];
@@ -207,6 +235,7 @@ bst_itr_t BSTPrev(bst_itr_t itr)
         }
         itr = itr->parent;
     }
+    assert(itr->parent);
     return (itr);
 }
 
