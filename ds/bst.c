@@ -61,7 +61,23 @@ void BSTDestroy(bst_t *bst)
     }
 }
 
-/*bst_itr_t BSTFind(bst_t *bst, const void *data)*/
+bst_itr_t BSTFind(bst_t *bst, const void *data)
+{
+    bst_itr_t itr = NULL;
+    int cmp_res = 0;
+    itr = bst->end.child[0];
+    cmp_res = bst->cmp_func(data, itr->data, bst->param);
+    while (cmp_res)
+    {
+        itr = itr->child[cmp_res > 0];
+        if (NULL == itr)
+        {
+            return BSTEnd(bst);
+        }
+        cmp_res = bst->cmp_func(data, itr->data, bst->param);
+    }
+    return (itr);
+}
 
 bst_itr_t BSTInsert(bst_t *bst, void *data)
 {
@@ -77,13 +93,30 @@ bst_itr_t BSTInsert(bst_t *bst, void *data)
         {
             return BSTEnd(bst);
         }
-        cmp_res = ((bst->cmp_func(data, itr->data, NULL)) > 0);
+        cmp_res = ((bst->cmp_func(data, itr->data, bst->param)) > 0);
     }
     itr->child[cmp_res] = new;
     return new;
 }
 
-/*void BSTRemove(bst_itr_t itr)*/
+void BSTRemove(bst_itr_t itr)
+{
+    int parent_pos = 0; /* position relative to parent: 1 is right, 0 is left */
+    parent_pos = (itr->parent->child[1] == itr);
+    if (itr->child[1])
+    {
+        itr->parent->child[parent_pos] = itr->child[1];
+        if (itr->child[1]->child[0])
+        {
+            itr->child[1]->child[0]->child[0] = itr->child[0];
+        }  
+    }
+    else if (itr->child[0])
+    {
+        itr->parent->child[parent_pos] = itr->child[0];
+    }
+    free(itr);
+}
 
 /*int BSTForEach(bst_itr_t itr_start, bst_itr_t itr_end, op_func_t op_func, void *param)*/
 
