@@ -3,6 +3,9 @@
 
 #include "bst.h"
 
+static bst_itr_t BSTRightmost(bst_itr_t itr);
+static bst_itr_t BSTLeftmost(bst_itr_t itr);
+
 typedef struct bst_node bst_node_t;
 
 struct bst_node
@@ -42,12 +45,10 @@ void BSTDestroy(bst_t *bst)
     bst_itr_t parent = NULL;
     bst_itr_t itr = BSTBegin(bst);
 
+    /* traverse post-order (left right root) */
     while (!BSTIsSame(itr,BSTEnd(bst)))
     {
-        while (itr->child[0])
-        {
-            itr = itr->child[0];
-        }
+        itr = BSTLeftmost(itr);
         if (itr->child[1])
         {
             itr = itr->child[1];
@@ -93,8 +94,9 @@ bst_itr_t BSTInsert(bst_t *bst, void *data)
     {
         return (NULL);
     }
+    
+    /* find parent to insert child */
     itr = (bst_itr_t)&(bst->end);
-
     while (itr->child[cmp_res])
     {
         itr = itr->child[cmp_res];
@@ -102,6 +104,7 @@ bst_itr_t BSTInsert(bst_t *bst, void *data)
         assert(0 != cmp_res);
         cmp_res = cmp_res > 0;
     }
+
     itr->child[cmp_res] = new;
     new->data = data;
     new->parent = itr;
@@ -136,19 +139,15 @@ void BSTRemove(bst_itr_t itr)
 
     /* case 3: itr has two children */ 
     child = BSTNext(itr);
+    itr->data = child->data;    
     if (BSTIsSame(child, itr->child[1]))
     {
-        itr->data = child->data;
-        itr->child[1] = child->child[1];    
-        if (child->child[1])
-        {
-            child->child[1]->parent = itr;
-        }    
-        free(child);
-        return;               
+        itr->child[1] = child->child[1];                
     }
-    itr->data = child->data;
-    child->parent->child[0] = child->child[1];
+    else
+    {
+        child->parent->child[0] = child->child[1];
+    }
     if (child->child[1])
     {
         child->child[1]->parent = child->parent;
@@ -201,10 +200,7 @@ bst_itr_t BSTNext(bst_itr_t itr)
     if (itr->child[1])
     {
         itr = itr->child[1];
-        while (itr->child[0])
-        {
-            itr = itr->child[0];
-        }
+        itr = BSTLeftmost(itr);
     }
     else
     {
@@ -222,31 +218,24 @@ bst_itr_t BSTPrev(bst_itr_t itr)
     if (itr->child[0])
     {
         itr = itr->child[0];
-        while (itr->child[1])
-        {
-            itr = itr->child[1];
-        }
+        itr = BSTRightmost(itr);
     }
     else
     {
         while (BSTIsSame(itr, itr->parent->child[0]))
         {
             itr = itr->parent;
+            assert(itr->parent);
         }
         itr = itr->parent;
     }
-    assert(itr->parent);
     return (itr);
 }
 
 bst_itr_t BSTBegin(const bst_t *bst)
 {
     bst_itr_t itr = (bst_itr_t)&(bst->end);
-    
-    while (itr->child[0])
-    {
-        itr = itr->child[0];
-    }
+    itr = BSTLeftmost(itr);
     return (itr);
 }
 
@@ -258,4 +247,22 @@ bst_itr_t BSTEnd(const bst_t *bst)
 int BSTIsSame(bst_itr_t itr1, bst_itr_t itr2)
 {
     return (itr1 == itr2);
+}
+
+static bst_itr_t BSTRightmost(bst_itr_t itr)
+{
+    while (itr->child[1])
+    {
+        itr = itr->child[1];
+    }
+    return (itr);   
+}
+
+static bst_itr_t BSTLeftmost(bst_itr_t itr)
+{
+    while (itr->child[0])
+    {
+        itr = itr->child[0];
+    }
+    return (itr);   
 }

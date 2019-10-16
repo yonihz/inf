@@ -143,22 +143,22 @@ void TestInsertRemove()
     VerifyVoidptr(BSTGetData(test_itr), (arr1 + 6), "INSERT - TREE LOCATION");
 
     test_itr = root->child[0]->child[1]->child[0];
-    VerifyVoidptr(BSTGetData(test_itr), NULL, "INSERT - TREE LOCATION");
+    VerifyVoidptr((test_itr), NULL, "INSERT - TREE LOCATION");
 
     test_itr = root->child[0]->child[1]->child[1];
-    VerifyVoidptr(BSTGetData(test_itr), NULL, "INSERT - TREE LOCATION");
+    VerifyVoidptr((test_itr), NULL, "INSERT - TREE LOCATION");
 
     test_itr = root->child[1]->child[1]->child[0];
     VerifyVoidptr(BSTGetData(test_itr), (arr1 + 8), "INSERT - TREE LOCATION");
 
     test_itr = root->child[1]->child[1]->child[1];
-    VerifyVoidptr(BSTGetData(test_itr), NULL, "INSERT - TREE LOCATION");
+    VerifyVoidptr((test_itr), NULL, "INSERT - TREE LOCATION");
 
     test_itr = root->child[1]->child[1]->child[0]->child[0];
     VerifyVoidptr(BSTGetData(test_itr), (arr1 + 9), "INSERT - TREE LOCATION");
 
     test_itr = root->child[1]->child[1]->child[0]->child[1];
-    VerifyVoidptr(BSTGetData(test_itr), NULL, "INSERT - TREE LOCATION");
+    VerifyVoidptr((test_itr), NULL, "INSERT - TREE LOCATION");
 
     test_itr = BSTFind(bst, (arr1 + 2));
     VerifyVoidptr(BSTGetData(test_itr), (arr1 + 2), "FIND");
