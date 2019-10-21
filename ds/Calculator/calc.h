@@ -15,6 +15,6 @@ enum status {SYSTEM_ERR = -3, MATH_ERR, SYNTAX_ERR, SUCCESS};
     -3 : system error
 */
 
-int Calc(const char *expr, double *result);
+int Calculate(const char *expr, double *result);
 
 #endif /* _CALC_H_ */

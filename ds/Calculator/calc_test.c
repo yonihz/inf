@@ -3,9 +3,28 @@
 
 #include "calc.h"
 
+void TestCalc(char *str);
+
 int main()
 {
-    char *str = "-145+0.5*8";
+    TestCalc("-1.2+0.5*8");
+    TestCalc("5+0.5*2^4");
+    TestCalc("(1.5+0.5)*2^4");
+    TestCalc("((1+1)");
+    TestCalc("((1.5+0.5)*2^(2*2/0))");    
+    TestCalc("((1.5+0.5)*2^(2*2))^");
+
+    TestCalc("7+8");
+    TestCalc("8+8*3+-2^5");
+    TestCalc("2/0");
+    TestCalc("8++8*((3-2)*5)");
+    TestCalc("3-2)*5");    
+    TestCalc("(3-2)*5+ 5*(4+4+4");     
+    return (0);
+}
+
+void TestCalc(char *str)
+{
     int status = 0;
     double res = 0;
 
@@ -36,31 +55,4 @@ int main()
             break;
         }
     }
-    return (0);
 }
-
-/* strtod check
-int main()
-{
-    char *str = "-145+0.5*8";
-    double num = 0;
-    char *end = str;
-    while (*str)
-    {
-        end = str;
-        num = strtod(str, &end);
-        if (str == end)
-        {
-            printf("%c", *str);
-            ++(str);
-        }
-        else
-        {
-            printf("%f", num);
-            str = end;
-        }
-        printf("\n");
-    }
-    return (0);
-}
-*/

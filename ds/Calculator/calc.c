@@ -50,13 +50,14 @@ int Calculate(const char *expr, double *result)
     len = strlen(expr);
     calc->stack_num = StackCreate(len, sizeof(double));
     calc->stack_opr = StackCreate(len, sizeof(char));
-    
+    /*
     if (!is_init_lut)
     {
         InitCalcLUT(calc);
         is_init_lut = 1;
     }
-
+    */
+    InitCalcLUT(calc);
     while (state == 1 || state == 2)
     {
         state = calc->calc_lut[state - 1][(int)*(calc->expr)](calc);
@@ -123,17 +124,16 @@ void InitCalcLUT(calc_t *calc)
     calc->calc_lut[1][1] = CalcPushOpr;
     calc->calc_lut[1][2] = CalcUseOpr;
 
+    calc->prec['('] = 0;
     calc->prec['+'] = 1;
     calc->prec['-'] = 1;
     calc->prec['*'] = 2;
     calc->prec['/'] = 2;
     calc->prec['^'] = 3;
-    calc->prec['('] = 4;
 }
 
 static int CalcSyntaxError(calc_t *calc)
 {
-    /* TODO: free all elements in stack */
     UNUSED(calc);
     return SYNTAX_ERR;
 }
@@ -146,7 +146,7 @@ static int CalcPushNum(calc_t *calc)
     num = (double*)malloc(sizeof(double));
     end = (char*)calc->expr;
     *num = strtod(calc->expr, &end);
-    /* TODO: add error detection. errno = 0. if errno != 0 return STATE_SYSTEM_ERROR */
+    /* TODO: add error detection. errno = 0. if errno != 0 return SYSTEM_ERR */
     StackPush(calc->stack_num, num);
     calc->expr = end;
     return STATE_OPR;
@@ -230,7 +230,6 @@ static int CalcCloseP(calc_t *calc)
         return SYNTAX_ERR;
     }
 
-    free((void*)StackPeek(calc->stack_opr)); 
     StackPop(calc->stack_opr);
     ++(calc->expr);
     return STATE_OPR;
@@ -238,14 +237,20 @@ static int CalcCloseP(calc_t *calc)
 
 static int CalcStrEnd(calc_t *calc)
 {
-    while (!StackIsEmpty(calc->stack_opr) &&
+    int state = STATE_OPR;
+    while (!StackIsEmpty(calc->stack_opr) && (state == STATE_OPR) &&
             *(char*)StackPeek(calc->stack_opr) != '(')
     {
-        calc->calc_lut[1][*(char*)StackPeek(calc->stack_opr) + 128](calc);
+        state = calc->calc_lut[1][*(char*)StackPeek(calc->stack_opr) + 128](calc);
+    }
+
+    if (state == MATH_ERR)
+    {
+        return MATH_ERR;
     }
 
     if (!StackIsEmpty(calc->stack_opr) && 
-        *(char*)StackPeek(calc->stack_opr) != '(')
+        *(char*)StackPeek(calc->stack_opr) == '(')
     {
         return SYNTAX_ERR;
     }
@@ -257,7 +262,6 @@ static int CalcAdd(calc_t *calc)
     double *num_left = NULL, *num_right = NULL;
     StackPop(calc->stack_opr);
     num_right = (double*)StackPeek(calc->stack_num);
-    /*free(num_right);*/
     StackPop(calc->stack_num);
     num_left = (double*)StackPeek(calc->stack_num);
     *num_left = *num_left + *num_right;
@@ -269,7 +273,6 @@ static int CalcSubstract(calc_t *calc)
     double *num_left = NULL, *num_right = NULL;
     StackPop(calc->stack_opr);
     num_right = (double*)StackPeek(calc->stack_num);
-    /*free(num_right);*/
     StackPop(calc->stack_num);
     num_left = (double*)StackPeek(calc->stack_num);
     *num_left = *num_left - *num_right;
@@ -281,7 +284,6 @@ static int CalcMultiply(calc_t *calc)
     double *num_left = NULL, *num_right = NULL;
     StackPop(calc->stack_opr);
     num_right = (double*)StackPeek(calc->stack_num);
-    /*free(num_right);*/
     StackPop(calc->stack_num);
     num_left = (double*)StackPeek(calc->stack_num);
     *num_left = *num_left * *num_right;
@@ -293,11 +295,10 @@ static int CalcDivide(calc_t *calc)
     double *num_left = NULL, *num_right = NULL;
     StackPop(calc->stack_opr);
     num_right = (double*)StackPeek(calc->stack_num);
-    if (0 == num_right)
+    if (0 == *num_right)
     {
         return MATH_ERR;
     }
-    /*free(num_right);*/
     StackPop(calc->stack_num);
     num_left = (double*)StackPeek(calc->stack_num);
     *num_left = *num_left / *num_right;
@@ -309,7 +310,6 @@ static int CalcPower(calc_t *calc)
     double *num_left = NULL, *num_right = NULL;
     StackPop(calc->stack_opr);
     num_right = (double*)StackPeek(calc->stack_num);
-    /*free(num_right);*/
     StackPop(calc->stack_num);
     num_left = (double*)StackPeek(calc->stack_num);
     *num_left = pow(*num_left, *num_right);
