@@ -20,7 +20,7 @@ struct calc_struct
     const char *expr;
 };
 
-calc_t calc;
+static calc_t calc;
 
 static int CalcCreate(const char *expr);
 static void CalcInitLUT(void);
@@ -43,7 +43,7 @@ int Calculate(const char *expr, double *result)
     int state = 1;
     
     state = CalcCreate(expr);
-    while (state == 1 || state == 2)
+    while (state == STATE_NUM || state == STATE_OPR)
     {
         state = calc.calc_lut[state - 1][(int)*(calc.expr)]();
     }
@@ -51,6 +51,7 @@ int Calculate(const char *expr, double *result)
     *result = (state == SUCCESS) ? *(double*)StackPeek(calc.stack_num) : 0;
     StackDestroy(calc.stack_num);
     StackDestroy(calc.stack_opr);
+
     return state;
 }
 
@@ -82,19 +83,10 @@ void CalcInitLUT(void)
 {
     size_t i = 0;
 
+    /* Num-state LUT init */
     for (i = 0; i < 256; i++)
     {
         calc.calc_lut[0][i] = CalcNotNum;
-    }
-
-    for (i = 0; i < 256; i++)
-    {
-        calc.calc_lut[1][i] = CalcSyntaxError;
-    }
-
-    for (i = 0; i < 256; i++)
-    {
-        calc.prec[i] = 0;
     }
 
     calc.calc_lut[0]['0'] = CalcPushNum;
@@ -115,6 +107,12 @@ void CalcInitLUT(void)
 
     calc.calc_lut[0]['('] = CalcOpenP;
 
+    /* Operator-state LUT init */
+    for (i = 0; i < 256; i++)
+    {
+        calc.calc_lut[1][i] = CalcSyntaxError;
+    }
+
     calc.calc_lut[1]['+' + 128] = CalcAdd;
     calc.calc_lut[1]['-' + 128] = CalcSubstract;
     calc.calc_lut[1]['*' + 128] = CalcMultiply;
@@ -129,6 +127,12 @@ void CalcInitLUT(void)
 
     calc.calc_lut[1][')'] = CalcCloseP;
     calc.calc_lut[1][0] = CalcStrEnd;
+
+    /* Precedence LUT init */
+    for (i = 0; i < 256; i++)
+    {
+        calc.prec[i] = 0;
+    }
 
     calc.prec['('] = 0;
     calc.prec['+'] = 1;
@@ -171,6 +175,7 @@ static int CalcPushIfNum(void)
         return SYSTEM_ERR;
     }
     strtod_res = (!end) ? ('a') : ('0');
+
     return (calc.calc_lut[STATE_NUM - 1][strtod_res]());
 }
 
@@ -178,6 +183,7 @@ static int CalcOpenP(void)
 {
     StackPush(calc.stack_opr, calc.expr);
     ++(calc.expr);
+
     return STATE_NUM;
 }
 
@@ -204,12 +210,14 @@ static int CalcPushOrUseOpr(void)
 
     StackPush(calc.stack_opr, calc.expr);
     ++(calc.expr);
+
     return STATE_NUM;
 }
 
 static int CalcCloseP(void)
 {
     int state = STATE_OPR;
+
     while (!StackIsEmpty(calc.stack_opr) && (state == STATE_OPR) &&
             *(char*)StackPeek(calc.stack_opr) != '(')
     {
@@ -228,12 +236,14 @@ static int CalcCloseP(void)
 
     StackPop(calc.stack_opr);
     ++(calc.expr);
+
     return STATE_OPR;
 }
 
 static int CalcStrEnd(void)
 {
     int state = STATE_OPR;
+
     while (!StackIsEmpty(calc.stack_opr) && (state == STATE_OPR) &&
             *(char*)StackPeek(calc.stack_opr) != '(')
     {
@@ -256,39 +266,46 @@ static int CalcStrEnd(void)
 static int CalcAdd(void)
 {
     double *num_left = NULL, *num_right = NULL;
+
     StackPop(calc.stack_opr);
     num_right = (double*)StackPeek(calc.stack_num);
     StackPop(calc.stack_num);
     num_left = (double*)StackPeek(calc.stack_num);
     *num_left = *num_left + *num_right;
+
     return STATE_OPR;
 }
 
 static int CalcSubstract(void)
 {
     double *num_left = NULL, *num_right = NULL;
+
     StackPop(calc.stack_opr);
     num_right = (double*)StackPeek(calc.stack_num);
     StackPop(calc.stack_num);
     num_left = (double*)StackPeek(calc.stack_num);
     *num_left = *num_left - *num_right;
+
     return STATE_OPR;
 }
 
 static int CalcMultiply(void)
 {
     double *num_left = NULL, *num_right = NULL;
+
     StackPop(calc.stack_opr);
     num_right = (double*)StackPeek(calc.stack_num);
     StackPop(calc.stack_num);
     num_left = (double*)StackPeek(calc.stack_num);
     *num_left = *num_left * *num_right;
+
     return STATE_OPR;
 }
 
 static int CalcDivide(void)
 {
     double *num_left = NULL, *num_right = NULL;
+
     StackPop(calc.stack_opr);
     num_right = (double*)StackPeek(calc.stack_num);
     if (0 == *num_right)
@@ -298,16 +315,19 @@ static int CalcDivide(void)
     StackPop(calc.stack_num);
     num_left = (double*)StackPeek(calc.stack_num);
     *num_left = *num_left / *num_right;
+
     return STATE_OPR;
 }
 
 static int CalcPower(void)
 {
     double *num_left = NULL, *num_right = NULL;
+
     StackPop(calc.stack_opr);
     num_right = (double*)StackPeek(calc.stack_num);
     StackPop(calc.stack_num);
     num_left = (double*)StackPeek(calc.stack_num);
     *num_left = pow(*num_left, *num_right);
+
     return STATE_OPR;
 }
