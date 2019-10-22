@@ -7,7 +7,7 @@ void TestCalc(char *str);
 
 int main()
 {
-    TestCalc("-1.2+0.5*8");
+    TestCalc("3e1000+0.5*8");
     TestCalc("5+0.5*2^4");
     TestCalc("(1.5+0.5)*2^4");
     TestCalc("((1+1)");
