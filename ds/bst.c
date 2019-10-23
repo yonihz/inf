@@ -3,12 +3,7 @@
 
 #include "bst.h"
 
-#define LEFT 0
-#define RIGHT 1
-
-static bst_itr_t BSTRightmost(bst_itr_t itr);
-static bst_itr_t BSTLeftmost(bst_itr_t itr);
-static int NChildren(bst_itr_t itr);
+enum side {LEFT, RIGHT};
 
 typedef struct bst_node bst_node_t;
 
@@ -25,6 +20,13 @@ struct bst
     bst_node_t end;
     void* param; 
 };
+
+static int ParentSide(bst_node_t *node);
+static int NChildren(bst_node_t *node);
+static bst_node_t *FurthermostToSide(bst_node_t *node, int side);
+static bst_node_t *CreateNode(void *data);
+static bst_node_t *ItrToNode(bst_itr_t itr);
+static bst_itr_t NodeToItr(bst_node_t *node);
 
 bst_t *BSTCreate(cmp_func_t cmp_func, void *param)
 {
@@ -46,27 +48,25 @@ bst_t *BSTCreate(cmp_func_t cmp_func, void *param)
 
 void BSTDestroy(bst_t *bst)
 {
-    int parent_pos = 0; /* position relative to parent: 1 is right, 0 is left */
-    bst_itr_t parent = NULL;
-    bst_itr_t itr = BSTBegin(bst);
-    bst_itr_t itr_end = BSTEnd(bst);
+    bst_node_t *parent = NULL, *node = NULL;
+
+    node = ItrToNode(BSTBegin(bst));
 
     /* traverse post-order (left right root) */
-    while (!BSTIsSame(itr, itr_end))
+    while (!BSTIsSame(NodeToItr(node), BSTEnd(bst)))
     {
-        itr = BSTLeftmost(itr);
-        if (itr->child[RIGHT])
+        node = FurthermostToSide(node, LEFT);
+        if (node->child[RIGHT])
         {
-            itr = itr->child[RIGHT];
+            node = node->child[RIGHT];
             continue;
         }
         else
         {
-            parent = itr->parent;
-            parent_pos = (parent->child[RIGHT] == itr);
-            parent->child[parent_pos] = NULL;
-            free(itr);
-            itr = parent;
+            parent = node->parent;
+            parent->child[ParentSide(node)] = NULL;
+            free(node);
+            node = parent;
         }   
     }
     free(bst);
@@ -74,116 +74,120 @@ void BSTDestroy(bst_t *bst)
 
 bst_itr_t BSTFind(bst_t *bst, const void *data)
 {
-    bst_itr_t itr = NULL;
-    int cmp_res = 0;
+    bst_node_t *node = NULL;
+    int cmp_res = 0, side = 0;
 
     if (BSTIsEmpty(bst))
     {
         return BSTEnd(bst);
     }
 
-    itr = bst->end.child[LEFT];
-    cmp_res = bst->cmp_func(data, itr->data, bst->param);
-    while (cmp_res)
+    node = bst->end.child[LEFT];
+    cmp_res = bst->cmp_func(data, node->data, bst->param);
+    while (0 != cmp_res)
     {
-        itr = itr->child[cmp_res > 0];
-        if (NULL == itr)
+        side = cmp_res > 0;
+        node = node->child[side];
+        if (NULL == node)
         {
             return BSTEnd(bst);
         }
-        cmp_res = bst->cmp_func(data, itr->data, bst->param);
+        cmp_res = bst->cmp_func(data, node->data, bst->param);
     }
 
-    return (itr);
+    return (node);
 }
 
 bst_itr_t BSTInsert(bst_t *bst, void *data)
 {
-    bst_itr_t new = (bst_itr_t)malloc(sizeof(bst_node_t));
-    bst_itr_t itr;
-    int cmp_res = 0;
+    bst_node_t *new = NULL, *parent = NULL;
+    int cmp_res = 0, side = 0;
+
+    /* find parent to insert new child */
+    parent = (bst_node_t*)&(bst->end);
+    while (parent->child[side])
+    {
+        parent = parent->child[side];
+        cmp_res = (bst->cmp_func(data, parent->data, bst->param));
+        if (0 == cmp_res)
+        {
+            return BSTEnd(bst);
+        }
+        side = cmp_res > 0;
+    }
+
+    new = CreateNode(data);
 
     if (NULL == new)
     {
-        return (NULL);
-    }
-    
-    /* find parent to insert child */
-    itr = (bst_itr_t)&(bst->end);
-    while (itr->child[cmp_res])
-    {
-        itr = itr->child[cmp_res];
-        cmp_res = (bst->cmp_func(data, itr->data, bst->param));
-        if (0 == cmp_res)
-        {
-            free(new);
-            return BSTEnd(bst);
-        }
-        cmp_res = cmp_res > 0;
+        return BSTEnd(bst);
     }
 
-    itr->child[cmp_res] = new;
-    new->data = data;
-    new->parent = itr;
-    new->child[LEFT] = NULL;
-    new->child[RIGHT] = NULL;
+    parent->child[side] = new;
+    new->parent = parent;
 
-    return new;
+    return (NodeToItr(new));
 }
 
 void BSTRemove(bst_itr_t itr)
 {
-    int parent_pos = 0; /* position relative to parent: 1 is right, 0 is left */
-    bst_itr_t child = NULL;
-    int nchildren_itr = 0;
+    bst_node_t *child = NULL, *node = NULL, *next = NULL;
+    int nchildren = 0, side = 0;
 
-    parent_pos = (itr->parent->child[RIGHT] == itr);
-    nchildren_itr = NChildren(itr);
-    switch (nchildren_itr)
+    node = ItrToNode(itr);
+    nchildren = NChildren(node);
+    switch (nchildren)
     {
         case 0:
         {
-            itr->parent->child[parent_pos] = NULL;
-            free(itr);
-            return;
+            node->parent->child[ParentSide(node)] = NULL;
+            break;
         }
         case 1:
         {
-            child = itr->child[RIGHT] ? itr->child[RIGHT] : itr->child[LEFT];
-            itr->parent->child[parent_pos] = child;
-            child->parent = itr->parent;
-            free(itr);
-            return;
+            side = (NULL != node->child[RIGHT]);
+            child = (node->child[side]);
+            node->parent->child[ParentSide(node)] = child;
+            child->parent = node->parent;
+            break;
         }
-        default:
+        case 2:
         {
-            child = BSTNext(itr);
-            itr->data = child->data;    
-            if (BSTIsSame(child, itr->child[RIGHT]))
+            next = ItrToNode(BSTNext(NodeToItr(node)));
+            node->data = next->data;    
+            if (BSTIsSame(NodeToItr(next), NodeToItr(node->child[RIGHT])))
             {
-                itr->child[RIGHT] = child->child[RIGHT];                
+                node->child[RIGHT] = next->child[RIGHT];                
             }
             else
             {
-                child->parent->child[LEFT] = child->child[RIGHT];
+                next->parent->child[LEFT] = next->child[RIGHT];
             }
-            if (child->child[RIGHT])
+            if (next->child[RIGHT])
             {
-                child->child[RIGHT]->parent = child->parent;
+                next->child[RIGHT]->parent = next->parent;
             }
-            free(child);
+            node = next;
+            break;
         }
     }
+
+    free(node);
+
+    return;
 }
 
 int BSTForEach(bst_itr_t itr_start, bst_itr_t itr_end, op_func_t op_func, void *param)
 {
     int status = 0;
+    bst_node_t *node_start = NULL, *node_end = NULL;
 
-    while ((0 == status) && !BSTIsSame(itr_start, itr_end))
+    node_start = ItrToNode(itr_start);
+    node_end = ItrToNode(itr_end);    
+    while ((0 == status) && !BSTIsSame(NodeToItr(node_start), NodeToItr(node_end)))
     {
-        status = op_func(itr_start->data, param);
-        itr_start = BSTNext(itr_start);
+        status = op_func(node_start->data, param);
+        node_start = ItrToNode(BSTNext(NodeToItr(node_start)));
     }
 
     return status;
@@ -192,11 +196,12 @@ int BSTForEach(bst_itr_t itr_start, bst_itr_t itr_end, op_func_t op_func, void *
 size_t BSTSize(const bst_t *bst)
 {
     size_t size = 0;
-    bst_itr_t itr = BSTBegin(bst);
-    
-    while (!BSTIsSame(itr,BSTEnd(bst)))
+    bst_node_t *node = NULL;
+
+    node = ItrToNode(BSTBegin(bst));
+    while (!BSTIsSame(ItrToNode(node),BSTEnd(bst)))
     {
-        itr = BSTNext(itr);
+        node = ItrToNode(BSTNext(NodeToItr(node)));
         ++size;
     }
 
@@ -210,67 +215,72 @@ int BSTIsEmpty(const bst_t *bst)
 
 void *BSTGetData(bst_itr_t itr)
 {
-    if (itr == NULL)
-    {
-        return (NULL);
-    }
+    bst_node_t *node;
 
-    return (itr->data);
+    node = ItrToNode(itr);
+
+    return (node->data);
 }
 
 bst_itr_t BSTNext(bst_itr_t itr)
 {
-    assert(itr->parent);
+    bst_node_t *node = NULL;
 
-    if (itr->child[RIGHT])
+    node = ItrToNode(itr);
+    assert(node->parent);
+
+    if (node->child[RIGHT])
     {
-        itr = itr->child[RIGHT];
-        itr = BSTLeftmost(itr);
+        node = node->child[RIGHT];
+        node = FurthermostToSide(node, LEFT);
     }
     else
     {
-        while (BSTIsSame(itr, itr->parent->child[RIGHT]))
+        while (ParentSide(node) == RIGHT)
         {
-            itr = itr->parent;
+            node = node->parent;
         }
-        itr = itr->parent;
+        node = node->parent;
     }
 
-    return (itr);
+    return (NodeToItr(node));
 }
 
 bst_itr_t BSTPrev(bst_itr_t itr)
 {
-    if (itr->child[LEFT])
+    bst_node_t *node = NULL;
+
+    node = ItrToNode(itr);
+    if (node->child[LEFT])
     {
-        itr = itr->child[LEFT];
-        itr = BSTRightmost(itr);
+        node = node->child[LEFT];
+        node = FurthermostToSide(node, RIGHT);
     }
     else
     {
-        while (BSTIsSame(itr, itr->parent->child[LEFT]))
+        while (ParentSide(node) == LEFT)
         {
-            itr = itr->parent;
+            node = node->parent;
             assert(itr->parent);
         }
-        itr = itr->parent;
+        node = node->parent;
     }
 
-    return (itr);
+    return (NodeToItr(node));
 }
 
 bst_itr_t BSTBegin(const bst_t *bst)
 {
-    bst_itr_t itr = (bst_itr_t)&(bst->end);
+    bst_node_t *node = (bst_node_t*)&(bst->end);
 
-    itr = BSTLeftmost(itr);
+    node = FurthermostToSide(node, LEFT);
 
-    return (itr);
+    return (NodeToItr(node));
 }
 
 bst_itr_t BSTEnd(const bst_t *bst)
 {
-    return ((bst_itr_t)&(bst->end));
+    return (NodeToItr((bst_node_t*)&(bst->end)));
 }
 
 int BSTIsSame(bst_itr_t itr1, bst_itr_t itr2)
@@ -278,27 +288,50 @@ int BSTIsSame(bst_itr_t itr1, bst_itr_t itr2)
     return (itr1 == itr2);
 }
 
-static bst_itr_t BSTRightmost(bst_itr_t itr)
+static int NChildren(bst_node_t *node)
 {
-    while (itr->child[RIGHT])
-    {
-        itr = itr->child[RIGHT];
-    }
-
-    return (itr);   
+    return ((NULL != node->child[LEFT]) + (NULL != node->child[RIGHT]));   
 }
 
-static bst_itr_t BSTLeftmost(bst_itr_t itr)
+static int ParentSide(bst_node_t *node)
 {
-    while (itr->child[LEFT])
-    {
-        itr = itr->child[LEFT];
-    }
-
-    return (itr);   
+    return (node->parent->child[RIGHT] == node);
 }
 
-static int NChildren(bst_itr_t itr)
+static bst_node_t *FurthermostToSide(bst_node_t *node, int side)
 {
-    return ((NULL != itr->child[LEFT]) + (NULL != itr->child[RIGHT]));   
+    while (node->child[side])
+    {
+        node = node->child[side];
+    }
+
+    return (node);
+}
+
+static bst_node_t *ItrToNode(bst_itr_t itr)
+{
+    return itr;
+}
+
+static bst_itr_t NodeToItr(bst_node_t *node)
+{
+    return node;
+}
+
+static bst_node_t *CreateNode(void *data)
+{
+    bst_node_t *new = NULL;
+
+    new = (bst_node_t*)malloc(sizeof(bst_node_t));
+
+    if (NULL == new)
+    {
+        return (NULL);
+    }
+
+    new->data = data;
+    new->child[LEFT] = NULL;
+    new->child[RIGHT] = NULL;
+
+    return new; 
 }
