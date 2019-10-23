@@ -84,7 +84,7 @@ void CalcInitLUT(void)
     size_t i = 0;
 
     /* Num-state LUT init */
-    for (i = 0; i < 256; i++)
+    for (i = 0; i < ASCII_SIZE; i++)
     {
         calc.calc_lut[STATE_NUM][i] = CalcNotNum;
     }
@@ -108,7 +108,7 @@ void CalcInitLUT(void)
     calc.calc_lut[STATE_NUM]['('] = CalcOpenP;
 
     /* Operator-state LUT init */
-    for (i = 0; i < 256; i++)
+    for (i = 0; i < ASCII_SIZE; i++)
     {
         calc.calc_lut[STATE_OPR][i] = CalcSyntaxError;
     }
@@ -123,7 +123,7 @@ void CalcInitLUT(void)
     calc.calc_lut[STATE_OPR][0] = CalcStrEnd;
 
     /* Precedence LUT init */
-    for (i = 0; i < 256; i++)
+    for (i = 0; i < ASCII_SIZE; i++)
     {
         calc.prec[i] = 0;
     }
