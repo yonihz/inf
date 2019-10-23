@@ -1,10 +1,9 @@
-#ifndef _CALC_H_
-#define _CALC_H_
+#ifndef _CALCULATE_H_
+#define _CALCULATE_H_
 
 /* Rev. 0.1 */ 
 /* 17.10.19  16:00*/
-
-enum status {SYSTEM_ERR = -3, MATH_ERR, SYNTAX_ERR, SUCCESS};
+enum status {ALLOC_ERR = -3, MATH_ERR, INVAL_INPUT, SUCCESS};
 
 /*
     the function receives an expression as string and pointer to double to store the result 
@@ -17,4 +16,4 @@ enum status {SYSTEM_ERR = -3, MATH_ERR, SYNTAX_ERR, SUCCESS};
 
 int Calculate(const char *expr, double *result);
 
-#endif /* _CALC_H_ */
+#endif /*_CALCULATE_H_*/

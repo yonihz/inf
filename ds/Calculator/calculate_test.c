@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "calc.h"
+#include "calculate.h"
 
 void TestCalc(char *str);
 
@@ -10,8 +10,9 @@ int main()
     TestCalc("3e1000+0.5*8");
     TestCalc("5+0.5*2^4");
     TestCalc("(1.5+0.5)*2^4");
+    TestCalc("((1+1)))");
     TestCalc("((1+1)");
-    TestCalc("((1.5+0.5)*2^(2*2/0))");    
+    TestCalc("((1.5+0.5)*2^(2/0*0))");    
     TestCalc("((1.5+0.5)*2^(2*2))^");
 
     TestCalc("7+8");
@@ -33,7 +34,7 @@ void TestCalc(char *str)
 
     switch (status)
     {
-        case SYSTEM_ERR:
+        case ALLOC_ERR:
         {
             printf("System error\n");
             break;
@@ -43,7 +44,7 @@ void TestCalc(char *str)
             printf("Math error\n");
             break;
         }
-        case SYNTAX_ERR:
+        case INVAL_INPUT:
         {
             printf("Syntax error\n");
             break;
