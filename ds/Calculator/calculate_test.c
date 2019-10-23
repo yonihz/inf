@@ -3,6 +3,8 @@
 
 #include "calculate.h"
 
+/* gd ../stack.c calculate.c calculate_test.c -I../include -lm */
+
 void TestCalc(char *str);
 
 int main()
@@ -21,6 +23,7 @@ int main()
     TestCalc("8++8*((3-2)*5)");
     TestCalc("3-2)*5");    
     TestCalc("(3-2)*5+ 5*(4+4+4");     
+
     return (0);
 }
 
@@ -29,7 +32,7 @@ void TestCalc(char *str)
     int status = 0;
     double res = 0;
 
-    printf("Expression: %s\n", str);
+    printf("\nExpression: %s\n", str);
     status = Calculate(str, &res);
 
     switch (status)

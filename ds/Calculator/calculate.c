@@ -154,7 +154,7 @@ static int CalcPushNum(void)
     }
     StackPush(calc.stack_num, &num);
     calc.expr = end;
-    
+
     return STATE_OPR;
 }
 
@@ -256,6 +256,7 @@ static int CalcStrEnd(void)
     {
         return INVAL_INPUT;
     }
+    
     return STATE_SUCCESS;
 }
 
