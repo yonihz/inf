@@ -2,6 +2,9 @@
 
 #include "rec_str.h"
 #include "slist.h"
+#include "stack.h"
+
+static int BubbleSortStack(stack_t *stack);
 
 size_t RecStrlen(const char *str)
 {
@@ -112,4 +115,47 @@ slist_node_t* RecSListFlip(slist_node_t* head)
     head->next = NULL;
 
     return fhead;
+}
+
+void SortUnsortedStack(stack_t *stack)
+{
+    if (BubbleSortStack(stack) == 0)
+    {
+        return;
+    }
+
+    SortUnsortedStack(stack);
+}
+
+static int BubbleSortStack(stack_t *stack)
+{
+    int n = 0;
+    int elem1 = 0, elem2 = 0; 
+
+    elem1 = *(int*)StackPeek(stack);
+    StackPop(stack);
+
+    if (StackIsEmpty(stack))
+    {
+        StackPush(stack, &elem1);
+        return 0;
+    }
+
+    n = BubbleSortStack(stack);
+
+    elem2 = *(int*)StackPeek(stack);
+
+    if (elem1 < elem2)
+    {
+        StackPop(stack);
+        StackPush(stack, &elem1);
+        StackPush(stack, &elem2);
+        n = 1;
+    }
+    else
+    {
+        StackPush(stack, &elem1);  
+    }
+    
+    return n;
 }

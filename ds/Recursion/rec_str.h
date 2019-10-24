@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include "slist.h"
+#include "stack.h"
 
 size_t RecStrlen(const char *str);
 
@@ -21,3 +22,5 @@ slist_node_t* RecSListFlip(slist_node_t* head);
 unsigned int ItrFib(unsigned int n);
 
 unsigned int RecFib(unsigned int n);
+
+void SortUnsortedStack(stack_t *stack);
