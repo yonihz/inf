@@ -1,8 +1,8 @@
 #ifndef _AVL_H_OL74_
 #define _AVL_H_OL74_
 
-/* Rev. 1.0 */ 
-/* 27.10.19  14:33 */
+/* Rev. 1.1 */ 
+/* 28.10.19  10:26 */
 #include <stddef.h> /* size_t */
 
 typedef struct avl avl_t;
@@ -158,7 +158,7 @@ void *AVLFind(avl_t *avl, const void *data);
 /* 
 *	AVLForEach:
 *		find the element within the AVL
-*		this fun travers the entire AVL
+*		this func travers the entire AVL in order
 * 	arguments: 
 *		avl = a pointer given by AVLCreate func
 *		op_func = operation to be made on each element
@@ -174,8 +174,8 @@ int AVLForEach(avl_t *avl, op_func_t op_func, void *param);
 
 /* 
 *	AVLFindIf:
-*		find the element within the AVL.
-*		this fun travers the entire AVL
+*		find the element within the AVL
+*		this func travers the entire AVL
 * 	arguments: 
 *		avl = a pointer given by AVLCreate func
 *		find_if_func = a func that the element will be seached by
