@@ -4,6 +4,8 @@
 
 #include "avl.h"
 
+#define UNUSED(x) (void)(x)
+
 #define MAX2(a,b) (((a) > (b)) ? (a) : (b))
 
 enum side {LEFT, RIGHT};
@@ -25,20 +27,16 @@ struct avl
 };
 
 static void DestroyPostOrder(avl_node_t *node);
-
 static size_t AVLSizeTree(avl_node_t *node);
-
 static avl_node_t *AVLFindNode(avl_t *avl, avl_node_t *node, const void *data);
-
 static int AVLInsertNode(avl_t *avl, avl_node_t *node, void *data);
-
 static size_t AVLHeightUpdate(avl_node_t *node);
-
 static int AVLForEachInOrder(avl_node_t *node, op_func_t op_func, void *param);
-
 static void *AVLFindIfInOrder(avl_node_t *node, find_if_func_t find_if_func, void *param);
-
 static avl_node_t *AVLCreateNode(void *data);
+static void AVLRemoveNode(avl_t *avl, avl_node_t *node, const void *data);
+static avl_node_t *AVLFurthermostToSide(avl_node_t *node, int side);
+static int AVLCountChildren(avl_node_t *node);
 
 avl_t *AVLCreate(cmp_func_t cmp_func, void *param)
 {
@@ -52,7 +50,11 @@ avl_t *AVLCreate(cmp_func_t cmp_func, void *param)
 
 void AVLDestroy(avl_t *avl)
 {
-    DestroyPostOrder(avl->root);
+    if (!AVLIsEmpty(avl))
+    {
+        DestroyPostOrder(avl->root);
+    }
+    
     free(avl);
     avl = NULL;
 }
@@ -80,49 +82,8 @@ int AVLInsert(avl_t *avl, void *data)
 
 void AVLRemove(avl_t *avl, const void *data)
 {
-    avl_node_t *next = NULL, *parent = NULL;
-    avl_node_t *node_remove = NULL;
-    int nchildren = 0, side = 0;
+    AVLRemoveNode(avl, avl->root, data);
 
-    assert(avl->root);
-
-    node_remove = AVLFindNode(avl, avl->root, data);
-
-    if (node_remove == avl->root)
-    {
-        free(avl->root);
-        avl->root = NULL;
-    }
-
-    switch (AVLCountChildren(node_remove))
-    {
-        case 0:
-        {
-            parent = AVLFindParent(avl, avl->root, data);
-            side = (parent->child[RIGHT] == node_remove);
-            parent->child[side] = NULL;
-            free(node_remove);
-            break;
-        }
-        case 1:
-        {
-            side = (NULL != node_remove->child[RIGHT]);
-            parent = node_remove;
-            node_remove = parent->child[side];
-            parent->data = node_remove->data;
-            parent->child[LEFT] = node_remove->child[LEFT];
-            parent->child[RIGHT] = node_remove->child[RIGHT];
-            free(node_remove);
-            break;
-        }
-        case 2:
-        {
-            next = AVLLeftmost(node_remove->child[RIGHT]);
-            node_remove->data = next->data;
-            AVLRemove(avl, next->data);
-            break;
-        }
-    }
     return;
 }
 
@@ -154,16 +115,14 @@ static void DestroyPostOrder(avl_node_t *node)
 {
     if (node->child[LEFT])
     {
-        node = node->child[LEFT];
-        DestroyPostOrder(node);
-        node->child[LEFT] = NULL; /* needed? */
+        DestroyPostOrder(node->child[LEFT]);
+        node->child[LEFT] = NULL;
     }
 
     if (node->child[RIGHT])
     {
-        node = node->child[RIGHT];
-        DestroyPostOrder(node);
-        node->child[RIGHT] = NULL; /* needed? */
+        DestroyPostOrder(node->child[RIGHT]);
+        node->child[RIGHT] = NULL;
     }
 
     free(node);
@@ -345,4 +304,69 @@ static avl_node_t *AVLCreateNode(void *data)
     node->child[RIGHT] = NULL;
 
     return (node);
+}
+
+static void AVLRemoveNode(avl_t *avl, avl_node_t *node, const void *data)
+{
+    avl_node_t *next = NULL, *parent = NULL, *node_remove = NULL;
+    void *data_swap;
+    int side = 0;
+
+    UNUSED(node);
+
+    node_remove = AVLFindNode(avl, avl->root, data);
+
+    switch (AVLCountChildren(node_remove))
+    {
+        case 0:
+        {
+            if (node_remove == avl->root)
+            {
+                avl->root = NULL;
+            }
+            else
+            {
+                parent = AVLFindParent(avl, avl->root, data);
+                side = ((NULL != parent->child[RIGHT]) && (parent->child[RIGHT] == node_remove));
+                parent->child[side] = NULL;
+            }
+            free(node_remove);
+            break;
+        }
+        case 1:
+        {
+            side = (NULL != node_remove->child[RIGHT]);
+            parent = node_remove;
+            node_remove = parent->child[side];
+            parent->data = node_remove->data;
+            parent->child[LEFT] = node_remove->child[LEFT];
+            parent->child[RIGHT] = node_remove->child[RIGHT];
+            free(node_remove);
+            break;
+        }
+        case 2:
+        {
+            next = AVLFurthermostToSide(node_remove->child[RIGHT], LEFT);
+            data_swap = next->data;
+            AVLRemoveNode(avl, node_remove->child[RIGHT], next->data);
+            node_remove->data = data_swap;
+            break;
+        }
+    }
+    return;
+}
+
+static avl_node_t *AVLFurthermostToSide(avl_node_t *node, int side)
+{
+    if (NULL == node->child[side])
+    {
+        return (node);
+    }
+
+    return (AVLFurthermostToSide(node->child[side], side));
+}
+
+static int AVLCountChildren(avl_node_t *node)
+{
+    return ((NULL != node->child[LEFT]) + (NULL != node->child[RIGHT]));
 }

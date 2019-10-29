@@ -42,10 +42,12 @@ int IntCmp(const void* data1, const void* data2, void* param);
 int AddInt(void* data, void* param);
 int PrintInt(void* data, void* param);
 void TestBasic();
+void TestRemove();
 
 int main()
 {
     TestBasic();
+    TestRemove();
     return (0);
 }
 
@@ -102,7 +104,6 @@ void TestBasic()
 {
     avl_t *avl = NULL;
     int arr1[SIZE_ARR1] = {50, 30, 80, 10, 40, 5, 12, 100, 90, 85, 70, 86};
-    int arr1_sorted[SIZE_ARR1] = {5, 10, 12, 30, 40, 50, 70, 80, 85, 86, 90, 100};
     size_t i = 0;
 
     printf("Basic Tests:\n");
@@ -124,6 +125,30 @@ void TestBasic()
 
     AVLDestroy(avl);  
 }
+
+void TestRemove()
+{
+    avl_t *avl = NULL;
+    int arr1[SIZE_ARR1] = {50, 30, 80, 10, 40, 5, 12, 100, 90, 85, 70, 86};
+    size_t i = 0;
+
+    printf("Remove Tests:\n");
+    avl = AVLCreate(IntCmp, NULL);
+
+    for (i = 0; i < SIZE_ARR1; i++)
+    {
+        AVLInsert(avl, (arr1 + i));
+    }
+
+    for (i = 0; i < SIZE_ARR1; i++)
+    {
+        AVLRemove(avl, (arr1 + i));
+        VerifySizet(AVLSize(avl), SIZE_ARR1 - i - 1, "SIZE - AFTER REMOVE");
+    }
+
+    AVLDestroy(avl);  
+}
+
 int IntCmp(const void* data1, const void* data2, void* param)
 {
     UNUSED(param);
