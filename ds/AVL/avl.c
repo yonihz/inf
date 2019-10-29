@@ -30,7 +30,7 @@ static void DestroyPostOrder(avl_node_t *node);
 static size_t AVLSizeTree(avl_node_t *node);
 static avl_node_t *AVLFindNode(avl_t *avl, avl_node_t *node, const void *data);
 static int AVLInsertNode(avl_t *avl, avl_node_t *node, void *data);
-static size_t AVLHeightUpdate(avl_node_t *node);
+static ssize_t AVLHeightNode(avl_node_t *node);
 static int AVLForEachInOrder(avl_node_t *node, op_func_t op_func, void *param);
 static void *AVLFindIfInOrder(avl_node_t *node, find_if_func_t find_if_func, void *param);
 static avl_node_t *AVLCreateNode(void *data);
@@ -130,17 +130,17 @@ static void DestroyPostOrder(avl_node_t *node)
 
 static size_t AVLSizeTree(avl_node_t *node)
 {
-    size_t size_left = 0, size_right = 0;
+    size_t size_l = 0, size_r = 0;
 
     if (NULL == node)
     {
         return (0);
     }
 
-    size_left = AVLSizeTree(node->child[LEFT]);
-    size_right = AVLSizeTree(node->child[RIGHT]);
+    size_l = AVLSizeTree(node->child[LEFT]);
+    size_r = AVLSizeTree(node->child[RIGHT]);
 
-    return (size_left + size_right + 1);
+    return (size_l + size_r + 1);
 }
 
 static avl_node_t *AVLFindNode(avl_t *avl, avl_node_t *node, const void *data)
@@ -164,36 +164,7 @@ static avl_node_t *AVLFindNode(avl_t *avl, avl_node_t *node, const void *data)
     return (AVLFindNode(avl, node, data));
 }
 
-static avl_node_t *AVLFindParent(avl_t *avl, avl_node_t *node, const void *data)
-{
-    int cmp_res = 0, cmp_res_child = 0, side = 0;
-
-    if (NULL == node)
-    {
-        return (NULL);
-    }
-
-    cmp_res = avl->cmp_func(data, node->data, avl->param);
-
-    /* if node found is the input node return NULL */
-    if (0 == cmp_res)
-    {
-        return (NULL);
-    }
-
-    side = cmp_res > 0;
-    cmp_res_child = avl->cmp_func(data, node->child[side]->data, avl->param);
-    
-    if (0 == cmp_res_child)
-    {
-        return (node);
-    }
-
-    node = node->child[side];
-    return (AVLFindParent(avl, node, data));
-}
-
-static int AVLInsertNode(avl_t *avl, avl_node_t *node, void *data)
+static avl_node_t *AVLInsertNode(avl_t *avl, avl_node_t *node, void *data)
 {
     int status = 0, side = 0;
 
@@ -221,23 +192,35 @@ static int AVLInsertNode(avl_t *avl, avl_node_t *node, void *data)
         {
             status = (-1);
         }
+        node->height = AVLHeightNode(node);
 
         return status;
     }
 
     status = AVLInsertNode(avl, node->child[side], data);
-    node->height = AVLHeightUpdate(node);
+    AVLBalanceIfNeeded(node);
+    node->height = AVLHeightNode(node);
 
     return (status);
 }
 
-static size_t AVLHeightUpdate(avl_node_t *node)
+static ssize_t AVLHeightNode(avl_node_t *node)
 {
-    ssize_t height_left = 0, height_right = 0;
-    height_left = (node->child[LEFT] != NULL) ? (ssize_t)(node->child[LEFT]->height) : (-1) ;
-    height_right = (node->child[RIGHT] != NULL) ? (ssize_t)(node->child[RIGHT]->height) : (-1) ;
+    ssize_t height_l = 0, height_r = 0;
+    avl_node_t *child_l = NULL, *child_r = NULL;
 
-    return (1 + MAX2(height_left, height_right));
+    if (NULL == node)
+    {
+        return (-1);
+    }
+
+    child_l = node->child[LEFT];
+    child_r = node->child[RIGHT];
+
+    height_l = (child_l != NULL) ? (ssize_t)(child_l->height) : (-1) ;
+    height_r = (child_r != NULL) ? (ssize_t)(child_r->height) : (-1) ;
+
+    return(1 + MAX2(height_l, height_r));
 }
 
 static int AVLForEachInOrder(avl_node_t *node, op_func_t op_func, void *param)
@@ -323,14 +306,15 @@ static void AVLRemoveNode(avl_t *avl, avl_node_t *node, const void *data)
             if (node_remove == avl->root)
             {
                 avl->root = NULL;
+                free(node_remove);
             }
             else
             {
                 parent = AVLFindParent(avl, avl->root, data);
                 side = ((NULL != parent->child[RIGHT]) && (parent->child[RIGHT] == node_remove));
                 parent->child[side] = NULL;
+                free(node_remove);
             }
-            free(node_remove);
             break;
         }
         case 1:
@@ -370,3 +354,187 @@ static int AVLCountChildren(avl_node_t *node)
 {
     return ((NULL != node->child[LEFT]) + (NULL != node->child[RIGHT]));
 }
+
+static int AVLBalanceFactor(avl_node_t *node)
+{
+    ssize_t height_l = 0, height_r = 0;
+    avl_node_t *child_l = NULL, *child_r = NULL;
+
+    child_l = node->child[LEFT];
+    child_r = node->child[RIGHT];
+
+    height_l = (child_l != NULL) ? (ssize_t)(child_l->height) : (-1) ;
+    height_r = (child_r != NULL) ? (ssize_t)(child_r->height) : (-1) ;
+
+    return (height_l - height_r);    
+}
+
+static avl_node_t *AVLRotateToSide(avl_node_t *node, int side)
+{
+    avl_node_t *new_root = NULL;
+
+    new_root = node->child[!side];
+    node->child[!side] = new_root->child[side];
+    new_root->child[side] = node;
+    
+    return new_root;
+}
+
+avl_node_t *AVLRebalance(avl_node_t *node)
+{
+    int hside1 = 0, hside2 = 0;
+
+    if ((-1 < AVLBalanceFactor(node)) && (1 > AVLBalanceFactor(node)))
+    {
+        return node;
+    }
+
+    hside1 = AVLBalanceFactor(node) < 0;
+    hside2 = AVLBalanceFactor(node->child[hside1]);
+    hside2 = (hside2 == 0) ? (hside1) : (hside2 < 0);
+
+    switch (hside1 == hside2)
+    {
+        case 1: /* LL or RR */
+        {
+            return (AVLRotateToSide(node, !hside1));
+        }
+
+        case 0: /* LR or RL */
+        {
+            node->child[hside1] = AVLRotateToSide(node->child[hside1], hside1);
+            return (AVLRotateToSide(node, hside2));
+        }    
+    }
+}
+
+/* Insert without rebalance */
+/*
+static int AVLInsertNode(avl_t *avl, avl_node_t *node, void *data)
+{
+    int status = 0, side = 0;
+
+    if (NULL == avl->root)
+    {
+        avl->root = AVLCreateNode(data);
+
+        if (avl->root == NULL)
+        {
+            status = (-1);
+        }
+
+        return status;
+    }
+
+    assert(avl->cmp_func(data, node->data, avl->param) != 0);
+
+    side = avl->cmp_func(data, node->data, avl->param) > 0;
+
+    if (NULL == node->child[side])
+    {
+        node->child[side] = AVLCreateNode(data);
+
+        if (node->child[side] == NULL)
+        {
+            status = (-1);
+        }
+        node->height = AVLHeightNode(node);
+
+        return status;
+    }
+
+    status = AVLInsertNode(avl, node->child[side], data);
+    node->height = AVLHeightNode(node);
+
+    return (status);
+}
+*/
+
+/* Rotate using swap method */
+/*
+static void AVLRotateLeft(avl_node_t *node)
+{
+    avl_node_t *hchild = NULL, *temp = NULL;
+
+    hchild = node->child[RIGHT];
+    AVLSwapData(node, hchild);
+    node->child[RIGHT] = hchild->child[RIGHT];
+    temp = hchild->child[LEFT];
+    hchild->child[LEFT] = node->child[LEFT];
+    hchild->child[RIGHT] = temp;
+    node->child[LEFT] = hchild;
+}
+*/
+
+/*
+static avl_node_t *AVLFindParent(avl_t *avl, avl_node_t *node, const void *data)
+{
+    int cmp_res = 0, cmp_res_child = 0, side = 0;
+
+    if (NULL == node)
+    {
+        return (NULL);
+    }
+
+    cmp_res = avl->cmp_func(data, node->data, avl->param);
+
+    if (0 == cmp_res)
+    {
+        return (NULL);
+    }
+
+    side = cmp_res > 0;
+    cmp_res_child = avl->cmp_func(data, node->child[side]->data, avl->param);
+    
+    if (0 == cmp_res_child)
+    {
+        return (node);
+    }
+
+    node = node->child[side];
+    return (AVLFindParent(avl, node, data));
+}
+*/
+
+/* Insert node without rebalancing */
+/*
+static int AVLInsertNode(avl_t *avl, avl_node_t *node, void *data)
+{
+    int status = 0, side = 0;
+
+    if (NULL == avl->root)
+    {
+        avl->root = AVLCreateNode(data);
+
+        if (avl->root == NULL)
+        {
+            status = (-1);
+        }
+
+        return status;
+    }
+
+    assert(avl->cmp_func(data, node->data, avl->param) != 0);
+
+    side = avl->cmp_func(data, node->data, avl->param) > 0;
+
+    if (NULL == node->child[side])
+    {
+        node->child[side] = AVLCreateNode(data);
+
+        if (node->child[side] == NULL)
+        {
+            status = (-1);
+        }
+        node->height = AVLHeightNode(node);
+
+        return status;
+    }
+
+    status = AVLInsertNode(avl, node->child[side], data);
+    AVLBalanceIfNeeded(node);
+    node->height = AVLHeightNode(node);
+
+    return (status);
+}
+*/

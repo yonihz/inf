@@ -120,6 +120,7 @@ void TestBasic()
 
     VerifySizet(AVLSize(avl), 12, "SIZE - AFTER 12 INSERT");
     VerifyInt(AVLIsEmpty(avl), 0, "ISEMPTY - NON-EMPTY BST");
+    VerifySizet(AVLHeight(avl), 5, "HEIGHT");
 
     AVLForEach(avl, PrintInt, NULL);
 
