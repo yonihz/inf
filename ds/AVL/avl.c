@@ -1,5 +1,5 @@
-#include <stdlib.h>
-#include <unistd.h>
+#include <stdlib.h> /* malloc, free */
+#include <unistd.h> /* ssize_t */
 #include <assert.h>
 
 #include "avl.h"
@@ -36,7 +36,6 @@ static avl_node_t *AVLRemoveNode(avl_t *avl, avl_node_t *node, const void *data)
 static avl_node_t *AVLDestroyNode(avl_t *avl, avl_node_t *node);
 static avl_node_t *AVLFurthermostToSide(avl_node_t *node, int side);
 static int AVLCountChildren(avl_node_t *node);
-
 static int AVLBalanceFactor(avl_node_t *node);
 static avl_node_t *AVLRotateToSide(avl_node_t *node, int side);
 static avl_node_t *AVLRebalance(avl_node_t *node);
@@ -91,14 +90,12 @@ int AVLInsert(avl_t *avl, void *data)
     return (0);
 }
 
-
 void AVLRemove(avl_t *avl, const void *data)
 {
     avl->root = AVLRemoveNode(avl, avl->root, data);
 
     return;
 }
-
 
 void *AVLFind(avl_t *avl, const void *data)
 {
