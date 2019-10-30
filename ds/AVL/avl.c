@@ -4,8 +4,6 @@
 
 #include "avl.h"
 
-#define UNUSED(x) (void)(x)
-
 #define MAX2(a,b) (((a) > (b)) ? (a) : (b))
 
 enum side {LEFT, RIGHT};
@@ -29,14 +27,19 @@ struct avl
 static void DestroyPostOrder(avl_node_t *node);
 static size_t AVLSizeTree(avl_node_t *node);
 static avl_node_t *AVLFindNode(avl_t *avl, avl_node_t *node, const void *data);
-static int AVLInsertNode(avl_t *avl, avl_node_t *node, void *data);
+static avl_node_t *AVLInsertNode(avl_t *avl, avl_node_t *node, avl_node_t *new_node);
 static ssize_t AVLHeightNode(avl_node_t *node);
 static int AVLForEachInOrder(avl_node_t *node, op_func_t op_func, void *param);
 static void *AVLFindIfInOrder(avl_node_t *node, find_if_func_t find_if_func, void *param);
 static avl_node_t *AVLCreateNode(void *data);
-static void AVLRemoveNode(avl_t *avl, avl_node_t *node, const void *data);
+static avl_node_t *AVLRemoveNode(avl_t *avl, avl_node_t *node, const void *data);
+static avl_node_t *AVLDestroyNode(avl_t *avl, avl_node_t *node);
 static avl_node_t *AVLFurthermostToSide(avl_node_t *node, int side);
 static int AVLCountChildren(avl_node_t *node);
+
+static int AVLBalanceFactor(avl_node_t *node);
+static avl_node_t *AVLRotateToSide(avl_node_t *node, int side);
+static avl_node_t *AVLRebalance(avl_node_t *node);
 
 avl_t *AVLCreate(cmp_func_t cmp_func, void *param)
 {
@@ -76,13 +79,22 @@ int AVLIsEmpty(const avl_t *avl)
 
 int AVLInsert(avl_t *avl, void *data)
 {
-    return (AVLInsertNode(avl, avl->root, data));
+    avl_node_t *new_node = AVLCreateNode(data);
+
+    if (NULL == new_node)
+    {
+        return (-1);
+    }
+
+    avl->root = AVLInsertNode(avl, avl->root, new_node);
+
+    return (0);
 }
 
 
 void AVLRemove(avl_t *avl, const void *data)
 {
-    AVLRemoveNode(avl, avl->root, data);
+    avl->root = AVLRemoveNode(avl, avl->root, data);
 
     return;
 }
@@ -164,44 +176,23 @@ static avl_node_t *AVLFindNode(avl_t *avl, avl_node_t *node, const void *data)
     return (AVLFindNode(avl, node, data));
 }
 
-static avl_node_t *AVLInsertNode(avl_t *avl, avl_node_t *node, void *data)
+static avl_node_t *AVLInsertNode(avl_t *avl, avl_node_t *node, avl_node_t *new_node)
 {
-    int status = 0, side = 0;
+    int side = 0;
 
-    if (NULL == avl->root)
+    if (NULL == node)
     {
-        avl->root = AVLCreateNode(data);
-
-        if (avl->root == NULL)
-        {
-            status = (-1);
-        }
-
-        return status;
+        return (new_node);
     }
 
-    assert(avl->cmp_func(data, node->data, avl->param) != 0);
+    assert(avl->cmp_func(new_node->data, node->data, avl->param) != 0);
 
-    side = avl->cmp_func(data, node->data, avl->param) > 0;
-
-    if (NULL == node->child[side])
-    {
-        node->child[side] = AVLCreateNode(data);
-
-        if (node->child[side] == NULL)
-        {
-            status = (-1);
-        }
-        node->height = AVLHeightNode(node);
-
-        return status;
-    }
-
-    status = AVLInsertNode(avl, node->child[side], data);
-    AVLBalanceIfNeeded(node);
+    side = avl->cmp_func(new_node->data, node->data, avl->param) > 0;
+    node->child[side] = AVLInsertNode(avl, node->child[side], new_node);
+    node = AVLRebalance(node);
     node->height = AVLHeightNode(node);
 
-    return (status);
+    return (node);
 }
 
 static ssize_t AVLHeightNode(avl_node_t *node)
@@ -289,55 +280,58 @@ static avl_node_t *AVLCreateNode(void *data)
     return (node);
 }
 
-static void AVLRemoveNode(avl_t *avl, avl_node_t *node, const void *data)
+static avl_node_t *AVLRemoveNode(avl_t *avl, avl_node_t *node, const void *data)
 {
-    avl_node_t *next = NULL, *parent = NULL, *node_remove = NULL;
-    void *data_swap;
+    int cmp_res = 0, side = 0;
+
+    cmp_res = avl->cmp_func(data, node->data, avl->param);
+
+    if (0 == cmp_res)
+    {
+        return (AVLDestroyNode(avl, node));
+    }
+
+    side = cmp_res > 0;
+    node->child[side] = AVLRemoveNode(avl, node->child[side], data);
+    node = AVLRebalance(node);
+    node->height = AVLHeightNode(node);
+
+    return (node);
+}
+
+static avl_node_t *AVLDestroyNode(avl_t *avl, avl_node_t *node)
+{
     int side = 0;
+    avl_node_t *next = NULL;
+    void *data_swap = NULL;
 
-    UNUSED(node);
-
-    node_remove = AVLFindNode(avl, avl->root, data);
-
-    switch (AVLCountChildren(node_remove))
+    switch (AVLCountChildren(node))
     {
         case 0:
         {
-            if (node_remove == avl->root)
-            {
-                avl->root = NULL;
-                free(node_remove);
-            }
-            else
-            {
-                parent = AVLFindParent(avl, avl->root, data);
-                side = ((NULL != parent->child[RIGHT]) && (parent->child[RIGHT] == node_remove));
-                parent->child[side] = NULL;
-                free(node_remove);
-            }
+            free(node);
+            node = NULL;
             break;
         }
         case 1:
         {
-            side = (NULL != node_remove->child[RIGHT]);
-            parent = node_remove;
-            node_remove = parent->child[side];
-            parent->data = node_remove->data;
-            parent->child[LEFT] = node_remove->child[LEFT];
-            parent->child[RIGHT] = node_remove->child[RIGHT];
-            free(node_remove);
+            side = (NULL != node->child[RIGHT]);
+            free(node);
+            node = node->child[side];
             break;
         }
         case 2:
         {
-            next = AVLFurthermostToSide(node_remove->child[RIGHT], LEFT);
+            next = AVLFurthermostToSide(node->child[RIGHT], LEFT);
             data_swap = next->data;
-            AVLRemoveNode(avl, node_remove->child[RIGHT], next->data);
-            node_remove->data = data_swap;
+            AVLRemoveNode(avl, node->child[RIGHT], next->data);
+            /* AVLRemoveNode(avl, node, next->data); */
+            node->data = data_swap;
             break;
         }
     }
-    return;
+
+    return (node);
 }
 
 static avl_node_t *AVLFurthermostToSide(avl_node_t *node, int side)
@@ -380,7 +374,7 @@ static avl_node_t *AVLRotateToSide(avl_node_t *node, int side)
     return new_root;
 }
 
-avl_node_t *AVLRebalance(avl_node_t *node)
+static avl_node_t *AVLRebalance(avl_node_t *node)
 {
     int hside1 = 0, hside2 = 0;
 
@@ -393,18 +387,14 @@ avl_node_t *AVLRebalance(avl_node_t *node)
     hside2 = AVLBalanceFactor(node->child[hside1]);
     hside2 = (hside2 == 0) ? (hside1) : (hside2 < 0);
 
-    switch (hside1 == hside2)
+    if (hside1 == hside2) /* LL or RR */
     {
-        case 1: /* LL or RR */
-        {
-            return (AVLRotateToSide(node, !hside1));
-        }
-
-        case 0: /* LR or RL */
-        {
-            node->child[hside1] = AVLRotateToSide(node->child[hside1], hside1);
-            return (AVLRotateToSide(node, hside2));
-        }    
+        return (AVLRotateToSide(node, !hside1));
+    }
+    else /* LR or RL */
+    {
+        node->child[hside1] = AVLRotateToSide(node->child[hside1], hside1);
+        return (AVLRotateToSide(node, hside2));
     }
 }
 
@@ -536,5 +526,59 @@ static int AVLInsertNode(avl_t *avl, avl_node_t *node, void *data)
     node->height = AVLHeightNode(node);
 
     return (status);
+}
+*/
+
+/* Remove without rebalancing */
+/*
+static void AVLRemoveNode(avl_t *avl, avl_node_t *node, const void *data)
+{
+    avl_node_t *next = NULL, *parent = NULL, *node_remove = NULL;
+    void *data_swap;
+    int side = 0;
+
+    UNUSED(node);
+
+    node_remove = AVLFindNode(avl, avl->root, data);
+
+    switch (AVLCountChildren(node_remove))
+    {
+        case 0:
+        {
+            if (node_remove == avl->root)
+            {
+                avl->root = NULL;
+                free(node_remove);
+            }
+            else
+            {
+                parent = AVLFindParent(avl, avl->root, data);
+                side = ((NULL != parent->child[RIGHT]) && (parent->child[RIGHT] == node_remove));
+                parent->child[side] = NULL;
+                free(node_remove);
+            }
+            break;
+        }
+        case 1:
+        {
+            side = (NULL != node_remove->child[RIGHT]);
+            parent = node_remove;
+            node_remove = parent->child[side];
+            parent->data = node_remove->data;
+            parent->child[LEFT] = node_remove->child[LEFT];
+            parent->child[RIGHT] = node_remove->child[RIGHT];
+            free(node_remove);
+            break;
+        }
+        case 2:
+        {
+            next = AVLFurthermostToSide(node_remove->child[RIGHT], LEFT);
+            data_swap = next->data;
+            AVLRemoveNode(avl, node_remove->child[RIGHT], next->data);
+            node_remove->data = data_swap;
+            break;
+        }
+    }
+    return;
 }
 */
