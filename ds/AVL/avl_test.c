@@ -106,7 +106,7 @@ void TestBasic()
     int arr1[SIZE_ARR1] = {50, 30, 80, 10, 40, 5, 12, 100, 90, 85, 70, 86};
     size_t i = 0;
 
-    printf("Basic Tests:\n");
+    printf("\nInsert Tests:\n");
     avl = AVLCreate(IntCmp, NULL);
 
     VerifyInt(AVLIsEmpty(avl), 1, "ISEMPTY - EMPTY AVL");
@@ -120,8 +120,9 @@ void TestBasic()
 
     VerifySizet(AVLSize(avl), 12, "SIZE - AFTER 12 INSERT");
     VerifyInt(AVLIsEmpty(avl), 0, "ISEMPTY - NON-EMPTY BST");
-    VerifySizet(AVLHeight(avl), 5, "HEIGHT");
+    VerifySizet(AVLHeight(avl), 3, "HEIGHT");
 
+    printf("\nForEach Print In-order Tests:\n");
     AVLForEach(avl, PrintInt, NULL);
 
     AVLDestroy(avl);  
@@ -133,7 +134,7 @@ void TestRemove()
     int arr1[SIZE_ARR1] = {50, 30, 80, 10, 40, 5, 12, 100, 90, 85, 70, 86};
     size_t i = 0;
 
-    printf("Remove Tests:\n");
+    printf("\nRemove Tests:\n");
     avl = AVLCreate(IntCmp, NULL);
 
     for (i = 0; i < SIZE_ARR1; i++)
