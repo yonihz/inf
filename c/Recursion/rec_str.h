@@ -9,8 +9,6 @@ size_t RecStrlen(const char *str);
 
 int RecStrcmp(const char *str1, const char *str2);
 
-int RecStrncmp(const char *str1, const char *str2, size_t n);
-
 char *RecStrcpy(char *dest, const char *src);
 
 char *RecStrcat(char *dest, const char *src);

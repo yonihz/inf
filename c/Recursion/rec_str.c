@@ -1,13 +1,16 @@
-#include <stddef.h>
+#include <stddef.h> /* size_t, NULL */
 
 #include "rec_str.h"
 #include "slist.h"
 #include "stack.h"
 
 static int BubbleSortStack(stack_t *stack);
+static int RecStrncmp(const char *str1, const char *str2, size_t n);
 
 size_t RecStrlen(const char *str)
 {
+    assert(NULL != str);
+
     if ('\0' == *str)
     {
         return (0);
@@ -18,6 +21,8 @@ size_t RecStrlen(const char *str)
 
 int RecStrcmp(const char *str1, const char *str2)
 {
+    assert(NULL != str1 && NULL != str2);
+
     if ((*str1 != *str2) || (*str1 == '\0'))
     {
         return (*str1 - *str2);
@@ -26,17 +31,22 @@ int RecStrcmp(const char *str1, const char *str2)
     return RecStrcmp(str1 + 1, str2 + 1);
 }
 
-int RecStrncmp(const char *str1, const char *str2, size_t n)
+static int RecStrncmp(const char *str1, const char *str2, size_t n)
 {
+    assert(NULL != str1 && NULL != str2);
+
     if ((*str1 != *str2) || (n == 1))
     {
         return (*str1 - *str2);
     }
+
     return RecStrncmp(str1 + 1, str2 + 1, n - 1);
 }
 
 char *RecStrcpy(char *dest, const char *src)
 {
+    assert(NULL != src && NULL != dest);
+
     *dest = *src;
 
     if ('\0' == *src)
@@ -49,6 +59,8 @@ char *RecStrcpy(char *dest, const char *src)
 
 char *RecStrcat(char *dest, const char *src)
 {
+    assert(NULL != src && NULL != dest);
+
     RecStrcpy((dest + RecStrlen(dest)), src);
 
     return (dest);
@@ -56,6 +68,8 @@ char *RecStrcat(char *dest, const char *src)
 
 char *RecStrstr(const char *haystack, const char *needle)
 {
+    assert(NULL != haystack && NULL != needle);
+
     if (*haystack == '\0')
     {
         return NULL;
@@ -138,6 +152,7 @@ static int BubbleSortStack(stack_t *stack)
     if (StackIsEmpty(stack))
     {
         StackPush(stack, &elem1);
+
         return 0;
     }
 
