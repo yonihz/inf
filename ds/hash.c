@@ -23,7 +23,7 @@ hash_t *HTCreate(hash_func_t hash_func, size_t num_of_buckets, comp_func_t comp,
     new_hash->comp_func = comp;
     new_hash->param = param;    
     new_hash->nbuckets = num_of_buckets;
-    new_hash->htable = (dlist_t**)malloc(sizeof(num_of_buckets * sizeof(dlist_t*)));
+    new_hash->htable = (dlist_t**)malloc(num_of_buckets * sizeof(dlist_t*));
 
     for (i = 0; i < num_of_buckets; ++i)
     {
@@ -71,7 +71,7 @@ void HTRemove(hash_t *hash, const void *data)
     key = hash->hash_func(data);
     itr_begin = DListBegin(hash->htable[key]);
     itr_end = DListEnd(hash->htable[key]);
-    itr_remove = DListFind(itr_begin, itr_end, hash->comp_func, hash->param);
+    itr_remove = DListFind(itr_begin, itr_end, hash->comp_func, (void*)data);
     DListRemove(itr_remove);
 }
 
@@ -83,7 +83,7 @@ void *HTFind(hash_t *hash, const void *data)
     key = hash->hash_func(data);
     itr_begin = DListBegin(hash->htable[key]);
     itr_end = DListEnd(hash->htable[key]);
-    itr_found = DListFind(itr_begin, itr_end, hash->comp_func, hash->param);
+    itr_found = DListFind(itr_begin, itr_end, hash->comp_func, (void*)data);
 
     /* caching - move found data to the beginning of the list */
     /*DListSplice(itr_begin, itr_found, DListNext(itr_found));*/
@@ -125,7 +125,7 @@ size_t HTSize(const hash_t *hash)
 
 int HTIsEmpty(const hash_t *hash)
 {
-    size_t is_empty = 0, i = 0;
+    size_t is_empty = 1, i = 0;
 
     for (i = 0; (i < hash->nbuckets) && (1 == is_empty); ++i)
     {

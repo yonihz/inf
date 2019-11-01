@@ -7,21 +7,18 @@
 #include "hash.h"
 #include "spellchecker.h"
 
-#define NLETTERS 26
 #define EOT 3
 
 FILE *file_ptr;
 
-hash_t *DictCreate(void)
+hash_t *DictCreate(char *filename, hash_func_t hash_func, size_t nbuckets)
 {
-    /*char *filename = "/usr/share/dict/american-english";*/
-    char *filename = "/home/yoni/git/c/SpellCheck/dict_test.c";
     size_t dict_size = 0;
     char *dict = NULL;
     hash_t *hash = NULL;
     int status = 0;
 
-    hash = HTCreate(DictHash, NLETTERS, StrcmpVoid, NULL);
+    hash = HTCreate(hash_func, nbuckets, StrcmpVoid, NULL);
 
     file_ptr = fopen(filename, "r");
 
@@ -47,6 +44,11 @@ size_t DictHash(const void *dict_word)
 
     key = (tolower(*(char*)dict_word) - 'a');
 
+    if (!isalpha(*(char*)dict_word))
+    {
+        key = ('z' - 'a');
+    } 
+
     return (key);
 }
 
@@ -60,6 +62,35 @@ int DictSpellCheck(hash_t *hash, char *str)
     }
 
     return (status);
+}
+
+void DictSpellCheckScan(hash_t *hash)
+{
+    int is_valid = 0;
+    char str[50];
+
+    printf("Enter string:\n");
+
+    while (1)
+    {
+        scanf("%s", str);
+
+        if (*str == '0')
+        {
+            return;
+        }
+
+        is_valid = DictSpellCheck(hash, str);
+
+        if (is_valid == 1)
+        {
+            printf("%s is in the dictionary\n", str);
+        }
+        else
+        {
+            printf("%s is not in the dictionary\n", str);
+        }
+    }
 }
 
 size_t FileCharCount(FILE *file_ptr)
@@ -97,4 +128,24 @@ void DictCopy(char* dict, FILE *file_ptr)
 int StrcmpVoid(const void *s1, const void *s2)
 {
     return (strcmp((const char*)(s1), (const char*)(s2)));
+}
+
+size_t DictSize(hash_t *hash)
+{
+    return HTSize(hash);
+}
+
+int DictIsEmpty(hash_t *hash)
+{
+    return HTIsEmpty(hash);
+}
+
+void DictRemove(hash_t *hash, const void *data)
+{
+    HTRemove(hash, data);
+}
+
+void DictDestroy(hash_t *hash)
+{
+    HTDestroy(hash);
 }

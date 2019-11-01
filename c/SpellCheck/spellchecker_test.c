@@ -2,57 +2,83 @@
 #include <stdio.h>
 
 #include "spellchecker.h"
-#include "dlist.h"
 #include "hash.h"
+
+#define NLETTERS 26
 
 /* gd ../../ds/hash.c ../../ds/dlist.c spellchecker.c spellchecker_test.c -I../../ds/include */
 
-struct hash
-{
-    hash_func_t hash_func;
-    comp_func_t comp_func;
-    dlist_t **htable;
-    size_t nbuckets;
-    void *param;
-};
 
-void Test(void);
+/*
+TODO: ForEach, caching, vlg, hash function
+*/
+
+void TestBasic(void);
+void TestScan(void);
 
 int main()
 {  
-    Test();
+    TestBasic();
+    /*TestScan();*/
     return (0);
 }
 
-void Test(void)
+void TestBasic(void)
 {
     size_t i = 0;
-    char strings[6][10] = {"apple", "orange", "banana", "cake", "beer", "lemon"};
+    char strings[6][10] = {"apple", "orangek", "bananan", "cake", "beer", "lemon"};
+    char dict_words[9][10] = {"camera", "apple", "at", "orange", "cake", "cat", "beer", "blah", "car"};
+
     hash_t *dict = NULL;
-    dlist_t *dict_letter = NULL;
-    dlist_iter_t itr = NULL;
-    dlist_iter_t itr_end = NULL;
     int is_spell_correct = 0;
-    size_t letter = 'c' - 'a';
+
+    /*char *filename = "/usr/share/dict/american-english";*/
+    char *filename = "/home/yoni/git/c/SpellCheck/dict_test.c";
     
-    dict = DictCreate();
+    dict = DictCreate(filename, DictHash, NLETTERS);
 
-    dict_letter = dict->htable[letter];
+    printf("Basic Tests::\n\n");
+    printf("Spellcheck for test words:\n");
 
-    itr_end = DListEnd(dict_letter);
-
-    printf("Dictionary DList of a letter %c:\n", (char)letter);
-    for (itr = DListBegin(dict_letter); itr != itr_end; itr = DListNext(itr))
-    {
-        printf("%s ", (char*)DListGetData(itr));
-    }
-    printf("\n");
-    /*
     for (i = 0; i < 6; i++)
     {
         is_spell_correct = DictSpellCheck(dict, strings[i]);
-        printf("Word: %s, Spellcheck: %d", strings[i], is_spell_correct);
+        printf("%s (%d)\n", strings[i], is_spell_correct);
     }
-    */
 
+    printf("\n");
+
+    printf("Dictionary size: %lu\n", HTSize(dict));
+    printf("Dictionary IsEmpty after DictCreate: %d\n", HTIsEmpty(dict));
+
+    DictRemove(dict, strings[0]);
+
+    printf("\nTest dictionary after removing %s:\n", strings[0]);
+    for (i = 0; i < 6; i++)
+    {
+        is_spell_correct = DictSpellCheck(dict, strings[i]);
+        printf("%s (%d)\n", strings[i], is_spell_correct);
+    }
+
+    printf("\n");
+
+    printf("Dictionary size after remove: %lu\n", HTSize(dict));
+
+    for (i = 0; i < 9; i++)
+    {
+        DictRemove(dict, dict_words[i]);
+    }
+
+    printf("Dictionary IsEmpty after removing all entries: %d\n", HTIsEmpty(dict));
+
+    DictDestroy(dict);
+}
+
+void TestScan(void)
+{
+    hash_t *dict = NULL;
+    char *filename = "/usr/share/dict/american-english";
+    
+    dict = DictCreate(filename, DictHash, NLETTERS);
+    DictSpellCheckScan(dict);
 }
