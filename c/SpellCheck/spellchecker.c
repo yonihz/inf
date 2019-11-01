@@ -1,20 +1,25 @@
 #include <stdio.h> /* fopen */
 #include <string.h> /* strlen, strcmp */
 #include <stdlib.h> /* malloc */
+#include <ctype.h> /* tolower */
+#include <assert.h>
 
 #include "hash.h"
 #include "spellchecker.h"
 
 #define NLETTERS 26
+#define EOT 3
 
 FILE *file_ptr;
 
 hash_t *DictCreate(void)
 {
-    char *filename = "/usr/share/dict/american-english";
+    /*char *filename = "/usr/share/dict/american-english";*/
+    char *filename = "/home/yoni/git/c/SpellCheck/dict_test.c";
     size_t dict_size = 0;
     char *dict = NULL;
     hash_t *hash = NULL;
+    int status = 0;
 
     hash = HTCreate(DictHash, NLETTERS, StrcmpVoid, NULL);
 
@@ -24,10 +29,13 @@ hash_t *DictCreate(void)
     dict = (char*)malloc(dict_size * sizeof(char));
     DictCopy(dict, file_ptr);
 
-    while (*dict != EOF)
+    while (*dict != EOT)
     {
-        HTInsert(hash, dict);
-        dict = dict + strlen(dict);
+        status = HTInsert(hash, dict);
+
+        assert(status == 0);
+
+        dict = dict + strlen(dict) + 1;
     }
 
     return (hash);
@@ -37,14 +45,14 @@ size_t DictHash(const void *dict_word)
 {
     size_t key = 0;
 
-    key = (size_t)*(char*)dict_word;
+    key = (tolower(*(char*)dict_word) - 'a');
 
     return (key);
 }
 
 int DictSpellCheck(hash_t *hash, char *str)
 {
-    int status = 0; 
+    int status = 0;
     
     if (NULL != HTFind(hash, str))
     {
@@ -56,35 +64,34 @@ int DictSpellCheck(hash_t *hash, char *str)
 
 size_t FileCharCount(FILE *file_ptr)
 {
-    char c = 0;
     size_t dict_size = 0;
 
     rewind(file_ptr);
-    c = getc(file_ptr);
 
-    while (c != EOF)
+    while (EOF != getc(file_ptr))
     {
         ++dict_size;
-        c = getc(file_ptr);
     }
 
-    return (dict_size);
+    return (dict_size + 1);
 }
 
 void DictCopy(char* dict, FILE *file_ptr)
 {
     size_t word_len = 0;
-    char *dict_word = NULL;
+    char dict_word[50];
 
-    do
+    rewind(file_ptr);
+
+    while (NULL != fgets(dict_word, 50, file_ptr))
     {
-        fgets(dict_word, 50, file_ptr);
-        word_len = strcspn(dict_word, (char*)'\n');
+        word_len = strcspn(dict_word, "\n");
         dict_word[word_len] = '\0';
         strcpy(dict, dict_word);
-        dict = dict + word_len;
+        dict = dict + word_len + 1;
     }
-    while (*dict_word == EOF);
+
+    *dict = EOT;
 }
 
 int StrcmpVoid(const void *s1, const void *s2)
