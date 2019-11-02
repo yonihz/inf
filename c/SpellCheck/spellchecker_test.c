@@ -4,17 +4,12 @@
 #include "spellchecker.h"
 #include "hash.h"
 
-#define NLETTERS 26
+#define HTABLE_SIZE 26
 
 /* gd ../../ds/hash.c ../../ds/dlist.c spellchecker.c spellchecker_test.c -I../../ds/include */
 
-
-/*
-TODO: splice, vlg, hash function
-*/
-
 void TestBasic(void);
-void TestScan(void);
+/*void TestScan(void);*/
 
 int main()
 {  
@@ -26,7 +21,7 @@ int main()
 void TestBasic(void)
 {
     size_t i = 0;
-    char strings[6][10] = {"apple", "orangek", "bananan", "cake", "beer", "lemon"};
+    char strings[6][10] = {"apple", "orangek", "bananan", "cake", "car", "lemon"};
     char dict_words[9][10] = {"camera", "apple", "at", "orange", "cake", "cat", "beer", "blah", "car"};
 
     char *user_dict = NULL;
@@ -36,7 +31,7 @@ void TestBasic(void)
     /* char *filename = "/usr/share/dict/american-english"; */
     char *filename = "/home/yoni/git/c/SpellCheck/dict_test.c";
     
-    dict_hash = DictCreate(filename, DictHash, NLETTERS, &user_dict);
+    dict_hash = DictCreate(filename, DictHash, HTABLE_SIZE, &user_dict);
 
     printf("-----\n");
     printf("Dictionary size: %lu\n", HTSize(dict_hash));
@@ -91,6 +86,10 @@ void TestScan(void)
     hash_t *dict_hash = NULL;
     char *filename = "/usr/share/dict/american-english";
     
-    dict_hash = DictCreate(filename, DictHash, NLETTERS, &user_dict);
+    dict_hash = DictCreate(filename, DictHash, HTABLE_SIZE, &user_dict);
+        
+    printf("-----\n");
     DictSpellCheckScan(dict_hash);
+
+    DictDestroy(dict_hash, user_dict);
 }
