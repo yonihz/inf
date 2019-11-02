@@ -2,7 +2,7 @@
 
 #include "hash.h"
 
-hash_t *DictCreate(char *filename, hash_func_t hash_func, size_t nbuckets);
+hash_t *DictCreate(char *filename, hash_func_t hash_func, size_t nbuckets, char **dict);
 
 size_t DictHash(const void *dict_word);
  
@@ -23,4 +23,8 @@ int DictIsEmpty(hash_t *hash);
 
 void DictRemove(hash_t *hash, const void *data);
 
-void DictDestroy(hash_t *hash);
+void DictDestroy(hash_t *hash, char *dict);
+
+int DictPrintAll(hash_t *hash);
+
+int DictPrintWord(void *data, void *param);

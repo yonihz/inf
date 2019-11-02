@@ -9,30 +9,33 @@
 
 #define EOT 3
 
+#define UNUSED(x) (void)(x)
+
 FILE *file_ptr;
 
-hash_t *DictCreate(char *filename, hash_func_t hash_func, size_t nbuckets)
+hash_t *DictCreate(char *filename, hash_func_t hash_func, size_t nbuckets, char **dict)
 {
     size_t dict_size = 0;
-    char *dict = NULL;
     hash_t *hash = NULL;
     int status = 0;
+    char *dict_ptr = NULL;
 
     hash = HTCreate(hash_func, nbuckets, StrcmpVoid, NULL);
 
     file_ptr = fopen(filename, "r");
 
     dict_size = FileCharCount(file_ptr);
-    dict = (char*)malloc(dict_size * sizeof(char));
-    DictCopy(dict, file_ptr);
+    *dict = (char*)malloc(dict_size * sizeof(char));
+    dict_ptr = *dict;
+    DictCopy(dict_ptr, file_ptr);
 
-    while (*dict != EOT)
+    while (*dict_ptr != EOT)
     {
-        status = HTInsert(hash, dict);
+        status = HTInsert(hash, dict_ptr);
 
         assert(status == 0);
 
-        dict = dict + strlen(dict) + 1;
+        dict_ptr = dict_ptr + strlen(dict_ptr) + 1;
     }
 
     return (hash);
@@ -145,7 +148,27 @@ void DictRemove(hash_t *hash, const void *data)
     HTRemove(hash, data);
 }
 
-void DictDestroy(hash_t *hash)
+void DictDestroy(hash_t *hash, char *dict)
 {
     HTDestroy(hash);
+    free(dict);
+    dict = NULL;
+}
+
+int DictPrintAll(hash_t *hash)
+{
+    int status = 0;
+
+    status = HTForEach(hash, DictPrintWord, NULL);
+    printf("\n");
+
+    return (status);
+}
+
+int DictPrintWord(void *data, void *param)
+{
+    UNUSED(param);
+    printf("%s ", (char*)data);
+
+    return (0);
 }

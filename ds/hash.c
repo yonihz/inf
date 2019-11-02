@@ -79,16 +79,29 @@ void *HTFind(hash_t *hash, const void *data)
 {
     size_t key = 0;
     dlist_iter_t itr_found = NULL, itr_begin = NULL, itr_end = NULL;
+    void *data_found = NULL;
 
     key = hash->hash_func(data);
     itr_begin = DListBegin(hash->htable[key]);
     itr_end = DListEnd(hash->htable[key]);
     itr_found = DListFind(itr_begin, itr_end, hash->comp_func, (void*)data);
+    data_found = DListGetData(itr_found);
 
     /* caching - move found data to the beginning of the list */
-    /*DListSplice(itr_begin, itr_found, DListNext(itr_found));*/
-
-    return (DListGetData(itr_found));
+    /*
+    if (!DListIsSame(itr_found, itr_end))
+    {
+        DListSplice(itr_begin, itr_found, DListNext(itr_found));
+    }
+    */
+    
+    if (NULL != data_found)
+    {
+        DListRemove(itr_found);
+        DListPushFront(hash->htable[key], data_found);
+    }
+    
+    return (data_found);
 }
 
 int HTForEach(hash_t *hash, op_func_t op_func,void *param)
@@ -97,12 +110,12 @@ int HTForEach(hash_t *hash, op_func_t op_func,void *param)
     int status = 0;
     dlist_iter_t itr = NULL, itr_begin = NULL, itr_end = NULL;
 
-    for (i = 0; (i < hash->nbuckets) && (0 != status); ++i)
+    for (i = 0; (i < hash->nbuckets) && (0 == status); ++i)
     {
         itr_begin = DListBegin(hash->htable[i]);
         itr_end = DListEnd(hash->htable[i]);
 
-        for (itr = itr_begin; (itr != itr_end) && (0 != status); itr = DListNext(itr))
+        for (itr = itr_begin; (itr != itr_end) && (0 == status); itr = DListNext(itr))
         {
             status = op_func(DListGetData(itr), param);
         }
