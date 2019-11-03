@@ -1,5 +1,6 @@
-#include <stdlib.h>
-#include <string.h>
+#include <stdlib.h> /* size_t, NULL */
+#include <string.h> /* strcpy, strlen */
+#include <assert.h>
 
 #include "hash.h"
 #include "dlist.h"
@@ -19,11 +20,23 @@ hash_t *HTCreate(hash_func_t hash_func, size_t num_of_buckets, comp_func_t comp,
     size_t i = 0;
 
     new_hash = (hash_t*)malloc(sizeof(hash_t));
+
+    if (NULL == new_hash)
+    {
+        return (NULL);
+    }
+
     new_hash->hash_func = hash_func;
     new_hash->comp_func = comp;
     new_hash->param = param;    
     new_hash->nbuckets = num_of_buckets;
     new_hash->htable = (dlist_t**)malloc(num_of_buckets * sizeof(dlist_t*));
+
+    if (NULL == new_hash->htable)
+    {
+        free(new_hash);
+        return (NULL);
+    }
 
     for (i = 0; i < num_of_buckets; ++i)
     {
@@ -44,18 +57,25 @@ void HTDestroy(hash_t *hash)
 {
     size_t i = 0;
 
+    assert(hash);
+
     for (i = 0; i < hash->nbuckets; ++i)
     {
         DListDestroy(hash->htable[i]);
     }
 
+    free(hash->htable);
+    hash->htable = NULL;
     free(hash);
+    hash = NULL;
 }
 
 int HTInsert(hash_t *hash, void *data)
 {
     size_t key = 0;
     dlist_iter_t itr = NULL;
+
+    assert(hash);
 
     key = hash->hash_func(data);
     itr = DListPushFront(hash->htable[key], data);
@@ -67,6 +87,8 @@ void HTRemove(hash_t *hash, const void *data)
 {
     size_t key = 0;
     dlist_iter_t itr_remove = NULL, itr_begin = NULL, itr_end = NULL;
+
+    assert(hash);
 
     key = hash->hash_func(data);
     itr_begin = DListBegin(hash->htable[key]);
@@ -81,6 +103,8 @@ void *HTFind(hash_t *hash, const void *data)
     dlist_iter_t itr_found = NULL, itr_begin = NULL, itr_end = NULL;
     void *data_found = NULL;
 
+    assert(hash);
+
     key = hash->hash_func(data);
     itr_begin = DListBegin(hash->htable[key]);
     itr_end = DListEnd(hash->htable[key]);
@@ -88,19 +112,20 @@ void *HTFind(hash_t *hash, const void *data)
     data_found = DListGetData(itr_found);
 
     /* caching - move found data to the beginning of the list */
-    /*
+    
     if (!DListIsSame(itr_found, itr_end))
     {
         DListSplice(itr_begin, itr_found, DListNext(itr_found));
     }
-    */
     
+    /*
     if (NULL != data_found)
     {
         DListRemove(itr_found);
         DListPushFront(hash->htable[key], data_found);
     }
-    
+    */
+
     return (data_found);
 }
 
@@ -109,6 +134,8 @@ int HTForEach(hash_t *hash, op_func_t op_func,void *param)
     size_t i = 0;
     int status = 0;
     dlist_iter_t itr = NULL, itr_begin = NULL, itr_end = NULL;
+
+    assert(hash);
 
     for (i = 0; (i < hash->nbuckets) && (0 == status); ++i)
     {
@@ -128,6 +155,8 @@ size_t HTSize(const hash_t *hash)
 {
     size_t size = 0, i = 0;
 
+    assert(hash);
+
     for (i = 0; i < hash->nbuckets; ++i)
     {
         size += DListSize(hash->htable[i]);
@@ -139,6 +168,8 @@ size_t HTSize(const hash_t *hash)
 int HTIsEmpty(const hash_t *hash)
 {
     size_t is_empty = 1, i = 0;
+
+    assert(hash);
 
     for (i = 0; (i < hash->nbuckets) && (1 == is_empty); ++i)
     {
