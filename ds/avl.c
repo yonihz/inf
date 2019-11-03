@@ -43,6 +43,12 @@ static avl_node_t *AVLRebalance(avl_node_t *node);
 avl_t *AVLCreate(cmp_func_t cmp_func, void *param)
 {
     avl_t *avl = (avl_t*)malloc(sizeof(avl_t));
+
+    if (NULL == avl)
+    {
+        return (NULL);
+    }
+
     avl->cmp_func = cmp_func;
     avl->param = param;
     avl->root = NULL;
@@ -133,16 +139,15 @@ static void DestroyPostOrder(avl_node_t *node)
     if (node->child[LEFT])
     {
         DestroyPostOrder(node->child[LEFT]);
-        node->child[LEFT] = NULL;
     }
 
     if (node->child[RIGHT])
     {
         DestroyPostOrder(node->child[RIGHT]);
-        node->child[RIGHT] = NULL;
     }
 
     free(node);
+    node = NULL;
 }
 
 static size_t AVLSizeTree(avl_node_t *node)
@@ -177,8 +182,7 @@ static avl_node_t *AVLFindNode(avl_t *avl, avl_node_t *node, const void *data)
     }
 
     side = cmp_res > 0;
-    node = node->child[side];
-    return (AVLFindNode(avl, node, data));
+    return (AVLFindNode(avl, node->child[side], data));
 }
 
 static avl_node_t *AVLInsertNode(avl_t *avl, avl_node_t *node, avl_node_t *new_node)
@@ -223,7 +227,7 @@ static int AVLForEachInOrder(avl_node_t *node, op_func_t op_func, void *param)
 {
     int status = 0;
 
-    if (node->child[LEFT] && (0 == status))
+    if (node->child[LEFT])
     {
         status = AVLForEachInOrder(node->child[LEFT], op_func, param);
     }
@@ -245,7 +249,7 @@ static void *AVLFindIfInOrder(avl_node_t *node, find_if_func_t find_if_func, voi
 {
     void *node_found = NULL;
 
-    if (node->child[LEFT] && (NULL == node_found))
+    if (node->child[LEFT])
     {
         node_found = AVLFindIfInOrder(node->child[LEFT], find_if_func, param);
     }
@@ -288,8 +292,9 @@ static avl_node_t *AVLCreateNode(void *data)
 static avl_node_t *AVLRemoveNode(avl_t *avl, avl_node_t *node, const void *data)
 {
     int cmp_res = 0, side = 0;
-    /* check if node is NULL */
+
     assert(NULL != node);
+    
     cmp_res = avl->cmp_func(data, node->data, avl->param);
 
     if (0 == cmp_res)
@@ -386,15 +391,18 @@ static avl_node_t *AVLRotateToSide(avl_node_t *node, int side)
 static avl_node_t *AVLRebalance(avl_node_t *node)
 {
     int hside1 = 0, hside2 = 0;
+    int bfactor1 = 0, bfactor2 = 0;
 
     if ((-2 < AVLBalanceFactor(node)) && (2 > AVLBalanceFactor(node)))
     {
-        return node;
+        return (node);
     }
 
-    hside1 = AVLBalanceFactor(node) < 0;
-    hside2 = AVLBalanceFactor(node->child[hside1]);
-    hside2 = (hside2 == 0) ? (hside1) : (hside2 < 0);
+    bfactor1 = AVLBalanceFactor(node);
+    hside1 = bfactor1 < 0;
+
+    bfactor2 = AVLBalanceFactor(node->child[hside1]);
+    hside2 = (bfactor2 == 0) ? (hside1) : (bfactor2 < 0);
 
     if (hside1 == hside2) /* LL or RR */
     {
