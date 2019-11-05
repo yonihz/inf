@@ -12,10 +12,12 @@ void SelectionSort(int *arr, size_t size);
 
 void CountingSort(int *arr, int *dest, size_t size, int min, int max);
 
-void RadixSort(unsigned long *arr, size_t size, size_t base);
+void RadixSort(int *arr, size_t size, size_t base);
 
-void CountingSortAnyBase(unsigned long *arr, unsigned long *dest, size_t size, size_t base, size_t shift);
+void CountingSortAnyBase(int *arr, int *dest, size_t size, size_t base, size_t shift);
 
-void CountingSortBase2(unsigned long *arr, unsigned long *dest, size_t size, size_t base, size_t shift);
+void CountingSortBase2(int *arr, int *dest, size_t size, size_t base, size_t shift);
+
+void MergeSort(int *dest, int *src, size_t size);
 
 #endif

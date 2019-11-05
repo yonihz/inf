@@ -1,19 +1,17 @@
-#include <stdio.h>
-
 #include "sorting.h"
 
 #define WORD sizeof(size_t)
 
-static unsigned long* CopyArrUL(unsigned long *dest, unsigned long *src, size_t size);
-static void PrintArrUL(unsigned long *arr, size_t size);
-static void PrintArrX(unsigned long *arr, size_t size);
+static int* CopyArr(int *dest, int *src, size_t size);
 static void SwapInt(int *a, int* b);
 static int *MinElem(int *arr, size_t size);
-static unsigned long MaxVal(unsigned long *arr, size_t size);
-static size_t CountDigits(unsigned long n);
-static void SwapPtrUL(unsigned long **a, unsigned long** b);
-static size_t Pow(size_t n, size_t base);
-static int isPow2(unsigned long n);
+static int MaxVal(int *arr, size_t size);
+static size_t CountDigits(int n);
+static void SwapPtr(int **a, int** b);
+static int Pow(int n, size_t base);
+static int isPow2(int n);
+static void RecMergeSort(int *dest, int *src, size_t start, size_t end);
+static void MergeSubArrays(int *dest, int *src, size_t start, size_t end);
 
 void BubbleSort(int *arr, size_t size)
 {
@@ -77,25 +75,25 @@ void CountingSort(int *arr, int *dest, size_t size, int min, int max)
     free(count);
 }
 
-void RadixSort(unsigned long *arr, size_t size, size_t base)
+void RadixSort(int *arr, size_t size, size_t base)
 {
     size_t i = 0, n = 0, shift = 0;
-    unsigned long *dest = (unsigned long*)calloc(size, sizeof(arr[0]));
+    int *dest = (int*)calloc(size, sizeof(arr[0]));
 
     if (!isPow2(base))
-    {
-        printf("Base %lu (not base 2)\n", base);      
+    {    
         n = CountDigits(MaxVal(arr, size));
         for (i = 0; i < n; ++i)
         {
             shift = Pow(i, base);  
             CountingSortAnyBase(arr, dest, size, base, shift);
-            SwapPtrUL(&arr, &dest);
+            SwapPtr(&arr, &dest);
         }
+        CopyArr(dest, arr, size);
+        /*free(dest);*/
     }
     else
-    {
-        printf("Base %lu (base 2)\n", base);         
+    {        
         for (shift = 1, i = 0; shift < base; ++i)
         {
             shift <<= 1;
@@ -105,17 +103,17 @@ void RadixSort(unsigned long *arr, size_t size, size_t base)
         for (i = 0; i < n; ++i)
         {
             CountingSortBase2(arr, dest, size, base, shift * i);
-            SwapPtrUL(&arr, &dest);
+            SwapPtr(&arr, &dest);
         }
+        CopyArr(dest, arr, size);
+        free(dest);
     }
-    CopyArrUL(dest, arr, size);
-    free(dest);
 }
 
-void CountingSortAnyBase(unsigned long *arr, unsigned long *dest, size_t size, size_t base, size_t shift)
+void CountingSortAnyBase(int *arr, int *dest, size_t size, size_t base, size_t shift)
 {
     size_t i = 0;
-    unsigned long *count = (unsigned long*)calloc(base, sizeof(arr[0]));
+    int *count = (int*)calloc(base, sizeof(arr[0]));
     for (i = 0; i < size; ++i)
     {
         ++(count[(arr[i] / shift) % base]);
@@ -131,15 +129,14 @@ void CountingSortAnyBase(unsigned long *arr, unsigned long *dest, size_t size, s
         --(count[(arr[size - i - 1] / shift) % base]);
         dest[count[(arr[size - i - 1] / shift) % base]] = arr[size - i - 1];
     }
-    PrintArrUL(dest, size);
 
     free(count);
 }
 
-void CountingSortBase2(unsigned long *arr, unsigned long *dest, size_t size, size_t base, size_t shift)
+void CountingSortBase2(int *arr, int *dest, size_t size, size_t base, size_t shift)
 {
     size_t i = 0;
-    unsigned long *count = (unsigned long*)calloc(base, sizeof(arr[0]));
+    int *count = (int*)calloc(base, sizeof(arr[0]));
     for (i = 0; i < size; ++i)
     {
         ++(count[(arr[i] >> shift) & (base - 1)]);
@@ -152,12 +149,72 @@ void CountingSortBase2(unsigned long *arr, unsigned long *dest, size_t size, siz
 
     for (i = 0; i < size; ++i)
     {
-        --(count[(arr[size - i - 1] >> shift) & (base - 1)]);
+        --(count[(arr[size  - i - 1] >> shift) & (base - 1)]);
         dest[count[(arr[size - i - 1] >> shift) & (base - 1)]] = arr[size - i - 1];
     }
-    PrintArrX(dest, size);
 
     free(count);
+}
+
+void MergeSort(int *dest, int *src, size_t size)
+{
+    RecMergeSort(dest, src, 0, size - 1);
+}
+
+static void RecMergeSort(int *dest, int *src, size_t start, size_t end)
+{
+    if (start < end)
+    {
+        RecMergeSort(dest, src, start, ((start + end) / 2));
+        RecMergeSort(dest, src, ((start + end) / 2) + 1, end);
+        MergeSubArrays(dest, src, start, end);
+    }
+}
+
+static void MergeSubArrays(int *dest, int *src, size_t start, size_t end)
+{
+    size_t i = 0, j = 0, k = 0;
+    
+    i = start;
+    j = ((start + end) / 2) + 1;
+    k = start;
+    
+    while ((i <= ((start + end) / 2)) && (j <= end))
+    {
+        if (src[i] < src[j])
+        {
+            dest[k] = src[i];
+            ++i;
+        }
+        else
+        {
+            dest[k] = src[j];
+            ++j;
+        }
+        
+        ++k;
+    }
+
+    while (i <= ((start + end) / 2))
+    {
+        dest[k] = src[i];
+        ++i;
+        ++k;  
+    }
+
+    while (j <= end)
+    {
+        dest[k] = src[j];
+        ++j;
+        ++k;  
+    }
+
+    k = start;
+
+    for (k = start; k <= end; ++k)
+    {
+        src[k] = dest[k];
+    }
 }
 
 static void SwapInt(int *a, int *b)
@@ -178,10 +235,10 @@ static int *MinElem(int *arr, size_t size)
     return (min_idx);
 }
 
-static unsigned long MaxVal(unsigned long *arr, size_t size)
+static int MaxVal(int *arr, size_t size)
 {
     size_t i = 0;
-    unsigned long max = arr[0];
+    int max = arr[0];
 
     for (i = 0; i < size; i++)
     {
@@ -193,7 +250,7 @@ static unsigned long MaxVal(unsigned long *arr, size_t size)
     return (max);
 }
 
-static size_t CountDigits(unsigned long n)
+static size_t CountDigits(int n)
 {
     size_t i = 0;
     while (n)
@@ -204,14 +261,14 @@ static size_t CountDigits(unsigned long n)
     return (i);
 }
 
-static void SwapPtrUL(unsigned long **a, unsigned long** b)
+static void SwapPtr(int **a, int** b)
 {
-    unsigned long *temp = *a;
+    int *temp = *a;
     *a = *b;
     *b = temp;
 }
 
-static size_t Pow(size_t n, size_t base)
+static int Pow(int n, size_t base)
 {
     size_t num = 1;
 
@@ -224,7 +281,7 @@ static size_t Pow(size_t n, size_t base)
     return (num);
 }
 
-static int isPow2(size_t n)
+static int isPow2(int n)
 {
 	if (0 == n)
 	{
@@ -239,27 +296,7 @@ static int isPow2(size_t n)
 	return (0);	
 }
 
-static void PrintArrUL(unsigned long *arr, size_t size)
-{
-    size_t i = 0;
-    for (i = 0; i < size; ++i)
-    {
-        printf("%lu ", arr[i]);
-    }
-    printf("\n");
-}
-
-static void PrintArrX(unsigned long *arr, size_t size)
-{
-    size_t i = 0;
-    for (i = 0; i < size; ++i)
-    {
-        printf("0x%lX ", arr[i]);
-    }
-    printf("\n");
-}
-
-unsigned long* CopyArrUL(unsigned long *dest, unsigned long *src, size_t size)
+static int* CopyArr(int *dest, int *src, size_t size)
 {
     size_t i = 0;
     for (i = 0; i < size; ++i)
