@@ -11,12 +11,13 @@ typedef struct heap heap_t;
 *	cmp_func:
 *		user func to determine the order of the elements within the AVL
 * 	arguments:
-* 		data1 = an element from AVL
-*		data2 = an element from AVL
-*		param = a param that will be used in the cmp_func
+* 		data1 = an element
+*		data2 = an element
 *	return:
-*		returns an integer less than, equal to, or greater than zero if data1
-*		is found, respectively, to be before, match, or after data2
+*       returns an integar -
+*       greater than zero - if data1 is higher than data2
+*		equal to zero - if data1 is in the same height of data2
+*       less than zero - if data1 is lower than data2
 */
 typedef int(*cmp_func_t)(const void *data1, const void *data2);
 /* 
@@ -129,4 +130,4 @@ void *HeapPeek(const heap_t *heap);
 void *HeapRemove(heap_t *heap, const void *data, match_func_t match_func);
 
 
-#endif /* _AVL_H_OL74_ */
+#endif /* _HEAP_H_OL74_ */

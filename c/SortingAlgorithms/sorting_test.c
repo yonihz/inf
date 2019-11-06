@@ -194,7 +194,7 @@ void InitArr(int *arr, size_t size)
     size_t i = 0;
     for (i = 0; i < size; ++i)
     {
-        arr[i] = rand() % (1000 + 1 - 1) + 1;
+        arr[i] = rand() % (100000 + 1 - 1) + 1;
     }
 }
 
