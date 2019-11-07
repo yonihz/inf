@@ -98,8 +98,8 @@ void TestBasic()
 	HeapPush(heap, (arr + 3));
 	HeapPush(heap, (arr + 4));
 	HeapPop(heap);
-	VerifySizet(HeapSize(heap), 1, "HEAP SIZE IS 2 AFTER 1 POP");
-	VerifyVoidptr(HeapPeek(heap), (arr + 1), "PEEK");				
+	VerifySizet(HeapSize(heap), 4, "HEAP SIZE IS 2 AFTER 1 POP");
+	VerifyVoidptr(HeapPeek(heap), (arr + 2), "PEEK");				
 	
 	HeapDestroy(heap);
 }

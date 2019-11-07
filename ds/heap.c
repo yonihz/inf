@@ -38,6 +38,8 @@ void HeapDestroy(heap_t *heap)
     assert(heap);
 
     VectorDestroy(heap->vector);
+    heap->vector = NULL;
+
     free(heap);
     heap = NULL;
 }
@@ -46,7 +48,7 @@ size_t HeapSize(const heap_t *heap)
 {
     assert(heap);
 
-    return VectorSize(heap->vector);
+    return (VectorSize(heap->vector));
 }
 
 
@@ -62,18 +64,20 @@ int HeapPush(heap_t *heap, void *data)
 {
     size_t idx = 0;
     int status = 0;
+    void **first = NULL;
 
     assert(heap);
 
-    idx = VectorSize(heap->vector) - 1;
-    status = VectorPushBack(heap->vector, data);
+    idx = VectorSize(heap->vector);
+    status = VectorPushBack(heap->vector, &data);
+    first = *(void**)VectorGetItemAddress(heap->vector, 0);
 
     if (SUCCESS != status)
     {
         return (status);
     }
 
-    HeapifyUp(heap->vector, heap->cmp_func, idx, sizeof(void*), VectorSize(heap->vector));
+    HeapifyUp(first, heap->cmp_func, idx, sizeof(void*), VectorSize(heap->vector));
 
     return (status);
 }
@@ -90,7 +94,8 @@ void HeapPop(heap_t *heap)
 
     SwapPtr(first, last);
     VectorPopBack(heap->vector);
-    HeapifyDown(heap->vector, heap->cmp_func, 0, sizeof(void*), VectorSize(heap->vector));
+    first = VectorGetItemAddress(heap->vector, 0);
+    HeapifyDown(first , heap->cmp_func, 0, sizeof(void*), VectorSize(heap->vector));
 }
 
 
