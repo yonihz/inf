@@ -65,7 +65,7 @@ int HeapPush(heap_t *heap, void *data)
 
     assert(heap);
 
-    idx = VectorSize(heap->vector);
+    idx = VectorSize(heap->vector) - 1;
     status = VectorPushBack(heap->vector, data);
 
     if (SUCCESS != status)
@@ -86,7 +86,7 @@ void HeapPop(heap_t *heap)
     assert(heap);
 
     first = VectorGetItemAddress(heap->vector, 0);
-    last = VectorGetItemAddress(heap->vector, VectorSize(heap->vector));
+    last = VectorGetItemAddress(heap->vector, VectorSize(heap->vector) - 1);
 
     SwapPtr(first, last);
     VectorPopBack(heap->vector);
@@ -98,14 +98,15 @@ void *HeapPeek(const heap_t *heap)
 {
     assert(heap);
 
-    return *(void**)VectorGetItemAddress(heap->vector, 0);
+    /* TODO: should be void**? */
+    return VectorGetItemAddress(heap->vector, 0);
 }
 
 void *HeapRemove(heap_t *heap, const void *data, match_func_t match_func)
 {
-    size_t idx = 0, idx_parent = 0;
-    void *idx_data = NULL, *idx_parent_data = NULL;
-    void **idx_Add = NULL, **last = NULL;
+    size_t idx = 0;
+    void *idx_data = NULL;
+    void **idx_Addr = NULL, **last = NULL;
 
     assert(heap);
 
@@ -114,25 +115,16 @@ void *HeapRemove(heap_t *heap, const void *data, match_func_t match_func)
         idx += 1;
     }
 
-    idx_Add = VectorGetItemAddress(heap->vector, idx);
-    last = VectorGetItemAddress(heap->vector, VectorSize(heap->vector));
-    SwapPtr(idx_Add, last);
-
-    idx_parent = ((idx - 1) / 2);
+    idx_Addr = VectorGetItemAddress(heap->vector, idx);
+    last = VectorGetItemAddress(heap->vector, VectorSize(heap->vector) - 1);
+    SwapPtr(idx_Addr, last);
 
     idx_data = *(void**)VectorGetItemAddress(heap->vector, idx);
-    idx_parent_data = *(void**)VectorGetItemAddress(heap->vector, idx_parent);
 
-    if (0 < (heap->cmp_func(idx_data, idx_parent_data)))
-    {
-        HeapifyUp(heap->vector, heap->cmp_func, idx, sizeof(void*), VectorSize(heap->vector));
-    }
-
-    else
-    {
-       HeapifyDown(heap->vector, heap->cmp_func, idx, sizeof(void*), VectorSize(heap->vector)); 
-    }
+    HeapifyUp(heap->vector, heap->cmp_func, idx, sizeof(void*), VectorSize(heap->vector));
+    HeapifyDown(heap->vector, heap->cmp_func, idx, sizeof(void*), VectorSize(heap->vector)); 
     
+    VectorPopBack(heap->vector);
     return (idx_data);
 }
 

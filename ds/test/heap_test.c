@@ -17,6 +17,8 @@ void VerifyVoidptr(void* test, void* expected, char test_name[]);
 void VerifyChar(char test[], char expected[], char test_name[]);
 void VerifyStrncmp(char test[], char expected[], size_t n, char test_name[]);
 
+int IntCmp(const void* data1, const void* data2);
+
 /* API test functions */
 
 void TestBasic();
@@ -78,5 +80,31 @@ void VerifyStrncmp(char test[], char expected[], size_t n, char test_name[])
 
 void TestBasic()
 {
+	int arr[10] = {30, 10, 20, 3, 8, 15, 18, 2, 4, 1};
+	heap_t *heap = NULL;
 
+	heap = HeapCreate(IntCmp);
+
+	VerifySizet(HeapSize(heap), 0, "HEAP SIZE IS 0 AFTER CREATE");
+	VerifyInt(HeapIsEmpty(heap), 1, "HEAP ISEMPTY IS 1 AFTER CREATE");
+
+	VerifyInt(HeapPush(heap, (arr + 0)), 0, "HEAP PUSH RETURN SUCCESS");
+	VerifyInt(HeapIsEmpty(heap), 0, "HEAP ISEMPTY IS 0 AFTER 1 PUSH");
+	VerifySizet(HeapSize(heap), 1, "HEAP SIZE IS 1 AFTER 1 PUSH");
+	HeapPush(heap, (arr + 1));
+	VerifySizet(HeapSize(heap), 2, "HEAP SIZE IS 2 AFTER 1 PUSH");
+	VerifyVoidptr(HeapPeek(heap), (arr + 0), "PEEK");
+	HeapPush(heap, (arr + 2));
+	HeapPush(heap, (arr + 3));
+	HeapPush(heap, (arr + 4));
+	HeapPop(heap);
+	VerifySizet(HeapSize(heap), 1, "HEAP SIZE IS 2 AFTER 1 POP");
+	VerifyVoidptr(HeapPeek(heap), (arr + 1), "PEEK");				
+	
+	HeapDestroy(heap);
+}
+
+int IntCmp(const void* data1, const void* data2)
+{
+    return (*(int*)data1 - *(int*)data2);
 }
