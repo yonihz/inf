@@ -10,7 +10,6 @@
 #define MAG  "\x1B[35m"
 #define RESET "\x1B[0m"
 
-
 void VerifyInt(int test, int expected, char test_name[]);
 void VerifySizet(size_t test,size_t expected, char test_name[]);
 void VerifyVoidptr(void* test, void* expected, char test_name[]);
@@ -80,7 +79,7 @@ void VerifyStrncmp(char test[], char expected[], size_t n, char test_name[])
 
 void TestBasic()
 {
-	int arr[10] = {30, 10, 20, 3, 8, 15, 18, 2, 4, 1};
+	int arr[10] = {30, 10, 20, 3, 8, 40, 50, 90, 44, 16};
 	heap_t *heap = NULL;
 
 	heap = HeapCreate(IntCmp);
@@ -92,15 +91,32 @@ void TestBasic()
 	VerifyInt(HeapIsEmpty(heap), 0, "HEAP ISEMPTY IS 0 AFTER 1 PUSH");
 	VerifySizet(HeapSize(heap), 1, "HEAP SIZE IS 1 AFTER 1 PUSH");
 	HeapPush(heap, (arr + 1));
-	VerifySizet(HeapSize(heap), 2, "HEAP SIZE IS 2 AFTER 1 PUSH");
-	VerifyVoidptr(HeapPeek(heap), (arr + 0), "PEEK");
+	/* Heap: 30 */
+	VerifySizet(HeapSize(heap), 2, "HEAP SIZE IS 2 AFTER 2 PUSH");
+	VerifyVoidptr(HeapPeek(heap), (arr + 0), "PEEK AFTER PUSH");
 	HeapPush(heap, (arr + 2));
 	HeapPush(heap, (arr + 3));
 	HeapPush(heap, (arr + 4));
+	/* Heap: 30 - 10 - 20 - 3 - 8 */
 	HeapPop(heap);
+	/* Heap: 10 - 20 - 3 - 8 */
 	VerifySizet(HeapSize(heap), 4, "HEAP SIZE IS 2 AFTER 1 POP");
-	VerifyVoidptr(HeapPeek(heap), (arr + 2), "PEEK");				
-	
+	VerifyVoidptr(HeapPeek(heap), (arr + 2), "PEEK AFTER POP");
+	HeapPush(heap, (arr + 5));
+	/* Heap: 10 - 20 - 3 - 8 - 40 */
+	VerifyVoidptr(HeapPeek(heap), (arr + 5), "PEEK AFTER PUSH NEW MAX");
+	HeapPush(heap, (arr + 6));
+	HeapPush(heap, (arr + 7));
+	HeapPush(heap, (arr + 8));
+	HeapPush(heap, (arr + 9));
+	/* Heap: 10 - 20 - 3 - 8 - 40 - 50 - 90 - 44 - 16 */
+	HeapRemove(heap, (arr + 6), IntCmp);
+	/* Heap: 10 - 20 - 3 - 8 - 40 - 90 - 44 - 16 */
+	HeapPop(heap);
+	/* Heap: 10 - 20 - 3 - 8 - 40 - 44 - 16 */
+	VerifySizet(HeapSize(heap), 7, "HEAP SIZE IS 7 AFTER 1 REMOVE");
+	VerifyVoidptr(HeapPeek(heap), (arr + 8), "PEEK AFTER REMOVE AND POP");
+
 	HeapDestroy(heap);
 }
 

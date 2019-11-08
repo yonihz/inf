@@ -8,16 +8,16 @@ void HeapifyUp(void *arr, cmp_func_t cmp_func, size_t idx, size_t size, size_t n
 {
     int cmp_res = 0;
     size_t idx_parent = 0;
-    void *parent = NULL, *current = NULL, *temp = NULL;
+    void **parent = NULL, **current = NULL, *temp = NULL;
 
     idx_parent = idx;
 
-    while (idx == idx_parent && (idx > 0) && (nelements != 1))
+    while (idx == idx_parent && (idx > 0) && (nelements > 1))
     {
         idx_parent = (idx - 1) / 2;
         parent = (void*)((char*)arr + size * idx_parent);
         current = (void*)((char*)arr + size * idx);
-        cmp_res = cmp_func(current, parent);
+        cmp_res = cmp_func(*current, *parent);
 
         if (cmp_res > 0)
         {
@@ -25,7 +25,7 @@ void HeapifyUp(void *arr, cmp_func_t cmp_func, size_t idx, size_t size, size_t n
             memcpy(temp, current, size);
             memcpy(current, parent, size);
             memcpy(parent, temp, size);
-            
+            free(temp);
             idx = idx_parent;
         }
     }
@@ -34,40 +34,34 @@ void HeapifyUp(void *arr, cmp_func_t cmp_func, size_t idx, size_t size, size_t n
 void HeapifyDown(void *arr, cmp_func_t cmp_func, size_t idx, size_t size, size_t nelements)
 {
     int cmp_res = 0;
-    size_t idx_left = 0, idx_right = 0, idx_greater_child = 0;
-    void *child_left = NULL, *child_right = NULL;
-    void *child_greater = NULL, *current = NULL, *temp = NULL;
+    size_t idx_left_child = 0, idx_right_child = 0, idx_greater_child = 0;
+    void **left_child = NULL, **right_child = NULL;
+    void **greater_child = NULL, **current = NULL, **temp = NULL;
 
     idx_greater_child = idx;
 
-    while (idx == idx_greater_child && ((idx * 2 + 1) < nelements))
+    while (idx == idx_greater_child && ((idx * 2 + 2) < nelements))
     {
-        idx_left = idx * 2 + 1;
-        idx_right = idx * 2 + 2;
-        child_left = (void*)((char*)arr + size * idx_left);
-        child_right = (void*)((char*)arr + size * idx_right);
+        idx_left_child = idx * 2 + 1;
+        idx_right_child = idx * 2 + 2;
+
+        left_child = (void*)((char*)arr + size * idx_left_child);
+        right_child = (void*)((char*)arr + size * idx_right_child);
         current = (void*)((char*)arr + size * idx);
 
-        if ((idx * 2 + 2) < nelements) /* has right child */
-        {
-            cmp_res = cmp_func(child_left, child_right);
-            idx_greater_child = cmp_res > 0 ? idx_left : idx_right;
-        }
-        else
-        {
-            idx_greater_child = idx_left; 
-        }
+        cmp_res = cmp_func(*left_child, *right_child);
+        idx_greater_child = cmp_res > 0 ? idx_left_child : idx_right_child;
+        greater_child = (void*)((char*)arr + size * idx_greater_child);
 
-        child_greater = (void*)((char*)arr + size * idx_greater_child);
-        cmp_res = cmp_func(current, child_greater);
+        cmp_res = cmp_func(*current, *greater_child);
 
         if (cmp_res < 0)
         {
             temp = malloc(size);
             memcpy(temp, current, size);
-            memcpy(current, child_greater, size);
-            memcpy(child_greater, temp, size);
-            
+            memcpy(current, greater_child, size);
+            memcpy(greater_child, temp, size);
+            free(temp);
             idx = idx_greater_child;
         }
     }
