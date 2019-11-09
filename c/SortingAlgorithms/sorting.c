@@ -238,9 +238,9 @@ static ssize_t QuickSortPartition(int *arr, ssize_t left, ssize_t right)
     pivot = arr[right];
     i = left - 1;
 
-    for (j = left; j <= right - 1; ++j)
+    for (j = left; j < right; ++j)
     {
-        if (arr[j] <= pivot)
+        if (arr[j] < pivot)
         {
             ++i;
             SwapInt(arr + i, arr + j);
