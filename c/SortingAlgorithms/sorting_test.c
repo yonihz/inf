@@ -8,7 +8,7 @@
 #define GRN   "\x1B[32m"
 #define RESET "\x1B[0m"
 
-#define ARR_SIZE 10000
+#define ARR_SIZE 10
 
 void PrintArr(int *arr, size_t size);
 void PrintArrX(long unsigned int *arr, size_t size);
@@ -27,6 +27,7 @@ void TestCountingSort(int* input, int* expected);
 void TestRadixSort10(int* input, int* expected);
 void TestRadixSort2(int* input, int* expected);
 void TestMergeSort(int *input, int *expected);
+void TestQuickSort(int *input, int *expected);
 
 int main()
 {
@@ -55,6 +56,7 @@ int main()
     TestRadixSort10(CopyArr(arr1_copy, arr1, ARR_SIZE), arr1_qsort);
     TestRadixSort2(CopyArr(arr1_copy, arr1, ARR_SIZE), arr1_qsort);
     TestMergeSort(CopyArr(arr1_copy, arr1, ARR_SIZE), arr1_qsort);
+    TestQuickSort(CopyArr(arr1_copy, arr1, ARR_SIZE), arr1_qsort);
 
     return (0);
 }
@@ -169,6 +171,20 @@ void TestMergeSort(int *input, int *expected)
     printf("(%f seconds)\n", nclocks/CLOCKS_PER_SEC);
 }
 
+void TestQuickSort(int *input, int *expected)
+{
+    clock_t clock_start = 0;
+    clock_t clock_end = 0;
+    double nclocks = 0;
+
+    clock_start = clock();
+    QuickSort(input, 0, ARR_SIZE - 1);
+    clock_end = clock();
+    nclocks = clock_end - clock_start;
+    VerifyInt(IsEqualArr(input, expected, ARR_SIZE), 1, "QUICK SORT");  
+    printf("(%f seconds)\n", nclocks/CLOCKS_PER_SEC);
+}
+
 void PrintArr(int *arr, size_t size)
 {
     size_t i = 0;
@@ -194,7 +210,7 @@ void InitArr(int *arr, size_t size)
     size_t i = 0;
     for (i = 0; i < size; ++i)
     {
-        arr[i] = rand() % (100000 + 1 - 1) + 1;
+        arr[i] = rand() % (100 + 1 - 1) + 1;
     }
 }
 

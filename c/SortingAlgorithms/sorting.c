@@ -12,6 +12,7 @@ static int Pow(int n, size_t base);
 static int isPow2(int n);
 static void RecMergeSort(int *dest, int *src, size_t start, size_t end);
 static void MergeSubArrays(int *dest, int *src, size_t start, size_t end);
+static ssize_t QuickSortPartition(int *arr, ssize_t left, ssize_t right);
 
 void BubbleSort(int *arr, size_t size)
 {
@@ -215,6 +216,39 @@ static void MergeSubArrays(int *dest, int *src, size_t start, size_t end)
     {
         src[k] = dest[k];
     }
+}
+
+void QuickSort(int *arr, ssize_t left, ssize_t right)
+{
+    ssize_t pivot = right;
+
+    if (left < right)
+    {
+        pivot = QuickSortPartition(arr, left, right);
+        QuickSort(arr, left, pivot - 1);
+        QuickSort(arr, pivot + 1, right);
+    }
+}
+
+static ssize_t QuickSortPartition(int *arr, ssize_t left, ssize_t right)
+{
+    ssize_t i = 0, j = 0;
+    int pivot = 0;
+
+    pivot = arr[right];
+    i = left - 1;
+
+    for (j = left; j <= right - 1; ++j)
+    {
+        if (arr[j] <= pivot)
+        {
+            ++i;
+            SwapInt(arr + i, arr + j);
+        }
+    }
+    SwapInt(arr + i + 1, arr + right);
+    
+    return (i + 1);
 }
 
 static void SwapInt(int *a, int *b)
