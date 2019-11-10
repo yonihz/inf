@@ -182,6 +182,7 @@ static avl_node_t *AVLFindNode(avl_t *avl, avl_node_t *node, const void *data)
     }
 
     side = cmp_res > 0;
+    
     return (AVLFindNode(avl, node->child[side], data));
 }
 

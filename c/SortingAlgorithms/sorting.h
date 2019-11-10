@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+typedef int(*cmp_func_t)(const void *data1, const void *data2);
+
 void BubbleSort(int *arr, size_t size);
 
 void InsertionSort(int *arr, size_t size);
@@ -20,6 +22,15 @@ void CountingSortBase2(int *arr, int *dest, size_t size, size_t base, size_t shi
 
 void MergeSort(int *dest, int *src, size_t size);
 
-void QuickSort(int *arr, ssize_t left, ssize_t right);
+void QuickSort(const void *base, size_t nelem, size_t elem_size, cmp_func_t cmp_func);
+
+void *BinSearchItr(const void *base, size_t nelem, size_t elem_size,
+                    const void *requested_data, cmp_func_t cmp_func);
+
+void *BinSearchR(const void *base, size_t nelem, size_t elem_size,
+                    const void *requested_data, cmp_func_t cmp_func);
+
+void *JumpSearchItr(const void *base, size_t nelem, size_t elem_size,
+                    const void *requested_data, cmp_func_t cmp_func);
 
 #endif

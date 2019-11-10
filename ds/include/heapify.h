@@ -5,8 +5,9 @@
 
 #include "heap.h"
 
-void HeapifyUp(void *arr, cmp_func_t cmp_func, size_t idx, size_t size, size_t nelements);
+void HeapifyUp(void *base, cmp_func_t cmp_func, size_t idx, size_t size_elem, void *temp);
 
-void HeapifyDown(void *arr, cmp_func_t cmp_func, size_t idx, size_t size, size_t nelements);
+void HeapifyDown(void *base, cmp_func_t cmp_func, size_t idx, size_t size_elem,
+                    size_t nelements, void *temp);
 
 #endif /* _HEAPIFY_H_OL74_ */

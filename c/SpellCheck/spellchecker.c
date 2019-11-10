@@ -9,8 +9,10 @@
 
 #define EOT 3
 #define HTABLE_SIZE 26
-
 #define UNUSED(x) (void)(x)
+
+enum status_t {SUCCESS = 0, FAILUE};
+enum sp_status_t {SP_FAILUE = 0, SP_SUCCESS};
 
 FILE *file_ptr;
 
@@ -50,6 +52,7 @@ hash_t *DictCreate(char *filename, hash_func_t hash_func, size_t nbuckets, char 
     }
 
     fclose(file_ptr);
+    file_ptr = NULL;
 
     return (hash);
 }
@@ -90,13 +93,13 @@ size_t DictHash(const void *dict_word)
 
 int DictSpellCheck(hash_t *hash, char *str)
 {
-    int status = 0;
+    int status = SP_FAILUE;
 
     assert(hash && str);
     
     if (NULL != HTFind(hash, str))
     {
-        status = 1;
+        status = SP_SUCCESS;
     }
 
     return (status);

@@ -65,6 +65,7 @@ int HeapPush(heap_t *heap, void *data)
     size_t idx = 0;
     int status = 0;
     void **first = NULL;
+    void *temp = NULL;
 
     assert(heap);
 
@@ -77,8 +78,11 @@ int HeapPush(heap_t *heap, void *data)
         return (status);
     }
 
-    HeapifyUp(first, heap->cmp_func, idx, sizeof(void*), VectorSize(heap->vector));
-
+    temp = malloc(sizeof(void*));
+    HeapifyUp(first, heap->cmp_func, idx, sizeof(void*), temp);
+    free(temp);
+    temp = NULL;
+    
     return (status);
 }
 
@@ -86,6 +90,7 @@ int HeapPush(heap_t *heap, void *data)
 void HeapPop(heap_t *heap)
 {
     void **first = NULL, **last = NULL;
+    void *temp = NULL;
 
     assert(heap);
 
@@ -95,7 +100,10 @@ void HeapPop(heap_t *heap)
     SwapPtr(first, last);
     VectorPopBack(heap->vector);
     first = VectorGetItemAddress(heap->vector, 0);
-    HeapifyDown(first , heap->cmp_func, 0, sizeof(void*), VectorSize(heap->vector));
+    temp = malloc(sizeof(void*));
+    HeapifyDown(first , heap->cmp_func, 0, sizeof(void*), VectorSize(heap->vector), temp);
+    free(temp);
+    temp = NULL;
 }
 
 
@@ -110,7 +118,7 @@ void *HeapRemove(heap_t *heap, const void *data, match_func_t match_func)
 {
     int is_found = 0;
     size_t idx = 0;
-    void *to_remove_data = NULL;
+    void *to_remove_data = NULL, *temp = NULL;
     void **to_remove = NULL, **first = NULL, **last = NULL;
 
     assert(heap);
@@ -135,10 +143,12 @@ void *HeapRemove(heap_t *heap, const void *data, match_func_t match_func)
     SwapPtr(to_remove, last);
     VectorPopBack(heap->vector);
     first = VectorGetItemAddress(heap->vector, 0);
+    temp = malloc(sizeof(void*));
+    HeapifyUp(first, heap->cmp_func, idx, sizeof(void*), temp);
+    HeapifyDown(first, heap->cmp_func, idx, sizeof(void*), VectorSize(heap->vector), temp); 
+    free(temp);
+    temp = NULL;
 
-    HeapifyUp(first, heap->cmp_func, idx, sizeof(void*), VectorSize(heap->vector));
-    HeapifyDown(first, heap->cmp_func, idx, sizeof(void*), VectorSize(heap->vector)); 
-    
     return (to_remove_data);
 }
 

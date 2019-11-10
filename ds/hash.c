@@ -5,6 +5,8 @@
 #include "hash.h"
 #include "dlist.h"
 
+enum status_t {SUCCESS = 0, FAILURE};
+
 struct hash
 {
     hash_func_t hash_func;
@@ -18,6 +20,8 @@ hash_t *HTCreate(hash_func_t hash_func, size_t num_of_buckets, comp_func_t comp,
 {
     hash_t *new_hash = NULL;
     size_t i = 0;
+
+    assert(0 != num_of_buckets && NULL != hash_func && NULL != comp);
 
     new_hash = (hash_t*)malloc(sizeof(hash_t));
 
@@ -46,6 +50,7 @@ hash_t *HTCreate(hash_func_t hash_func, size_t num_of_buckets, comp_func_t comp,
         {
             new_hash->nbuckets = i;
             HTDestroy(new_hash);
+            new_hash = NULL;
             return (NULL);
         }
     }
@@ -62,6 +67,7 @@ void HTDestroy(hash_t *hash)
     for (i = 0; i < hash->nbuckets; ++i)
     {
         DListDestroy(hash->htable[i]);
+        hash->htable[i] = NULL;
     }
 
     free(hash->htable);
@@ -78,6 +84,9 @@ int HTInsert(hash_t *hash, void *data)
     assert(hash);
 
     key = hash->hash_func(data);
+
+    assert(key < hash->nbuckets);
+
     itr = DListPushFront(hash->htable[key], data);
 
     return (DListIsSame(itr, DListEnd(hash->htable[key])));
@@ -117,14 +126,6 @@ void *HTFind(hash_t *hash, const void *data)
     {
         DListSplice(itr_begin, itr_found, DListNext(itr_found));
     }
-    
-    /*
-    if (NULL != data_found)
-    {
-        DListRemove(itr_found);
-        DListPushFront(hash->htable[key], data_found);
-    }
-    */
 
     return (data_found);
 }
@@ -132,7 +133,7 @@ void *HTFind(hash_t *hash, const void *data)
 int HTForEach(hash_t *hash, op_func_t op_func,void *param)
 {
     size_t i = 0;
-    int status = 0;
+    int status = SUCCESS;
     dlist_iter_t itr = NULL, itr_begin = NULL, itr_end = NULL;
 
     assert(hash);
@@ -142,7 +143,7 @@ int HTForEach(hash_t *hash, op_func_t op_func,void *param)
         itr_begin = DListBegin(hash->htable[i]);
         itr_end = DListEnd(hash->htable[i]);
 
-        for (itr = itr_begin; (itr != itr_end) && (0 == status); itr = DListNext(itr))
+        for (itr = itr_begin; (itr != itr_end) && (SUCCESS == status); itr = DListNext(itr))
         {
             status = op_func(DListGetData(itr), param);
         }

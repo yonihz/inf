@@ -9,12 +9,12 @@
 /* gd ../../ds/hash.c ../../ds/dlist.c spellchecker.c spellchecker_test.c -I../../ds/include */
 
 void TestBasic(void);
-/*void TestScan(void);*/
+void TestScan(void);
 
 int main()
 {  
     TestBasic();
-    /*TestScan();*/
+    TestScan();
     return (0);
 }
 
@@ -33,6 +33,7 @@ void TestBasic(void)
     
     dict_hash = DictCreate(filename, DictHash, HTABLE_SIZE, &user_dict);
 
+    printf("Basic Tests:\n");
     printf("-----\n");
     printf("Dictionary size: %lu\n", HTSize(dict_hash));
 
@@ -89,6 +90,7 @@ void TestScan(void)
     dict_hash = DictCreate(filename, DictHash, HTABLE_SIZE, &user_dict);
         
     printf("-----\n");
+    printf("Spellchecker with input from terminal:\n");
     DictSpellCheckScan(dict_hash);
 
     DictDestroy(dict_hash, user_dict);

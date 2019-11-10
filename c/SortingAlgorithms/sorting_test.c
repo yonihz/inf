@@ -28,6 +28,9 @@ void TestRadixSort10(int* input, int* expected);
 void TestRadixSort2(int* input, int* expected);
 void TestMergeSort(int *input, int *expected);
 void TestQuickSort(int *input, int *expected);
+void TestBinSearchItr(int *input, int *expected);
+void TestBinSearchRec(int *input, int *expected);
+void TestJumpSearchItr(int *input, int *expected);
 
 int main()
 {
@@ -57,6 +60,9 @@ int main()
     TestRadixSort2(CopyArr(arr1_copy, arr1, ARR_SIZE), arr1_qsort);
     TestMergeSort(CopyArr(arr1_copy, arr1, ARR_SIZE), arr1_qsort);
     TestQuickSort(CopyArr(arr1_copy, arr1, ARR_SIZE), arr1_qsort);
+    TestBinSearchItr(CopyArr(arr1_copy, arr1, ARR_SIZE), arr1 + 5);
+    TestBinSearchRec(CopyArr(arr1_copy, arr1, ARR_SIZE), arr1 + 5);
+    TestJumpSearchItr(CopyArr(arr1_copy, arr1, ARR_SIZE), arr1 + 5);
 
     return (0);
 }
@@ -178,10 +184,70 @@ void TestQuickSort(int *input, int *expected)
     double nclocks = 0;
 
     clock_start = clock();
-    QuickSort(input, 0, ARR_SIZE - 1);
+    QuickSort(input, ARR_SIZE, sizeof(input[0]), intcmp);
     clock_end = clock();
     nclocks = clock_end - clock_start;
     VerifyInt(IsEqualArr(input, expected, ARR_SIZE), 1, "QUICK SORT");  
+    printf("(%f seconds)\n", nclocks/CLOCKS_PER_SEC);
+}
+
+void TestBinSearchItr(int *input, int *expected)
+{
+    clock_t clock_start = 0;
+    clock_t clock_end = 0;
+    double nclocks = 0;
+    void *test_res = NULL;
+
+    QuickSort(input, ARR_SIZE, sizeof(input[0]), intcmp);
+    printf("BIN SEARCH ITER:\n");
+    printf("Input: ");
+    PrintArr(input, ARR_SIZE);
+    printf("Search for: %d\n", *expected);
+    clock_start = clock();
+    test_res = BinSearchItr(input, ARR_SIZE, sizeof(input[0]), expected, intcmp);
+    clock_end = clock();
+    nclocks = clock_end - clock_start;
+    VerifyInt(*(int*)test_res, *expected, "BIN SEARCH ITER");  
+    printf("(%f seconds)\n", nclocks/CLOCKS_PER_SEC);
+}
+
+void TestBinSearchRec(int *input, int *expected)
+{
+    clock_t clock_start = 0;
+    clock_t clock_end = 0;
+    double nclocks = 0;
+    void *test_res = NULL;
+
+    QuickSort(input, ARR_SIZE, sizeof(input[0]), intcmp);
+    printf("BIN SEARCH REC:\n");
+    printf("input: ");
+    PrintArr(input, ARR_SIZE);
+    printf("search for: %d\n", *expected);
+    clock_start = clock();
+    test_res = BinSearchR(input, ARR_SIZE, sizeof(input[0]), expected, intcmp);
+    clock_end = clock();
+    nclocks = clock_end - clock_start;
+    VerifyInt(*(int*)test_res, *expected, "BIN SEARCH REC");  
+    printf("(%f seconds)\n", nclocks/CLOCKS_PER_SEC);
+}
+
+void TestJumpSearchItr(int *input, int *expected)
+{
+    clock_t clock_start = 0;
+    clock_t clock_end = 0;
+    double nclocks = 0;
+    void *test_res = NULL;
+
+    QuickSort(input, ARR_SIZE, sizeof(input[0]), intcmp);
+    printf("JUMP SEARCH ITER:\n");
+    printf("input: ");
+    PrintArr(input, ARR_SIZE);
+    printf("search for: %d\n", *expected);
+    clock_start = clock();
+    test_res = JumpSearchItr(input, ARR_SIZE, sizeof(input[0]), expected, intcmp);
+    clock_end = clock();
+    nclocks = clock_end - clock_start;
+    VerifyInt(*(int*)test_res, *expected, "JUMP SEARCH ITER");  
     printf("(%f seconds)\n", nclocks/CLOCKS_PER_SEC);
 }
 

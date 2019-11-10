@@ -1,3 +1,6 @@
+#include <math.h>
+#include <string.h>
+
 #include "sorting.h"
 
 #define WORD sizeof(size_t)
@@ -12,7 +15,13 @@ static int Pow(int n, size_t base);
 static int isPow2(int n);
 static void RecMergeSort(int *dest, int *src, size_t start, size_t end);
 static void MergeSubArrays(int *dest, int *src, size_t start, size_t end);
-static ssize_t QuickSortPartition(int *arr, ssize_t left, ssize_t right);
+static void QuickSortRec(const void *base, ssize_t left, ssize_t right,
+                            size_t elem_size, cmp_func_t cmp_func, void *temp);
+static ssize_t QuickSortPartition(const void *base, ssize_t left, ssize_t right,
+                                    size_t elem_size, cmp_func_t cmp_func, void *temp);
+static void *BinSearchRec(const void *base, ssize_t left_idx, ssize_t right_idx, size_t elem_size,
+                    const void *requested_data, cmp_func_t cmp_func);
+static void SwapMemcpy(void *var1, void *var2, void *temp, size_t elem_size);
 
 void BubbleSort(int *arr, size_t size)
 {
@@ -218,37 +227,161 @@ static void MergeSubArrays(int *dest, int *src, size_t start, size_t end)
     }
 }
 
-void QuickSort(int *arr, ssize_t left, ssize_t right)
+void QuickSort(const void *base, size_t nelem, size_t elem_size, cmp_func_t cmp_func)
+{
+    void *temp = NULL;
+
+    temp = malloc(elem_size);
+
+    QuickSortRec(base, 0, nelem - 1, elem_size, cmp_func, temp);
+    
+    free(temp);
+    temp = NULL;
+}
+
+static void QuickSortRec(const void *base, ssize_t left, ssize_t right,
+                            size_t elem_size, cmp_func_t cmp_func, void *temp)
 {
     ssize_t pivot = right;
 
     if (left < right)
     {
-        pivot = QuickSortPartition(arr, left, right);
-        QuickSort(arr, left, pivot - 1);
-        QuickSort(arr, pivot + 1, right);
+        pivot = QuickSortPartition(base, left, right, elem_size, cmp_func, temp);
+        QuickSortRec(base, left, pivot - 1, elem_size, cmp_func, temp);
+        QuickSortRec(base, pivot + 1, right, elem_size, cmp_func, temp);
     }
 }
 
-static ssize_t QuickSortPartition(int *arr, ssize_t left, ssize_t right)
+static ssize_t QuickSortPartition(const void *base, ssize_t left, ssize_t right,
+                                    size_t elem_size, cmp_func_t cmp_func, void *temp)
 {
     ssize_t i = 0, j = 0;
-    int pivot = 0;
+    void *pivot = NULL;
 
-    pivot = arr[right];
+    pivot = (void*)((char*)base + right * elem_size);
     i = left - 1;
 
     for (j = left; j < right; ++j)
     {
-        if (arr[j] < pivot)
+        if (0 > cmp_func((void*)((char*)base + j * elem_size), pivot))
         {
             ++i;
-            SwapInt(arr + i, arr + j);
+            SwapMemcpy((void*)((char*)base + i * elem_size), (void*)((char*)base + j * elem_size), temp, elem_size);
         }
     }
-    SwapInt(arr + i + 1, arr + right);
+    SwapMemcpy((void*)((char*)base + (i + 1) * elem_size), (void*)((char*)base + right * elem_size), temp, elem_size);
     
     return (i + 1);
+}
+
+void *BinSearchItr(const void *base, size_t nelem, size_t elem_size,
+                    const void *requested_data, cmp_func_t cmp_func)
+{
+    ssize_t left_idx = 0, right_idx = 0, mid_idx = 0;
+    void *mid_data = NULL;
+    int cmp_res = 0;
+
+    right_idx = (nelem - 1);
+
+    while (left_idx <= right_idx)
+    {
+        mid_idx = (left_idx + right_idx) / 2;
+        mid_data = (void*)((char*)base + mid_idx * elem_size);
+        cmp_res = cmp_func(requested_data, mid_data);
+
+        if (0 == cmp_res)
+        {
+            return (mid_data);
+        }
+        else if (cmp_res < 0)
+        {
+            right_idx = mid_idx;
+        }
+        else
+        {
+            left_idx = mid_idx + 1;
+        }
+    }
+
+    return (NULL);
+}
+
+void *BinSearchR(const void *base, size_t nelem, size_t elem_size,
+                    const void *requested_data, cmp_func_t cmp_func)
+{
+    return (BinSearchRec(base, 0, nelem - 1, elem_size, requested_data, cmp_func));
+}
+
+static void *BinSearchRec(const void *base, ssize_t left_idx, ssize_t right_idx, size_t elem_size,
+                    const void *requested_data, cmp_func_t cmp_func)
+{
+    ssize_t mid_idx = 0;
+    void *mid_data;
+    int cmp_res = 0;
+
+    if (left_idx > right_idx)
+    {
+        return (NULL);
+    }
+
+    mid_idx = (left_idx + right_idx) / 2;
+    mid_data = (void*)((char*)base + mid_idx * elem_size);
+    cmp_res = cmp_func(requested_data, mid_data);
+
+    if (0 == cmp_res)
+    {
+        return (mid_data);
+    }
+    else if (0 > cmp_res)
+    {
+        right_idx = mid_idx;
+    }
+    else
+    {
+        left_idx = mid_idx + 1;
+    }
+
+    return BinSearchRec(base, left_idx, right_idx, elem_size, requested_data, cmp_func);
+}
+
+void *JumpSearchItr(const void *base, size_t nelem, size_t elem_size,
+                    const void *requested_data, cmp_func_t cmp_func)
+{
+    size_t jump_size = 0, idx = 0, idx_next = 0;
+    void *data = NULL;
+
+    jump_size = sqrt(nelem);
+    idx_next = idx + jump_size;
+    data = (void*)((char*)base + idx_next * elem_size);
+
+    while (0 < cmp_func(requested_data, data))
+    {
+        idx = idx_next;
+        idx_next = idx + jump_size;
+        data = (void*)((char*)base + idx_next * elem_size);
+
+        if (idx_next > nelem)
+        {
+            idx_next = nelem;
+            break;
+        }
+    }
+
+    data = (void*)((char*)base + idx * elem_size);
+
+    while (0 != cmp_func(requested_data, data))
+    {
+        ++idx;
+
+        if (idx > idx_next)
+        {
+            return (NULL);
+        }
+
+        data = (void*)((char*)base + idx * elem_size);
+    }
+
+    return (data);
 }
 
 static void SwapInt(int *a, int *b)
@@ -339,4 +472,11 @@ static int* CopyArr(int *dest, int *src, size_t size)
     }
 
     return (dest);
+}
+
+static void SwapMemcpy(void *var1, void *var2, void *temp, size_t elem_size)
+{
+    memcpy(temp, var1, elem_size);
+    memcpy(var1, var2, elem_size);
+    memcpy(var2, temp, elem_size);
 }
