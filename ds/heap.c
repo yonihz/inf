@@ -27,6 +27,15 @@ heap_t *HeapCreate(cmp_func_t cmp_func)
     }
 
    heap->vector = VectorCreate(sizeof(void*), 1);
+
+    if (NULL == heap->vector)
+    {
+        free(heap);
+        heap = NULL;
+
+        return (NULL);
+    }
+
    heap->cmp_func = cmp_func;
 
    return (heap); 
@@ -56,7 +65,7 @@ int HeapIsEmpty(const heap_t *heap)
 {
     assert(heap);
 
-    return (VectorSize(heap->vector) == 0);
+    return (0 == VectorSize(heap->vector));
 }
 
 
@@ -79,6 +88,7 @@ int HeapPush(heap_t *heap, void *data)
     }
 
     temp = malloc(sizeof(void*));
+    assert(temp);
     HeapifyUp(first, heap->cmp_func, idx, sizeof(void*), temp);
     free(temp);
     temp = NULL;
@@ -99,8 +109,10 @@ void HeapPop(heap_t *heap)
 
     SwapPtr(first, last);
     VectorPopBack(heap->vector);
+    /* first is reassigned because vector realloc might modify ptr */
     first = VectorGetItemAddress(heap->vector, 0);
     temp = malloc(sizeof(void*));
+    assert(temp);
     HeapifyDown(first , heap->cmp_func, 0, sizeof(void*), VectorSize(heap->vector), temp);
     free(temp);
     temp = NULL;
@@ -116,24 +128,23 @@ void *HeapPeek(const heap_t *heap)
 
 void *HeapRemove(heap_t *heap, const void *data, match_func_t match_func)
 {
-    int is_found = 0;
     size_t idx = 0;
     void *to_remove_data = NULL, *temp = NULL;
     void **to_remove = NULL, **first = NULL, **last = NULL;
 
     assert(heap);
 
-    for (idx = 0; (idx < VectorSize(heap->vector)) && (0 == is_found); ++idx)
+    for (idx = 0; (idx < VectorSize(heap->vector)); ++idx)
     {
         to_remove = (void*)VectorGetItemAddress(heap->vector, idx);
 
         if (0 == match_func(data, *to_remove))
         {
-            is_found = 1;
+            break;
         }
     }
 
-    if (0 == is_found)
+    if (idx >= VectorSize(heap->vector))
     {
         return (NULL);
     }
@@ -144,6 +155,7 @@ void *HeapRemove(heap_t *heap, const void *data, match_func_t match_func)
     VectorPopBack(heap->vector);
     first = VectorGetItemAddress(heap->vector, 0);
     temp = malloc(sizeof(void*));
+    assert(temp);
     HeapifyUp(first, heap->cmp_func, idx, sizeof(void*), temp);
     HeapifyDown(first, heap->cmp_func, idx, sizeof(void*), VectorSize(heap->vector), temp); 
     free(temp);

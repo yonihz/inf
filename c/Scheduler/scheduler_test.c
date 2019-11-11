@@ -10,6 +10,10 @@
 * 																*
 ****************************************************************/
 
+/* heap implementation:
+gd scheduler_heap.c scheduler_test.c task_heap.c ../../ds/heap.c ../../ds/uid.c ../../ds/vector.c ../../ds/heapify.c ../../ds/priority_q_heap.c -I../../ds/include
+*/
+
 #include <stdio.h>	/* printf */
 #include <string.h>	/* strcmp */
 
