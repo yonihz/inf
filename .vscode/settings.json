@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "rec_str.h": "c",
+        "priority_q.h": "c",
+        "stdlib.h": "c",
+        "math.h": "c",
+        "scheduler.h": "c"
+    }
+}

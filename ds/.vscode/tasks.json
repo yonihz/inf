@@ -1,0 +1,34 @@
+
+    {
+        "tasks": [
+            {
+                "type": "shell",
+                "label": "gd FileName.out build active file",
+                "command": "/usr/bin/gcc",
+                "args": [
+                    "${file}",
+                    "-g",
+                    "-ansi",
+                    "-pedantic-errors",
+                    "-Wall",
+                    "-Wextra",
+                    "-o",
+                    "${fileDirname}/${fileBasenameNoExtension}.out",
+                    "heap.c",
+                    /*
+                    "${fileDirname}/test/${fileBasenameNoExtension}_test.c",
+                    "verify_funcs.c",
+                    */
+                    "vector.c",
+                    "heapify.c",
+                    "-Iinclude"                    
+                ],
+                "problemMatcher": [
+                    "$gcc"
+                ],
+                "group": "build"
+            }
+        ],
+        
+        "version": "2.0.0"
+    }

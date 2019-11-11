@@ -4,5 +4,6 @@
 !.myfuncs
 !*.c
 !*.h
+!*.json
 ![mM]akefile
 
