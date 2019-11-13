@@ -6,6 +6,8 @@
 
 #define UNUSED(x) (void)(x)
 
+/* removed is_before_pq */
+
 struct pq
 {
 	heap_t* heap;

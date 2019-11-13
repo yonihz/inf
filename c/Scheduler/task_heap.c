@@ -2,7 +2,6 @@
 #include <assert.h>
 
 #include "task_heap.h"
-#include "uid.h"
 
 #define UNUSED(x) (void)(x)
 
@@ -41,6 +40,7 @@ void TaskDestroy(task_t *task)
     task = NULL;
 }
 
+/* changed return values */
 int TaskCompare(const void *data1, const void *data2)
 {
     if (((task_t*)data1)->next_time < ((task_t*)data2)->next_time)
@@ -86,9 +86,10 @@ int TaskRunOperation(task_t *task)
     return (task->op_func((void*)task->param));
 }
 
-int TaskMatchUID(const void *task, const void *task_uid)
+/* changed order or args */
+int TaskMatchUID(const void *task_uid, const void *task)
 {
     assert(task);
 
-    return (!UIDIsSame(((task_t*)task)->uid, *(ilrd_uid_t*)task_uid));
+    return (!UIDIsSame(*(ilrd_uid_t*)task_uid, ((task_t*)task)->uid));
 }

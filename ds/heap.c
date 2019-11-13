@@ -136,7 +136,7 @@ void *HeapRemove(heap_t *heap, const void *data, match_func_t match_func)
 
     for (idx = 0; (idx < VectorSize(heap->vector)); ++idx)
     {
-        to_remove = (void*)VectorGetItemAddress(heap->vector, idx);
+        to_remove = VectorGetItemAddress(heap->vector, idx);
 
         if (0 == match_func(data, *to_remove))
         {
