@@ -14,13 +14,7 @@
                     "-Wextra",
                     "-o",
                     "${fileDirname}/${fileBasenameNoExtension}.out",
-                    "heap.c",
-                    /*
-                    "${fileDirname}/test/${fileBasenameNoExtension}_test.c",
-                    "verify_funcs.c",
-                    */
-                    "vector.c",
-                    "heapify.c",
+                    "dhcp.c",
                     "-Iinclude"                    
                 ],
                 "problemMatcher": [

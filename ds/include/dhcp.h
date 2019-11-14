@@ -1,5 +1,5 @@
-/*version number 1.2,
-    time 18:30*/
+/*version number 1.3,
+    14/11/2019, 08:45*/
 
 #ifndef _DHCP_H_OL74_
 #define _DHCP_H_OL74_
@@ -10,14 +10,13 @@ typedef enum dhcp_ret_val {
     SUCCESS, 
     DOUBLE_FREE_FAILURE, 
     OUT_OF_RANGE,
-    SYSTEM_ERROR
+    SYSTEM_ERROR,
+    NO_FREE_IPS
 } dhcp_ret_val_t;
 
 typedef struct dhcp dhcp_t;
 
-typedef struct ip {
-    char addr[4];
-}ip_t;
+typedef unsigned int ip_t;
 
 /*Receive system ip address and subnet mask. Return pointer to DHCP.
     Return NULL on fail*/
