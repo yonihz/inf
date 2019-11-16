@@ -15,6 +15,7 @@ void VerifySizet(size_t test,size_t expected, char test_name[]);
 void VerifyVoidptr(void* test, void* expected, char test_name[]);
 void VerifyChar(char test[], char expected[], char test_name[]);
 void VerifyStrncmp(char test[], char expected[], size_t n, char test_name[]);
+static void PrintIP(ip_t ip);
 
 /* API test functions */
 
@@ -75,6 +76,16 @@ void VerifyStrncmp(char test[], char expected[], size_t n, char test_name[])
 	printf(RESET);
 }
 
+static void PrintIP(ip_t ip)
+{
+    printf("%u.%u.%u.%u / %u\n",
+    ip >> 24,
+    (ip << 8) >> 24,
+    (ip << 16) >> 24,
+    (ip << 24) >> 24,
+    ip);
+}
+
 void TestBasic()
 {
 	ip_t net_addr = 0;
@@ -83,15 +94,24 @@ void TestBasic()
 	dhcp_t *dhcp = NULL;
 	ip_t out_ip1 = 0;
 	ip_t expected_out_ip1 = 0;
+	int status = 0;
+	size_t host_range_test = 0, host_range_expected = 0;
+
+	printf("Basic tests:\n");
 
 	/* net_addr = 10.0.2.0, subnet mask = 255.255.255.0 */
 	net_addr |= ((10 << 24) | (0 << 16) | (2 << 8) | 0);
+	printf("Create with network address: ");
+	PrintIP(net_addr);
 	dhcp = DHCPCreate(net_addr, prefix);
 	VerifySizet(DHCPCountFree(dhcp), 256 - 3, "COUNT_FREE AFTER CREATE");
+	host_range_expected = DHCPCountFree(dhcp);
 
 	req_ip1 = 0 | ((10 << 24) | (0 << 16) | (2 << 8) | 31);
 	expected_out_ip1 = 167772703;
 
+	printf("Alloc with required IP: ");
+	PrintIP(req_ip1);
 	VerifyInt(DHCPAlloc(dhcp, req_ip1, &out_ip1), 0, "ALLOC - RETURN VALUE");
 	VerifySizet(out_ip1, expected_out_ip1, "ALLOC - OUT_IP");
 	VerifySizet(DHCPCountFree(dhcp), 256 - 4, "COUNT_FREE AFTER 1 ALLOC");
@@ -148,11 +168,18 @@ void TestBasic()
 	DHCPFree(dhcp, req_ip1);
 	VerifySizet(DHCPCountFree(dhcp), 256 - 3, "COUNT_FREE EMPTY");
 
-	/* TODO:
-	check free works and change size
-	check no more free ips: loop that checks status is success in all iterations
-	and one more check after loop that checks status is no_more_ips
-	*/
+	req_ip1 = 0 | ((10 << 24) | (0 << 16) | (2 << 8) | 2);
+	while (0 == status)
+	{
+		status = DHCPAlloc(dhcp, req_ip1, &out_ip1);
+		if (0 == status)
+		{
+			++host_range_test;
+		}
+	}
+
+	VerifySizet(host_range_test, host_range_expected, "COUNT ALLOCS UNTIL NO MORE AVAILABLE");
+	VerifyInt(status, NO_FREE_IPS, "ALLOC RETURN VALUE - NO FREE IPS");
 
 	DHCPDestroy(dhcp);
 }
