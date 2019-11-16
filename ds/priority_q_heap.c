@@ -1,3 +1,15 @@
+/****************************************************************
+* 																*
+* FILE NAME: priority_q_heap.c									*
+* 																*
+* PURPOSE: Priority Queue (using Heap) functions source file  	*
+*                                                               *
+* DATE: 08.11.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+****************************************************************/
+
 #include <stdlib.h> /* malloc */
 #include <assert.h>
 

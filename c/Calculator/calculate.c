@@ -1,3 +1,15 @@
+/****************************************************************
+* 																*
+* FILE NAME: calculate.c		            				   	*
+* 																*
+* PURPOSE: Calculate functions source file    		            *
+*                                                               *
+* DATE: 01.11.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+****************************************************************/
+
 #include <stdlib.h> /* strtod */
 #include <math.h> /* pow */
 #include <string.h> /* strlen */

@@ -1,3 +1,15 @@
+/****************************************************************
+* 																*
+* FILE NAME: var_size_allocator.c		            		    *
+* 																*
+* PURPOSE: VSA functions source file          		            *
+*                                                               *
+* DATE: 10.10.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+****************************************************************/
+
 #include <stdlib.h> /* labs */
 #include <assert.h>
 

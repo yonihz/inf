@@ -1,3 +1,15 @@
+/****************************************************************
+* 																*
+* FILE NAME: dhcp_test.c										*
+* 																*
+* PURPOSE: Testing DHCP functions								*
+* 																*
+* DATE: 14.11.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+****************************************************************/
+
 #include <stdio.h>	/* printf */
 #include <string.h>	/* strcmp */
 

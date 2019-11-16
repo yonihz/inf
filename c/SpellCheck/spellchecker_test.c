@@ -1,3 +1,19 @@
+/****************************************************************
+* 																*
+* FILE NAME: spellchecker_test.c		            		    *
+* 																*
+* PURPOSE: Testing Spellchecker functions                       *
+*                                                               *
+* DATE: 11.11.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+****************************************************************/
+
+/* compile command:
+gd ../../ds/hash.c ../../ds/dlist.c spellchecker.c spellchecker_test.c -I../../ds/include
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -5,8 +21,6 @@
 #include "hash.h"
 
 #define HTABLE_SIZE 26
-
-/* gd ../../ds/hash.c ../../ds/dlist.c spellchecker.c spellchecker_test.c -I../../ds/include */
 
 void TestBasic(void);
 void TestScan(void);

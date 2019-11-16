@@ -1,3 +1,15 @@
+/****************************************************************
+* 																*
+* FILE NAME: avl_test.c							    			*
+* 																*
+* PURPOSE: Testing AVL functions								*
+* 																*
+* DATE: 01.11.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+****************************************************************/
+
 #include <stdio.h>	/* printf */
 #include <string.h>	/* strcmp */
 

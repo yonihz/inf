@@ -1,3 +1,15 @@
+/****************************************************************
+* 																*
+* FILE NAME: hash.c						    					*
+* 																*
+* PURPOSE: Hash functions source file		    				*
+*                                                               *
+* DATE: 11.11.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+****************************************************************/
+
 #include <stdlib.h> /* size_t, NULL */
 #include <string.h> /* strcpy, strlen */
 #include <assert.h>

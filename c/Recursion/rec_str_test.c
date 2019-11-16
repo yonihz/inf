@@ -1,3 +1,15 @@
+/****************************************************************
+* 																*
+* FILE NAME: rec_str_test.c							    	   	*
+* 																*
+* PURPOSE: Testing recursion functions	        			    *
+*                                                               *
+* DATE: 01.11.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+****************************************************************/
+
 #include <stdio.h>
 
 #include "rec_str.h"

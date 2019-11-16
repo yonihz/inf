@@ -1,3 +1,15 @@
+/****************************************************************
+* 																*
+* FILE NAME: sorting_test.c								    	*
+* 																*
+* PURPOSE: Testing sort and search functions				    *
+*                                                               *
+* DATE: 11.11.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+****************************************************************/
+
 #include <stdio.h>
 #include <stdlib.h> 
 #include <time.h>

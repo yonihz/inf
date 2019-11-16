@@ -1,3 +1,15 @@
+/****************************************************************
+* 																*
+* FILE NAME: rec_str.c							    	    	*
+* 																*
+* PURPOSE: Recursion functions source file        			    *
+*                                                               *
+* DATE: 01.11.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+****************************************************************/
+
 #include <stddef.h> /* size_t, NULL */
 
 #include "rec_str.h"

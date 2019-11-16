@@ -1,3 +1,15 @@
+/****************************************************************
+* 																*
+* FILE NAME: fix_size_allocator.c		            		    *
+* 																*
+* PURPOSE: FSA functions source file          		            *
+*                                                               *
+* DATE: 28.09.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+****************************************************************/
+
 #include "fix_size_allocator.h"
 
 #define WORD sizeof(size_t)

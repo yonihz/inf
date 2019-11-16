@@ -1,3 +1,15 @@
+/****************************************************************
+* 																*
+* FILE NAME: bst_test.c									    	*
+* 																*
+* PURPOSE: Testing BST functions								*
+* 																*
+* DATE: 20.10.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+****************************************************************/
+
 #include <stdio.h>	/* printf */
 #include <string.h>	/* strcmp */
 

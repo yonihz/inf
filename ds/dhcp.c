@@ -1,3 +1,15 @@
+/****************************************************************
+* 																*
+* FILE NAME: dhcp.c						    					*
+* 																*
+* PURPOSE: DHCP functions source file		    				*
+*                                                               *
+* DATE: 14.11.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+****************************************************************/
+
 #include <stdlib.h> /* malloc */
 #include <assert.h>
 
@@ -167,12 +179,14 @@ static dhcp_node_t *RecAlloc(dhcp_node_t *node, int *status, unsigned int *host,
     /* Side of next child is determined by the bit corresponding to current height */
     next_child_side = ((*host & (1lu << (height - 1))) != 0);
 
+    /* If next child is full then change to child on the other side */
     if (NULL != node->child[next_child_side] && 
         0 != node->child[next_child_side]->is_full)
     {
         next_child_side = !next_child_side;
     }
 
+    /* Change the output host according to the full nodes found in the tree */
     *host = (~(1 << (height - 1)) & *host) | (next_child_side << (height - 1));
     node->child[next_child_side] = RecAlloc(node->child[next_child_side], status, host, height - 1);
     node->is_full = IsFullNode(node, height);

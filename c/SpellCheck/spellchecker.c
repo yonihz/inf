@@ -1,3 +1,15 @@
+/****************************************************************
+* 																*
+* FILE NAME: spellchecker.c		            				   	*
+* 																*
+* PURPOSE: Spellchecker functions source file    		        *
+*                                                               *
+* DATE: 11.11.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+****************************************************************/
+
 #include <stdio.h> /* fopen, fclose */
 #include <string.h> /* strlen, strcmp */
 #include <stdlib.h> /* malloc */

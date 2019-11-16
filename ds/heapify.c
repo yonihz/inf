@@ -1,3 +1,15 @@
+/****************************************************************
+* 																*
+* FILE NAME: heapify.c						    				*
+* 																*
+* PURPOSE: Heapify functions source file		    			*
+*                                                               *
+* DATE: 08.11.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+****************************************************************/
+
 #include <stdlib.h> /* malloc */
 #include <string.h> /* memcpy */
 

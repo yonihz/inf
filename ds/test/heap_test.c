@@ -1,3 +1,15 @@
+/****************************************************************
+* 																*
+* FILE NAME: heap_test.c										*
+* 																*
+* PURPOSE: Testing heap functions								*
+* 																*
+* DATE: 08.11.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+****************************************************************/
+
 #include <stdio.h>	/* printf */
 #include <string.h>	/* strcmp */
 

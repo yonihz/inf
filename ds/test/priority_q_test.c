@@ -1,8 +1,8 @@
 /****************************************************************
 * 																*
-* FILE NAME: sorted_list_test.c									*
+* FILE NAME: priority_q_test.c									*
 * 																*
-* PURPOSE: Testing sorted list functions						*
+* PURPOSE: Testing priority queue functions						*
 * 																*
 * DATE: 12.09.19												*
 * 																*

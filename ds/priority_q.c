@@ -1,3 +1,15 @@
+/****************************************************************
+* 																*
+* FILE NAME: priority_q.c										*
+* 																*
+* PURPOSE: Priority Queue functions source file  				*
+*                                                               *
+* DATE: 12.09.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+****************************************************************/
+
 #include <stdlib.h> /* malloc */
 #include <assert.h>
 

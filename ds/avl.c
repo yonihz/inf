@@ -1,3 +1,15 @@
+/****************************************************************
+* 																*
+* FILE NAME: avl.c						    					*
+* 																*
+* PURPOSE: AVL functions source file		    				*
+*                                                               *
+* DATE: 01.11.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+****************************************************************/
+
 #include <stdlib.h> /* malloc, free */
 #include <unistd.h> /* ssize_t */
 #include <assert.h>

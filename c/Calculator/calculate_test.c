@@ -1,9 +1,23 @@
+/****************************************************************
+* 																*
+* FILE NAME: calculate_test.c		            			   	*
+* 																*
+* PURPOSE: Testing Calculate functions      		            *
+*                                                               *
+* DATE: 01.11.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+****************************************************************/
+
+/* compile command:
+gd ../stack.c calculate.c calculate_test.c -I../include -lm
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
 
 #include "calculate.h"
-
-/* gd ../stack.c calculate.c calculate_test.c -I../include -lm */
 
 void TestCalc(char *str);
 

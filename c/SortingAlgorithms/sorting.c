@@ -1,3 +1,15 @@
+/****************************************************************
+* 																*
+* FILE NAME: sorting.c								        	*
+* 																*
+* PURPOSE: Sort and search functions source file			    *
+*                                                               *
+* DATE: 11.11.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+****************************************************************/
+
 #include <math.h>
 #include <string.h>
 

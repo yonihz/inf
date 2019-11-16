@@ -1,3 +1,15 @@
+/****************************************************************
+* 																*
+* FILE NAME: scheduler_heap.c									*
+* 																*
+* PURPOSE: Scheduler (using Heap) functions source file			*
+*                                                               *
+* DATE: 19.09.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+****************************************************************/
+
 #include <stdlib.h> /* malloc, free */
 #include <stdio.h> /* printf */
 #include <assert.h>

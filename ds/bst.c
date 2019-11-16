@@ -1,3 +1,15 @@
+/****************************************************************
+* 																*
+* FILE NAME: bst.c						    					*
+* 																*
+* PURPOSE: BST functions source file		    				*
+*                                                               *
+* DATE: 20.10.19												*
+* 																*
+* Author: Yoni Horovitz											*
+* 																*
+****************************************************************/
+
 #include <stdlib.h> /* malloc, free */
 #include <assert.h>
 
