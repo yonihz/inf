@@ -44,14 +44,25 @@ dhcp_t *DHCPCreate(ip_t net_addr, size_t prefix)
 {
     ip_t out_ip = 0;
     int status = 0;
-    dhcp_t *dhcp = (dhcp_t*)malloc(sizeof(dhcp_t));
+    dhcp_t *dhcp = NULL;
+    unsigned int host_bit_range = 0, host_mask = 0;
 
+    host_bit_range = IP4_BIT_RANGE - prefix;
+    host_mask = (1 << host_bit_range) - 1;
+
+    if (prefix > IP4_BIT_RANGE - 2 ||
+        prefix < 1 ||
+        (net_addr & host_mask) != 0)
+    {
+        return (NULL);
+    }
+
+    dhcp = (dhcp_t*)malloc(sizeof(dhcp_t));
     if (NULL == dhcp)
     {
         return (NULL);
     }
 
-    assert(prefix > 2);
     dhcp->net_addr = net_addr;
     dhcp->prefix = prefix;
     dhcp->root = DHCPCreateNode();
