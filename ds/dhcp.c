@@ -43,7 +43,7 @@ struct dhcp {
 dhcp_t *DHCPCreate(ip_t net_addr, size_t prefix)
 {
     ip_t out_ip = 0;
-    int status = 0;
+    int status = SUCCESS;
     dhcp_t *dhcp = NULL;
     unsigned int host_bit_range = 0, host_mask = 0;
 
@@ -70,12 +70,13 @@ dhcp_t *DHCPCreate(ip_t net_addr, size_t prefix)
 
     /* BC: xxx.xxx.xxx.255, Server: xxx.xxx.xxx.1, Network: xxx.xxx.xxx.0 */
 
-    status |= DHCPAlloc(dhcp, net_addr, &out_ip);
-    status |= DHCPAlloc(dhcp, GetBroadcastIP(net_addr, prefix), &out_ip);
-    status |= DHCPAlloc(dhcp, GetServerIP(net_addr), &out_ip);
+    status = !((status == SUCCESS) && (SUCCESS == DHCPAlloc(dhcp, net_addr, &out_ip)));
+    status = !((status == SUCCESS) && (SUCCESS == DHCPAlloc(dhcp, GetBroadcastIP(net_addr, prefix), &out_ip)));
+    status = !((status == SUCCESS) && (SUCCESS == DHCPAlloc(dhcp, GetServerIP(net_addr), &out_ip)));
 
-    if (0 != status)
+    if (SUCCESS != status)
     {
+        DHCPDestroy(dhcp);
         return (NULL);
     }
 
