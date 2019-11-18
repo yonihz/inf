@@ -18,7 +18,10 @@
 
 #define MAX2(a,b) (((a) > (b)) ? (a) : (b))
 
-enum side {LEFT, RIGHT};
+/* Do not change side values (used as values) */
+enum side {LEFT = 0, RIGHT = 1};
+enum status {FAILURE1 = -1, SUCCESS = 0, FAILURE2 = 1};
+enum cmp_res {CMP_LESS = -1, CMP_EQUAL = 0, CMP_GREATER = 1};
 
 typedef struct avl_node avl_node_t;
 
@@ -36,21 +39,26 @@ struct avl
     avl_node_t *root;
 };
 
-static void DestroyPostOrder(avl_node_t *node);
-static size_t AVLSizeTree(avl_node_t *node);
+/* Recursive tree traversal functions */
 static avl_node_t *AVLFindNode(avl_t *avl, avl_node_t *node, const void *data);
 static avl_node_t *AVLInsertNode(avl_t *avl, avl_node_t *node, avl_node_t *new_node);
-static ssize_t AVLHeightNode(avl_node_t *node);
-static int AVLForEachInOrder(avl_node_t *node, op_func_t op_func, void *param);
-static void *AVLFindIfInOrder(avl_node_t *node, find_if_func_t find_if_func, void *param);
-static avl_node_t *AVLCreateNode(void *data);
 static avl_node_t *AVLRemoveNode(avl_t *avl, avl_node_t *node, const void *data);
 static avl_node_t *AVLDestroyNode(avl_t *avl, avl_node_t *node);
 static avl_node_t *AVLFurthermostToSide(avl_node_t *node, int side);
+static void DestroyPostOrder(avl_node_t *node);
+static void *AVLFindIfInOrder(avl_node_t *node, find_if_func_t find_if_func, void *param);
+static int AVLForEachInOrder(avl_node_t *node, op_func_t op_func, void *param);
+static size_t AVLSizeTree(avl_node_t *node);
+
+/* Balance related functions */
+static ssize_t AVLHeightNode(avl_node_t *node);
 static int AVLCountChildren(avl_node_t *node);
 static int AVLBalanceFactor(avl_node_t *node);
 static avl_node_t *AVLRotateToSide(avl_node_t *node, int side);
 static avl_node_t *AVLRebalance(avl_node_t *node);
+
+/* Other service functions */
+static avl_node_t *AVLCreateNode(void *data);
 
 avl_t *AVLCreate(cmp_func_t cmp_func, void *param)
 {

@@ -15,19 +15,24 @@
 
 #include "dhcp.h"
 
-#define IP4_BIT_RANGE 32
+#define IP4_SIZE 32
 
 typedef struct dhcp_node dhcp_node_t;
 
-static dhcp_node_t *DHCPCreateNode(void);
+/* Recursive tree traversal functions */
 static dhcp_node_t *RecAlloc(dhcp_node_t *node, int *status, unsigned int *host, unsigned int height);
 static dhcp_node_t *RecFree(dhcp_node_t *node, int *status, unsigned int *host, unsigned int height);
-static int IsFullNode(dhcp_node_t *node, unsigned int height);
-static void DHCPDestroyNode(dhcp_node_t *node);
-static int DHCPCountChildren(dhcp_node_t *node);
 static size_t RecSize(dhcp_node_t *node, unsigned int height);
+static void DHCPDestroyNode(dhcp_node_t *node);
+
+/* Default addresses create functions */
 static ip_t GetBroadcastIP(ip_t net_addr, size_t prefix);
 static ip_t GetServerIP(ip_t net_addr);
+
+/* Other service functions */
+static dhcp_node_t *DHCPCreateNode(void);
+static int IsFullSubtree(dhcp_node_t *node);
+static int DHCPCountChildren(dhcp_node_t *node);
 
 struct dhcp_node {
     dhcp_node_t *child[2];
@@ -37,7 +42,7 @@ struct dhcp_node {
 struct dhcp {
     dhcp_node_t *root;
     ip_t net_addr;
-    size_t prefix;
+    size_t host_size;
 };
 
 dhcp_t *DHCPCreate(ip_t net_addr, size_t prefix)
@@ -45,17 +50,7 @@ dhcp_t *DHCPCreate(ip_t net_addr, size_t prefix)
     ip_t out_ip = 0;
     int status = SUCCESS;
     dhcp_t *dhcp = NULL;
-    unsigned int host_bit_range = 0, host_mask = 0;
-
-    host_bit_range = IP4_BIT_RANGE - prefix;
-    host_mask = (1 << host_bit_range) - 1;
-
-    if (prefix > IP4_BIT_RANGE - 2 ||
-        prefix < 1 ||
-        (net_addr & host_mask) != 0)
-    {
-        return (NULL);
-    }
+    unsigned int host_mask = 0;
 
     dhcp = (dhcp_t*)malloc(sizeof(dhcp_t));
     if (NULL == dhcp)
@@ -64,14 +59,29 @@ dhcp_t *DHCPCreate(ip_t net_addr, size_t prefix)
     }
 
     dhcp->net_addr = net_addr;
-    dhcp->prefix = prefix;
+    dhcp->host_size = IP4_SIZE - prefix;
+    host_mask = (1 << dhcp->host_size) - 1;
+
+    if (prefix > IP4_SIZE - 2 ||
+        prefix < 1 ||
+        (net_addr & host_mask) != 0)
+    {
+        free(dhcp);
+        dhcp = NULL;
+        return (NULL);
+    }
+
     dhcp->root = DHCPCreateNode();
     assert(dhcp->root);
 
-    /* BC: xxx.xxx.xxx.255, Server: xxx.xxx.xxx.1, Network: xxx.xxx.xxx.0 */
+    /*  Default addresses for prefix = 24:
+        Broadcast: xxx.xxx.xxx.255
+        Server: xxx.xxx.xxx.1
+        Network: xxx.xxx.xxx.0
+    */
 
     status = !((status == SUCCESS) && (SUCCESS == DHCPAlloc(dhcp, net_addr, &out_ip)));
-    status = !((status == SUCCESS) && (SUCCESS == DHCPAlloc(dhcp, GetBroadcastIP(net_addr, prefix), &out_ip)));
+    status = !((status == SUCCESS) && (SUCCESS == DHCPAlloc(dhcp, GetBroadcastIP(net_addr, dhcp->host_size), &out_ip)));
     status = !((status == SUCCESS) && (SUCCESS == DHCPAlloc(dhcp, GetServerIP(net_addr), &out_ip)));
 
     if (SUCCESS != status)
@@ -97,24 +107,23 @@ void DHCPDestroy(dhcp_t *dhcp)
 dhcp_ret_val_t DHCPAlloc(dhcp_t *dhcp, ip_t req_ip, ip_t *out_ip)
 {
     int status = SUCCESS;
-    unsigned int host = 0, host_mask = 0, host_bit_range = 0;
+    unsigned int host = 0, host_mask = 0;
 
     if (0 != dhcp->root->is_full)
     {
         return (NO_FREE_IPS);
     }
 
-    host_bit_range = IP4_BIT_RANGE - dhcp->prefix;
-    host_mask = (1 << host_bit_range) - 1;
+    host_mask = (1 << dhcp->host_size) - 1;
     host = req_ip & host_mask;
 
-    if (req_ip > GetBroadcastIP(dhcp->net_addr, dhcp->prefix) ||
+    if (req_ip > GetBroadcastIP(dhcp->net_addr, dhcp->host_size) ||
         req_ip < dhcp->net_addr)
     {
         return (OUT_OF_RANGE);
     }
 
-    RecAlloc(dhcp->root, &status, &host, host_bit_range);
+    RecAlloc(dhcp->root, &status, &host, dhcp->host_size);
 
     *out_ip = dhcp->net_addr + host;
 
@@ -124,29 +133,27 @@ dhcp_ret_val_t DHCPAlloc(dhcp_t *dhcp, ip_t req_ip, ip_t *out_ip)
 dhcp_ret_val_t DHCPFree(dhcp_t *dhcp, ip_t ip)
 {
     int status = SUCCESS;
-    unsigned int host = 0, host_mask = 0, host_bit_range = 0;
+    unsigned int host = 0, host_mask = 0;
 
-    if (ip >= GetBroadcastIP(dhcp->net_addr, dhcp->prefix) ||
+    if (ip >= GetBroadcastIP(dhcp->net_addr, dhcp->host_size) ||
         ip <= GetServerIP(dhcp->net_addr))
     {
         return (OUT_OF_RANGE);
     }
 
-    host_bit_range = IP4_BIT_RANGE - dhcp->prefix;
-    host_mask = (1 << host_bit_range) - 1;
+    host_mask = (1 << dhcp->host_size) - 1;
     host = ip & host_mask;
-    RecFree(dhcp->root, &status, &host, host_bit_range);
+    RecFree(dhcp->root, &status, &host, dhcp->host_size);
 
     return (status);
 }
 
 size_t DHCPCountFree(dhcp_t *dhcp)
 {
-    unsigned int size = 0, host_bit_range = 0;
+    unsigned int size = 0;
     
-    size = (1 << (IP4_BIT_RANGE - dhcp->prefix));
-    host_bit_range = IP4_BIT_RANGE - dhcp->prefix;
-    return (size - RecSize(dhcp->root, host_bit_range));
+    size = (1 << dhcp->host_size);
+    return (size - RecSize(dhcp->root, dhcp->host_size));
 }
 
 static dhcp_node_t *DHCPCreateNode(void)
@@ -201,7 +208,7 @@ static dhcp_node_t *RecAlloc(dhcp_node_t *node, int *status, unsigned int *host,
     /* Change the output host according to the full nodes found in the tree */
     *host = (~(1 << (height - 1)) & *host) | (next_child_side << (height - 1));
     node->child[next_child_side] = RecAlloc(node->child[next_child_side], status, host, height - 1);
-    node->is_full = IsFullNode(node, height);
+    node->is_full = IsFullSubtree(node);
 
     if (0 == DHCPCountChildren(node))
     {
@@ -235,7 +242,7 @@ static dhcp_node_t *RecFree(dhcp_node_t *node, int *status, unsigned int *host, 
     }
 
     node->child[next_child_side] = RecFree(node->child[next_child_side], status, host, height - 1);
-    node->is_full = IsFullNode(node, height);
+    node->is_full = IsFullSubtree(node);
 
     if (0 == DHCPCountChildren(node))
     {
@@ -246,21 +253,14 @@ static dhcp_node_t *RecFree(dhcp_node_t *node, int *status, unsigned int *host, 
     return (node);
 }
 
-static int IsFullNode(dhcp_node_t *node, unsigned int height)
+static int IsFullSubtree(dhcp_node_t *node)
 {
     int is_full = 0;
-    
-    if (height == 1 && node->child[0] && node->child[1])
-    {
-        is_full = 1;
-    }
 
-    else if (height != 1 && node->child[0] && node->child[1])
+    if (node->child[0] && node->child[1] &&
+        node->child[0]->is_full && node->child[1]->is_full)
     {
-        if (node->child[0]->is_full && node->child[1]->is_full)
-        {
             is_full = 1;
-        }
     }
 
     return (is_full);
@@ -304,12 +304,11 @@ static size_t RecSize(dhcp_node_t *node, unsigned int height)
     return (size_0 + size_1);
 }
 
-static ip_t GetBroadcastIP(ip_t net_addr, size_t prefix)
+static ip_t GetBroadcastIP(ip_t net_addr, size_t host_size)
 {
-    unsigned int host_mask = 0, host_bit_range = 0;
+    unsigned int host_mask = 0;
 
-    host_bit_range = IP4_BIT_RANGE - prefix;
-    host_mask = (1 << host_bit_range) - 1;
+    host_mask = (1 << host_size) - 1;
     
     return (net_addr | host_mask);
 }
