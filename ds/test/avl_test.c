@@ -15,8 +15,6 @@
 
 #include "avl.h"
 
-enum side {LEFT, RIGHT};
-
 typedef struct avl_node avl_node_t;
 
 struct avl_node
@@ -118,7 +116,7 @@ void TestBasic()
     int arr1[SIZE_ARR1] = {50, 30, 80, 10, 40, 5, 12, 100, 90, 85, 70, 86};
     size_t i = 0;
 
-    printf("\nInsert Tests:\n");
+    printf("Insert Tests:\n");
     avl = AVLCreate(IntCmp, NULL);
 
     VerifyInt(AVLIsEmpty(avl), 1, "ISEMPTY - EMPTY AVL");

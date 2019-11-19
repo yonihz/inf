@@ -19,9 +19,9 @@
 #define MAX2(a,b) (((a) > (b)) ? (a) : (b))
 
 /* Do not change side values (used as values) */
-enum side {LEFT = 0, RIGHT = 1};
-enum status {FAILURE1 = -1, SUCCESS = 0, FAILURE2 = 1};
-enum cmp_res {CMP_LESS = -1, CMP_EQUAL = 0, CMP_GREATER = 1};
+enum side_t {LEFT = 0, RIGHT = 1};
+enum status_t {FAILURE = -1, SUCCESS = 0};
+enum cmp_res_t {CMP_LESS = -1, CMP_EQUAL = 0, CMP_GREATER = 1};
 
 typedef struct avl_node avl_node_t;
 
@@ -108,12 +108,12 @@ int AVLInsert(avl_t *avl, void *data)
 
     if (NULL == new_node)
     {
-        return (-1);
+        return (FAILURE);
     }
 
     avl->root = AVLInsertNode(avl, avl->root, new_node);
 
-    return (0);
+    return (SUCCESS);
 }
 
 void AVLRemove(avl_t *avl, const void *data)
@@ -138,7 +138,7 @@ void *AVLFind(avl_t *avl, const void *data)
 
 int AVLForEach(avl_t *avl, op_func_t op_func, void *param)
 {
-    return(AVLForEachInOrder(avl->root, op_func, param));
+    return (AVLForEachInOrder(avl->root, op_func, param));
 }
 
 void *AVLFindIf(avl_t *avl, find_if_func_t find_if_func, void *param)
@@ -187,7 +187,8 @@ static size_t AVLSizeTree(avl_node_t *node)
 
 static avl_node_t *AVLFindNode(avl_t *avl, avl_node_t *node, const void *data)
 {
-    int cmp_res = 0, side = 0;
+    enum cmp_res_t cmp_res = 0;
+    enum side_t side = 0;
 
     if (NULL == node)
     {
@@ -196,7 +197,7 @@ static avl_node_t *AVLFindNode(avl_t *avl, avl_node_t *node, const void *data)
 
     cmp_res = avl->cmp_func(data, node->data, avl->param);
 
-    if (0 == cmp_res)
+    if (CMP_EQUAL == cmp_res)
     {
         return (node);
     }
@@ -208,7 +209,7 @@ static avl_node_t *AVLFindNode(avl_t *avl, avl_node_t *node, const void *data)
 
 static avl_node_t *AVLInsertNode(avl_t *avl, avl_node_t *node, avl_node_t *new_node)
 {
-    int side = 0;
+    enum side_t side = 0;
 
     if (NULL == node)
     {
@@ -246,19 +247,19 @@ static ssize_t AVLHeightNode(avl_node_t *node)
 
 static int AVLForEachInOrder(avl_node_t *node, op_func_t op_func, void *param)
 {
-    int status = 0;
+    enum status_t status = 0;
 
     if (node->child[LEFT])
     {
         status = AVLForEachInOrder(node->child[LEFT], op_func, param);
     }
 
-    if (0 == status)
+    if (SUCCESS == status)
     {
         status = op_func(node->data, param);  
     }
 
-    if (node->child[RIGHT] && (0 == status))
+    if (node->child[RIGHT] && (SUCCESS == status))
     {
         status = AVLForEachInOrder(node->child[RIGHT], op_func, param);
     }
@@ -312,13 +313,14 @@ static avl_node_t *AVLCreateNode(void *data)
 
 static avl_node_t *AVLRemoveNode(avl_t *avl, avl_node_t *node, const void *data)
 {
-    int cmp_res = 0, side = 0;
+    enum cmp_res_t cmp_res = 0;
+    enum side_t side = 0;
 
     assert(NULL != node);
     
     cmp_res = avl->cmp_func(data, node->data, avl->param);
 
-    if (0 == cmp_res)
+    if (CMP_EQUAL == cmp_res)
     {
         return (AVLDestroyNode(avl, node));
     }
@@ -333,7 +335,7 @@ static avl_node_t *AVLRemoveNode(avl_t *avl, avl_node_t *node, const void *data)
 
 static avl_node_t *AVLDestroyNode(avl_t *avl, avl_node_t *node)
 {
-    int side = 0;
+    enum side_t side = 0;
     avl_node_t *next = NULL;
     avl_node_t *node_to_remove = NULL;
     void *data_swap = NULL;
