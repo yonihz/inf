@@ -7,6 +7,10 @@
 
 #define UNUSED(x) (void)(x)
 
+/* run command:
+./a.out /usr/bin/gedit
+*/
+
 int main(int argc, char *argv[])
 {
     pid_t pid;
@@ -20,18 +24,21 @@ int main(int argc, char *argv[])
 
         if (pid == 0) 
         {
-            printf("child\n");
-            execv("/usr/bin/gedit", (char* const*)argv[0]);
-            sleep(1000);
+            printf("%s: fork_pid = %d\n", argv[1], pid);
+            printf("%s: ppid = %d\n", argv[1], getppid());
+            printf("%s: pid = %d\n", argv[1], getpid());
+            execl(argv[1], (argv[2]));
         }
         else if (pid > 0)
         {
-            printf("parent\n");
+            printf("Watchdog: fork_pid = %d\n", pid);
+            printf("Watchdog: ppid = %d\n", getppid());
+            printf("Watchdog: pid = %d\n", getpid());
             pid = wait(&status);
-
+            printf("Watchdog: wait_pid = %d\n", pid);
             if (WIFEXITED(status))
             {
-                printf("Parent: Child exited with status: %d\n", WEXITSTATUS(status));
+                printf("Child exit status: %d\n", WEXITSTATUS(status));
             }
         }
         else
