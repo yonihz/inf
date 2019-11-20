@@ -1,3 +1,11 @@
+/* compile command:
+gcc -pedantic-errors -Wall -Wextra -g ex2_pong.c -o ex2_pong.out
+*/
+
+/* run command:
+(exectued by ex2_ping)
+*/
+
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,14 +15,6 @@
 #include <signal.h> /* kill */
 
 #define UNUSED(x) (void)(x)
-
-/* compile command:
-gcc -pedantic-errors -Wall -Wextra -g ex2_pong.c -o ex2_pong.out
-*/
-
-/* run command:
-(exectued by ex2_ping)
-*/
 
 void sig_handler2(int sig)
 {
@@ -45,5 +45,6 @@ int main(int argc, char *argv[])
         pause();
         sleep(1);
     }
-        return (0);                                                                                                                                                        
+    
+    return (0);                                                                                                                                                        
 }

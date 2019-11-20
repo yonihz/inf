@@ -1,11 +1,3 @@
-/* compile command:
-gcc -pedantic-errors -Wall -Wextra -g ex2_ping.c -o ex2_ping.out
-*/
-
-/* run command:
-./ex2_ping.out ~/git/system_programming/SignalsPingPong/ex2_pong.out
-*/
-
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,13 +8,16 @@ gcc -pedantic-errors -Wall -Wextra -g ex2_ping.c -o ex2_ping.out
 
 #define UNUSED(x) (void)(x)
 
+sig_atomic_t is_waiting = 0;
+
 void sig_handler1(int sig)
 {
     UNUSED(sig);
-    write(0, "Ping\n", 5);
+    write(0, "Pong\n", 5);
+    is_waiting = 0;
 }
 
-int main(int argc, char *argv[])
+int main()
 {
     pid_t pid;
     struct sigaction sa1, sa_ignore;
@@ -30,27 +25,22 @@ int main(int argc, char *argv[])
     sa1.sa_handler = &sig_handler1;
     sigemptyset(&sa1.sa_mask);
     sa1.sa_flags = 0;
-    sigaction(SIGUSR1, &sa1, NULL);
+    sigaction(SIGUSR2, &sa1, NULL);
 
     sa_ignore.sa_handler = SIG_IGN;
     sigemptyset(&sa_ignore.sa_mask);
     sa_ignore.sa_flags = 0;
-    sigaction(SIGUSR2, &sa_ignore, NULL);
+    sigaction(SIGUSR1, &sa_ignore, NULL);
 
-    pid = fork();
-
-    if (pid == 0) /* child */
-    {
-        execl(argv[1], argv[2], (char*)NULL);
-    }
-
-    UNUSED(argc);
+    is_waiting = 1;
 
     while (1)
     {
-        kill(pid, SIGUSR2);
-        pause();
-        sleep(1);
+        printf("Enter PID of Ping process:\n");
+        scanf("%d", &pid);
+        kill(pid, SIGUSR1);
+        while(is_waiting);
+        is_waiting = 1;
     }
 
     return (0);                                                                                                                                                        
