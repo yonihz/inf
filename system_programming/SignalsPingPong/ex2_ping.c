@@ -16,13 +16,10 @@ gcc -pedantic-errors -Wall -Wextra -g ex2_ping.c -o ex2_ping.out
 
 #define UNUSED(x) (void)(x)
 
-sig_atomic_t is_waiting = 0;
-
 void sig_handler1(int sig)
 {
     UNUSED(sig);
     write(0, "Ping\n", 5);
-    is_waiting = 0;
 }
 
 int main(int argc, char *argv[])
@@ -40,8 +37,6 @@ int main(int argc, char *argv[])
     sa_ignore.sa_flags = 0;
     sigaction(SIGUSR2, &sa_ignore, NULL);
 
-    is_waiting = 1;
-
     pid = fork();
 
     UNUSED(argc);
@@ -54,10 +49,9 @@ int main(int argc, char *argv[])
         }
         else if (pid > 0) /* parent */
         {
-            sleep(1);
             kill(pid, SIGUSR2);
-            while (is_waiting);
-            is_waiting = 1;
+            pause();
+            sleep(1);
         }
         else
         {

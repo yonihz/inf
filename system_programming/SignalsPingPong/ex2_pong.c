@@ -16,13 +16,10 @@ gcc -pedantic-errors -Wall -Wextra -g ex2_pong.c -o ex2_pong.out
 (exectued by ex2_ping)
 */
 
-sig_atomic_t is_waiting = 0;
-
 void sig_handler2(int sig)
 {
     UNUSED(sig);
     write(0, "Pong\n", 5);
-    is_waiting = 0;
 }
 
 int main(int argc, char *argv[])
@@ -39,17 +36,14 @@ int main(int argc, char *argv[])
     sa_ignore.sa_flags = 0;
     sigaction(SIGUSR1, &sa_ignore, NULL);
 
-    is_waiting = 1;
-
     UNUSED(argc);
     UNUSED(argv);
 
     while (1)
     {
-        while (is_waiting);
-        is_waiting = 1;
-        sleep(1);
         kill(getppid(), SIGUSR1);
+        pause();
+        sleep(1);
     }
         return (0);                                                                                                                                                        
 }
