@@ -24,7 +24,7 @@ sem_t *sem1, *sem2;
 int main()
 {
     sem_unlink(SEM1_NAME);
-    sem_unlink (SEM2_NAME);
+    sem_unlink(SEM2_NAME);
     sem1 = sem_open(SEM1_NAME, O_CREAT, 0660, 1);
     sem2 = sem_open(SEM2_NAME, O_CREAT, 0660, 0);
     

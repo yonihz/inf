@@ -16,7 +16,7 @@
 
 #include "scheduler.h"
 #include "priority_q_heap.h" /* #include "priority_q.h" */
-#include "task_heap.h" /* #include "task.h"" */
+#include "task_heap.h" /* #include "task.h" */
 #include "uid.h"
 
 struct scheduler
