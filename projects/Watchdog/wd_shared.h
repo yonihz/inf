@@ -2,9 +2,10 @@
 #define _WD_SHARED_H_
 
 #include "scheduler.h"
-#include "task.h"
 
-scheduler_t *InitScheduler(task_t *PingTask, task_t *ReviveTask, size_t interval, size_t max_intervals);
+sig_atomic_t counter = 0;
+
+scheduler_t *InitScheduler(op_func_t PingFunc, op_func_t ReviveFunc, pid_t pid);
 
 void ResetCounter(int signum);
 

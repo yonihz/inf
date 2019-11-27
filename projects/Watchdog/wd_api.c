@@ -1,22 +1,24 @@
 #include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <stdio.h>          /* sprintf */
+#include <stdlib.h>         /* setenv, getenv */
 
-#include <fcntl.h>           /* O_* constants */
-#include <sys/stat.h>        /* mode constants */
-#include <semaphore.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <signal.h>
-#include <pthread.h>
+#include <fcntl.h>          /* O_* constants */
+#include <sys/stat.h>       /* mode constants */
+#include <semaphore.h>      /* sem_* functions */ 
+/*#include <sys/types.h>*/
+/*#include <sys/wait.h>*/
+#include <signal.h>         /* sigaction */
+#include <pthread.h>        /* pthread_create */
 
 #include "wd.h"
+#include "wd_shared.h"
+#include "wd_thread.h"
 
 #define SEM1_NAME "/is_watched"
 
 sem_t *is_watched;
 
-status_t MMI(const char *uargv[], const size_t interval, size_t max_intervals)
+wd_status_t MMI(const char *uargv[], const size_t interval, size_t max_intervals)
 {
     struct sigaction sa1;
     pthread_t wd_thread;
@@ -40,4 +42,9 @@ status_t MMI(const char *uargv[], const size_t interval, size_t max_intervals)
     wd_thread = pthread_create(&wd_thread, NULL, WDThread, uargv);
     sem_wait(is_watched);
     /* check fail */
+}
+
+void DNR(void)
+{
+    /* code */
 }

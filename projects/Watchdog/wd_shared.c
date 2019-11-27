@@ -1,25 +1,30 @@
 #include <signal.h>
+#include <stdlib.h>
 
-#include "scheduler.h"
-#include "task.h"
+#include "wd_shared.h"
 
-sig_atomic_t counter = 0;
+sig_atomic_t interval_counter = 0;
 
-scheduler_t *InitScheduler(task_t *PingTask, task_t *ReviveTask, size_t interval, size_t max_intervals)
+scheduler_t *InitScheduler(op_func_t PingFunc, op_func_t ReviveFunc, pid_t pid)
 {
-    scheduler_t *sched = TSCreate();
-    /* check fail */
-    TaskCreate(interval, PingTask, NULL);
-    TaskCreate(interval * max_intervals, ReviveTask, NULL);
+    scheduler_t *sched = NULL;
+    size_t interval = 0, max_intervals = 0;
+
+    interval = atol(getenv("WD_INTERVAL"));
+    max_intervals = atol(getenv("WD_MAXINTERVALS"));
+
+    sched = TSCreate();
+    TSAdd(sched, interval, PingFunc, pid);
+    TSAdd(sched, interval * max_intervals, ReviveFunc, pid);
 }
 
 void ResetCounter(int signum)
 {
-    counter = 0;
+    interval_counter = 0;
 }
 
-int Ping(void *pid)
+int Ping(void *pid_to_watch)
 {
-    ++counter;
-    kill(SIGUSR1, *(pid_t*)pid);
+    ++interval_counter;
+    kill(SIGUSR1, *(pid_t*)pid_to_watch);
 }
