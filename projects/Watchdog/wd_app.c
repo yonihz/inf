@@ -1,39 +1,59 @@
 #include <unistd.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h>         /* setenv, getenv */
 
-#include <fcntl.h>           /* O_* constants */
-#include <sys/stat.h>        /* mode constants */
-#include <semaphore.h>
-
+#include <fcntl.h>          /* O_* constants */
+#include <sys/stat.h>       /* mode constants */
+#include <semaphore.h>      /* sem_* functions */ 
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <signal.h> /* kill */
+#include <signal.h>
+#include <pthread.h>
 
-#define SEM_NAME_ISWATCHED "/is_watched"
-#define SEM_NAME_WD_ISREADY "/wd_isread"
-#define SEM_NAME_WDT_ISREADY "/wtd_isready"
+#include "wd.h"
+#include "wd_shared.h"
 
-sem_t *is_watched;
+#define SEM_NAME_IS_WATCHED "/is_watched"
+#define SEM_NAME_IS_WD_READY "/is_wd_ready"
+#define SEM_NAME_IS_WDT_READY "/is_wdt_ready"
+
+sem_t *is_watched, *is_wd_ready, *is_wdt_ready;
+pid_t uapp_pid;
 
 int main (int argc, char *argv[])
 {
+    scheduler_t *sched = NULL;
+    struct sigaction sa1;
 
+    sa1.sa_handler = &ResetCounter;
+    sigemptyset(&sa1.sa_mask);
+    sa1.sa_flags = 0;
+    sigaction(SIGUSR1, &sa1, NULL);
+
+    is_wd_ready = sem_open(SEM_NAME_IS_WD_READY, O_CREAT);
+    is_wdt_ready = sem_open(SEM_NAME_IS_WDT_READY, O_CREAT);
+    is_watched = sem_open(SEM_NAME_IS_WATCHED, O_CREAT);
+
+    sched = InitScheduler(Ping, ReviveUAppIfDead, uapp_pid);
+
+    sem_post(is_wdt_ready);
+    sem_wait(is_wd_ready);
+    sem_post(is_watched);
+
+    TSRun(sched);
 }
 
-/* recode */
 int CreateUApp(const char **uargv)
 {
-    setenv("WD_ISDEAD", "0", 1);
-    pid = fork();
+    uapp_pid = fork();
 
-    if (pid == 0) /* child - watchdog process */
+    if (uapp_pid == 0) /* child - revived user process */
     {
-        execv(WD_PATH, uargv);
+        execv(uargv, uargv + 1);
     }
-    else if (pid > 0) /* parent - user process */
+    else if (uapp_pid > 0) /* parent - watchdog process */
     {
-        return (WD_SUCCESS); /* returns watchdog pid */
+        return (WD_SUCCESS);
     }
     else
     {
@@ -41,18 +61,16 @@ int CreateUApp(const char **uargv)
     }
 }
 
-/* recode */
 int ReviveUAppIfDead(const char **uargv)
 {
-    if (counter == atoi(getenv("WD_MAXINTERVALS")))
+    if (intervals_counter == atoi(getenv("WD_MAXINTERVALS")))
     {
-        counter = 0;
+        intervals_counter = 0;
         is_wd_ready = sem_open(SEM_NAME_IS_WD_READY, O_CREAT);
         is_wdt_ready = sem_open(SEM_NAME_IS_WDT_READY, O_CREAT);
-        setenv("WD_ISDEAD", "1", 1);
-        CreateWD(uargv);
-        sem_wait(is_wd_ready);
+        CreateUApp(uargv + 1);
         sem_wait(is_wdt_ready);
+        sem_post(is_watched);
     }
 }
     

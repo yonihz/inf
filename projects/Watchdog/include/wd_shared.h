@@ -3,7 +3,7 @@
 
 #include "scheduler.h"
 
-sig_atomic_t counter = 0;
+extern sig_atomic_t intervals_counter;
 
 scheduler_t *InitScheduler(op_func_t PingFunc, op_func_t ReviveFunc, pid_t pid);
 

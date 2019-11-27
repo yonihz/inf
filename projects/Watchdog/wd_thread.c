@@ -10,6 +10,7 @@
 #include <signal.h>
 #include <pthread.h>
 
+#include "wd.h"
 #include "wd_shared.h"
 #include "wd_thread.h"
 
@@ -18,19 +19,22 @@
 #define SEM_NAME_IS_WDT_READY "/is_wdt_ready"
 
 sem_t *is_watched, *is_wd_ready, *is_wdt_ready;
-pid_t pid;
+pid_t wd_pid;
 
 int WDThread(const char **uargv)
 {
     scheduler_t *sched = NULL;
- 
+
+    is_wd_ready = sem_open(SEM_NAME_IS_WD_READY, O_CREAT);
+    is_wdt_ready = sem_open(SEM_NAME_IS_WDT_READY, O_CREAT);
+
     if (strcmp(getenv("WD_ISDEAD"), "1"))
     {
         CreateWD(uargv);
         sem_wait(is_wd_ready);
     }
 
-    sched = InitScheduler(Ping, ReviveWDIfDead);
+    sched = InitScheduler(Ping, ReviveWDIfDead, wd_pid);
     sem_post(is_wdt_ready);
     TSRun(sched);
 }
@@ -38,15 +42,15 @@ int WDThread(const char **uargv)
 int CreateWD(const char **uargv)
 {
     setenv("WD_ISDEAD", "0", 1);
-    pid = fork();
+    wd_pid = fork();
 
-    if (pid == 0) /* child - watchdog process */
+    if (wd_pid == 0) /* child - watchdog process */
     {
         execv(WD_PATH, uargv);
     }
-    else if (pid > 0) /* parent - user process */
+    else if (wd_pid > 0) /* parent - user process */
     {
-        return (WD_SUCCESS); /* returns watchdog pid */
+        return (WD_SUCCESS);
     }
     else
     {
@@ -56,9 +60,9 @@ int CreateWD(const char **uargv)
 
 int ReviveWDIfDead(const char **uargv)
 {
-    if (counter == atoi(getenv("WD_MAXINTERVALS")))
+    if (intervals_counter == atoi(getenv("WD_MAXINTERVALS")))
     {
-        counter = 0;
+        intervals_counter = 0;
         is_wd_ready = sem_open(SEM_NAME_IS_WD_READY, O_CREAT);
         is_wdt_ready = sem_open(SEM_NAME_IS_WDT_READY, O_CREAT);
         setenv("WD_ISDEAD", "1", 1);

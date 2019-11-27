@@ -5,8 +5,8 @@
 #include <fcntl.h>          /* O_* constants */
 #include <sys/stat.h>       /* mode constants */
 #include <semaphore.h>      /* sem_* functions */ 
-/*#include <sys/types.h>*/
-/*#include <sys/wait.h>*/
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <signal.h>         /* sigaction */
 #include <pthread.h>        /* pthread_create */
 
@@ -14,7 +14,7 @@
 #include "wd_shared.h"
 #include "wd_thread.h"
 
-#define SEM1_NAME "/is_watched"
+#define SEM_NAME_IS_WATCHED "/is_watched"
 
 sem_t *is_watched;
 
@@ -24,7 +24,7 @@ wd_status_t MMI(const char *uargv[], const size_t interval, size_t max_intervals
     pthread_t wd_thread;
     char buffer[50];
 
-    is_watched = sem_open(SEM1_NAME, O_CREAT, 0660, 0);
+    is_watched = sem_open(SEM_NAME_IS_WATCHED, O_CREAT, 0660, 0);
 
     setenv("WD_ISDEAD", "1", 1);
     
