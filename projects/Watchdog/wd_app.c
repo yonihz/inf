@@ -21,7 +21,7 @@
 #define SEM_NAME_IS_WDT_READY "/is_wdt_ready"
 
 sem_t *is_watched, *is_wd_ready, *is_wdt_ready;
-pid_t uapp_pid;
+pid_t uapp_pid = 0;
 
 int main (int argc, char *argv[])
 {
@@ -41,7 +41,8 @@ int main (int argc, char *argv[])
     is_wdt_ready = sem_open(SEM_NAME_IS_WDT_READY, O_CREAT);
     is_watched = sem_open(SEM_NAME_IS_WATCHED, O_CREAT);
 
-    sched = InitScheduler(Ping, ReviveUAppIfDead, uapp_pid, argv + 1);
+    uapp_pid = getppid();
+    sched = InitScheduler(Ping, ReviveUAppIfDead, &uapp_pid, argv + 1);
 
     sem_post(is_wd_ready);
     printf("sem_post(is_wdt_ready)\n");
@@ -58,11 +59,13 @@ int main (int argc, char *argv[])
 
 int CreateUApp(void *uargv)
 {
+    // printf("%s\n", (char *)uargv);
     uapp_pid = fork();
 
     if (uapp_pid == 0) /* child - revived user process */
     {
-        execv((char *)uargv, (char **)(uargv) + 1);
+        /*execv(*(char **)uargv, (char **)(uargv) + 1);*/
+        execv("./user_app.out", NULL);
     }
     else if (uapp_pid > 0) /* parent - watchdog process */
     {
@@ -78,11 +81,17 @@ int CreateUApp(void *uargv)
 
 int ReviveUAppIfDead(void *uargv)
 {
-    if (interval_counter == atoi(getenv("WD_MAXINTERVALS")))
+    printf("WD: thread counter = %d\n", interval_counter);
+
+    if (interval_counter > atoi(getenv("WD_MAXINTERVALS")))
     {
+        printf("uapp is dead\n");
+        /*printf("%s\n", *(char **)uargv);*/
         interval_counter = 0;
         CreateUApp(uargv);
+        printf("reviveuapp: before sem_wait(is_wdt_ready)\n");
         sem_wait(is_wdt_ready);
+        printf("reviveuapp: after sem_wait(is_wdt_ready)\n");
         sem_post(is_watched);
     }
 

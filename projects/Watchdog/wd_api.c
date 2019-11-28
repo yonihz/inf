@@ -32,7 +32,7 @@ wd_status_t MMI(const char *uargv[], const size_t interval, size_t max_intervals
     is_wdt_ready = sem_open(SEM_NAME_IS_WDT_READY, O_CREAT, 0666, 0);
     is_watched = sem_open(SEM_NAME_IS_WATCHED, O_CREAT, 0666, 0);
 
-    setenv("WD_ISDEAD", "1", 1);
+    setenv("WD_ISDEAD", "1", 0);
     
     sprintf(buffer, "%lu", interval);
     setenv("WD_INTERVAL", buffer, 1);

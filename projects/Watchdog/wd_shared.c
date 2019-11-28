@@ -8,7 +8,7 @@
 
 sig_atomic_t interval_counter = 0;
 
-scheduler_t *InitScheduler(op_func_t PingFunc, op_func_t ReviveFunc, pid_t pid, void *uargv)
+scheduler_t *InitScheduler(op_func_t PingFunc, op_func_t ReviveFunc, pid_t *pid_ptr, void *uargv)
 {
     scheduler_t *sched = NULL;
     size_t interval = 0, max_intervals = 0;
@@ -18,7 +18,7 @@ scheduler_t *InitScheduler(op_func_t PingFunc, op_func_t ReviveFunc, pid_t pid, 
     max_intervals = atol(getenv("WD_MAXINTERVALS"));
 
     sched = TSCreate();
-    TSAdd(sched, interval, PingFunc, &pid);
+    TSAdd(sched, interval, PingFunc, pid_ptr);
     TSAdd(sched, interval * max_intervals, ReviveFunc, uargv);
 
     return (sched);
@@ -27,15 +27,15 @@ scheduler_t *InitScheduler(op_func_t PingFunc, op_func_t ReviveFunc, pid_t pid, 
 void ResetCounter(int signum)
 {
     UNUSED(signum);
-    write(0, "Reset\n", 6);
     interval_counter = 0;
+    /*printf("Counter of %d is now %d\n", getpid(), interval_counter);*/
 }
 
 int Ping(void *pid_to_watch)
 {
-    printf("Ping to %d\n", *(pid_t*)pid_to_watch);
+    printf("Ping from %d to %d\n", getpid(),*(pid_t*)pid_to_watch);
     ++interval_counter;
-    kill(SIGUSR1, *(pid_t*)pid_to_watch);
+    kill(*(pid_t*)pid_to_watch, SIGUSR1);
 
     return (0);
 }

@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <semaphore.h>
 #include <signal.h>
 
@@ -30,5 +31,7 @@ int main(int argc, const char* argv[])
     sem_unlink(SEM_NAME_IS_WDT_READY);
 
     MMI(argv, interval, max_intervals);
-    sleep(10000);
+    printf("Critical code started\n");
+    while(1);
+    DNR();
 }
