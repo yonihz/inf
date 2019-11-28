@@ -5,8 +5,8 @@ main : vector.o heap.o heapify.o priority_q_heap.o scheduler_heap.o uid.o task_h
 	gcc -pedantic-errors -Wall -Wextra -g -pthread -c -fPIC wd_api.c -I./include/ -I../../ds/include/; \
 	gcc -pedantic-errors -Wall -Wextra -g -pthread -c -fPIC wd_app.c -I./include/ -I../../ds/include/; \
 	gcc -pedantic-errors -Wall -Wextra -g -c -fPIC user_app.c -I./include/ -I../../ds/include/; \
-	gcc wd_app.o -L. -lwd -lpthread -o wd.out; \
-	gcc user_app.o -L. -lwd -lpthread -o user_app.out; \
+	gcc wd_thread.o wd_api.o wd_app.o -Wl,-rpath,./ -L. -lwd -lpthread -o wd.out; \
+	gcc wd_thread.o wd_api.o user_app.o -Wl,-rpath,./ -L. -lwd -lpthread -o user_app.out; \
 		
 
 vector.o		:

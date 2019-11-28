@@ -1,7 +1,7 @@
 #ifndef _WD_APP_H_
 #define _WD_APP_H_
 
-int CreateUApp(const char **uargv);
+int CreateUApp(void *uargv);
 
 int ReviveUAppIfDead(void *uargv);
 

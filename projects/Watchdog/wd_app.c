@@ -14,6 +14,8 @@
 #include "wd_app.h"
 #include "wd_shared.h"
 
+#define UNUSED(x) (void)(x)
+
 #define SEM_NAME_IS_WATCHED "/is_watched"
 #define SEM_NAME_IS_WD_READY "/is_wd_ready"
 #define SEM_NAME_IS_WDT_READY "/is_wdt_ready"
@@ -26,6 +28,10 @@ int main (int argc, char *argv[])
     scheduler_t *sched = NULL;
     struct sigaction sa1;
 
+    UNUSED(argc);
+
+    printf("watchdog started\n");
+
     sa1.sa_handler = &ResetCounter;
     sigemptyset(&sa1.sa_mask);
     sa1.sa_flags = 0;
@@ -35,24 +41,28 @@ int main (int argc, char *argv[])
     is_wdt_ready = sem_open(SEM_NAME_IS_WDT_READY, O_CREAT);
     is_watched = sem_open(SEM_NAME_IS_WATCHED, O_CREAT);
 
-    sched = InitScheduler(Ping, ReviveUAppIfDead, uapp_pid);
+    sched = InitScheduler(Ping, ReviveUAppIfDead, uapp_pid, argv + 1);
 
-    sem_post(is_wdt_ready);
-    sem_wait(is_wd_ready);
+    sem_post(is_wd_ready);
+    printf("sem_post(is_wdt_ready)\n");
+    printf("before sem_wait(is_wd_ready)\n");
+    sem_wait(is_wdt_ready);
+    printf("after sem_wait(is_wd_ready)\n");
     sem_post(is_watched);
+    printf("sem_post(is_watched)\n");
 
     TSRun(sched);
 
     return 0;
 }
 
-int CreateUApp(char const **uargv)
+int CreateUApp(void *uargv)
 {
     uapp_pid = fork();
 
     if (uapp_pid == 0) /* child - revived user process */
     {
-        execv((char * const)uargv, (char * const*)(uargv + 1));
+        execv((char *)uargv, (char **)(uargv) + 1);
     }
     else if (uapp_pid > 0) /* parent - watchdog process */
     {
@@ -68,12 +78,10 @@ int CreateUApp(char const **uargv)
 
 int ReviveUAppIfDead(void *uargv)
 {
-    if (intervals_counter == atoi(getenv("WD_MAXINTERVALS")))
+    if (interval_counter == atoi(getenv("WD_MAXINTERVALS")))
     {
-        intervals_counter = 0;
-        is_wd_ready = sem_open(SEM_NAME_IS_WD_READY, O_CREAT);
-        is_wdt_ready = sem_open(SEM_NAME_IS_WDT_READY, O_CREAT);
-        CreateUApp((char const **)(uargv) + 1);
+        interval_counter = 0;
+        CreateUApp(uargv);
         sem_wait(is_wdt_ready);
         sem_post(is_watched);
     }

@@ -3,7 +3,7 @@
 
 void *WDThread(void *uargv);
 
-int CreateWD(const char **uargv);
+int CreateWD(void *uargv);
 
 int ReviveWDIfDead(void *uargv);
 

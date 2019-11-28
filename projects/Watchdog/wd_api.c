@@ -15,8 +15,10 @@
 #include "wd_thread.h"
 
 #define SEM_NAME_IS_WATCHED "/is_watched"
+#define SEM_NAME_IS_WD_READY "/is_wd_ready"
+#define SEM_NAME_IS_WDT_READY "/is_wdt_ready"
 
-sem_t *is_watched;
+sem_t *is_watched, *is_wd_ready, *is_wdt_ready;
 
 wd_status_t MMI(const char *uargv[], const size_t interval, size_t max_intervals)
 {
@@ -24,7 +26,11 @@ wd_status_t MMI(const char *uargv[], const size_t interval, size_t max_intervals
     pthread_t wd_thread;
     char buffer[50];
 
-    is_watched = sem_open(SEM_NAME_IS_WATCHED, O_CREAT, 0660, 0);
+    printf("MMI started\n");
+
+    is_wd_ready = sem_open(SEM_NAME_IS_WD_READY, O_CREAT, 0666, 0);
+    is_wdt_ready = sem_open(SEM_NAME_IS_WDT_READY, O_CREAT, 0666, 0);
+    is_watched = sem_open(SEM_NAME_IS_WATCHED, O_CREAT, 0666, 0);
 
     setenv("WD_ISDEAD", "1", 1);
     
@@ -40,7 +46,10 @@ wd_status_t MMI(const char *uargv[], const size_t interval, size_t max_intervals
     sigaction(SIGUSR1, &sa1, NULL);
 
     wd_thread = pthread_create(&wd_thread, NULL, WDThread, uargv);
+
+    printf("before sem_wait(is_watched)\n");
     sem_wait(is_watched);
+    printf("after sem_wait(is_watched)\n");
     /* check fail */
 
     return (WD_SUCCESS);
