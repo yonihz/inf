@@ -3,6 +3,6 @@
 
 int CreateUApp(const char **uargv);
 
-int ReviveUAppIfDead(const char **uargv);
+int ReviveUAppIfDead(void *uargv);
 
 #endif /* _WD_APP_H_ */

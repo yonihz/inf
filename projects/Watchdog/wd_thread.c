@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>         /* setenv, getenv */
+#include <string.h>         /* strcmp */
 
 #include <fcntl.h>          /* O_* constants */
 #include <sys/stat.h>       /* mode constants */
@@ -21,7 +22,7 @@
 sem_t *is_watched, *is_wd_ready, *is_wdt_ready;
 pid_t wd_pid;
 
-int WDThread(const char **uargv)
+void *WDThread(void *uargv)
 {
     scheduler_t *sched = NULL;
 
@@ -30,13 +31,15 @@ int WDThread(const char **uargv)
 
     if (strcmp(getenv("WD_ISDEAD"), "1"))
     {
-        CreateWD(uargv);
+        CreateWD((const char **)uargv);
         sem_wait(is_wd_ready);
     }
 
     sched = InitScheduler(Ping, ReviveWDIfDead, wd_pid);
     sem_post(is_wdt_ready);
     TSRun(sched);
+
+    return (NULL);
 }
 
 int CreateWD(const char **uargv)
@@ -46,7 +49,7 @@ int CreateWD(const char **uargv)
 
     if (wd_pid == 0) /* child - watchdog process */
     {
-        execv(WD_PATH, uargv);
+        execv(WD_PATH, (char* const*)uargv);
     }
     else if (wd_pid > 0) /* parent - user process */
     {
@@ -56,9 +59,11 @@ int CreateWD(const char **uargv)
     {
         return (WD_FAILURE);
     }
+
+    return (WD_SUCCESS);
 }
 
-int ReviveWDIfDead(const char **uargv)
+int ReviveWDIfDead(void *uargv)
 {
     if (intervals_counter == atoi(getenv("WD_MAXINTERVALS")))
     {
@@ -66,10 +71,12 @@ int ReviveWDIfDead(const char **uargv)
         is_wd_ready = sem_open(SEM_NAME_IS_WD_READY, O_CREAT);
         is_wdt_ready = sem_open(SEM_NAME_IS_WDT_READY, O_CREAT);
         setenv("WD_ISDEAD", "1", 1);
-        CreateWD(uargv);
+        CreateWD((const char **)uargv);
         sem_wait(is_wd_ready);
         sem_wait(is_wdt_ready);
     }
+
+    return (WD_SUCCESS);
 }
 
 

@@ -28,10 +28,10 @@ wd_status_t MMI(const char *uargv[], const size_t interval, size_t max_intervals
 
     setenv("WD_ISDEAD", "1", 1);
     
-    sprintf(buffer, "%s", interval);
+    sprintf(buffer, "%lu", interval);
     setenv("WD_INTERVAL", buffer, 1);
 
-    sprintf(buffer, "%s", max_intervals);
+    sprintf(buffer, "%lu", max_intervals);
     setenv("WD_MAXINTERVALS", buffer, 1);
 
     sa1.sa_handler = &ResetCounter;
@@ -42,6 +42,8 @@ wd_status_t MMI(const char *uargv[], const size_t interval, size_t max_intervals
     wd_thread = pthread_create(&wd_thread, NULL, WDThread, uargv);
     sem_wait(is_watched);
     /* check fail */
+
+    return (WD_SUCCESS);
 }
 
 void DNR(void)

@@ -11,6 +11,7 @@
 #include <pthread.h>
 
 #include "wd.h"
+#include "wd_app.h"
 #include "wd_shared.h"
 
 #define SEM_NAME_IS_WATCHED "/is_watched"
@@ -41,15 +42,17 @@ int main (int argc, char *argv[])
     sem_post(is_watched);
 
     TSRun(sched);
+
+    return 0;
 }
 
-int CreateUApp(const char **uargv)
+int CreateUApp(char const **uargv)
 {
     uapp_pid = fork();
 
     if (uapp_pid == 0) /* child - revived user process */
     {
-        execv(uargv, uargv + 1);
+        execv((char * const)uargv, (char * const*)(uargv + 1));
     }
     else if (uapp_pid > 0) /* parent - watchdog process */
     {
@@ -59,18 +62,22 @@ int CreateUApp(const char **uargv)
     {
         return (WD_FAILURE);
     }
+
+    return (WD_SUCCESS);
 }
 
-int ReviveUAppIfDead(const char **uargv)
+int ReviveUAppIfDead(void *uargv)
 {
     if (intervals_counter == atoi(getenv("WD_MAXINTERVALS")))
     {
         intervals_counter = 0;
         is_wd_ready = sem_open(SEM_NAME_IS_WD_READY, O_CREAT);
         is_wdt_ready = sem_open(SEM_NAME_IS_WDT_READY, O_CREAT);
-        CreateUApp(uargv + 1);
+        CreateUApp((char const **)(uargv) + 1);
         sem_wait(is_wdt_ready);
         sem_post(is_watched);
     }
+
+    return (WD_SUCCESS);
 }
     

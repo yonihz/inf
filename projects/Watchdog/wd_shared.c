@@ -7,6 +7,8 @@ gcc -c wd_shared.c ../../ds/scheduler_heap.c ../../ds/task_heap.c ../../ds/heap.
 
 #include "wd_shared.h"
 
+#define UNUSED(x) (void)(x)
+
 sig_atomic_t interval_counter = 0;
 
 scheduler_t *InitScheduler(op_func_t PingFunc, op_func_t ReviveFunc, pid_t pid)
@@ -26,6 +28,7 @@ scheduler_t *InitScheduler(op_func_t PingFunc, op_func_t ReviveFunc, pid_t pid)
 
 void ResetCounter(int signum)
 {
+    UNUSED(signum);
     write(0, "Reset\n", 6);
     interval_counter = 0;
 }
