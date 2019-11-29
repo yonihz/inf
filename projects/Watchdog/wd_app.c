@@ -1,14 +1,8 @@
-#include <unistd.h>
-#include <stdio.h>
+#include <stdio.h>          /* printf */
 #include <stdlib.h>         /* setenv, getenv */
 
 #include <fcntl.h>          /* O_* constants */
-#include <sys/stat.h>       /* mode constants */
 #include <semaphore.h>      /* sem_* functions */ 
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <signal.h>
-#include <pthread.h>
 
 #include "wd.h"
 #include "wd_app.h"
@@ -26,7 +20,7 @@ pid_t uapp_pid = 0;
 int main (int argc, char *argv[])
 {
     scheduler_t *sched = NULL;
-    struct sigaction sa1;
+    struct sigaction sa1, sa2;
 
     UNUSED(argc);
 
@@ -37,41 +31,47 @@ int main (int argc, char *argv[])
     sa1.sa_flags = 0;
     sigaction(SIGUSR1, &sa1, NULL);
 
+    sa2.sa_handler = &DNRHandler;
+    sigemptyset(&sa2.sa_mask);
+    sa2.sa_flags = 0;
+    sigaction(SIGUSR2, &sa2, NULL);
+
     is_wd_ready = sem_open(SEM_NAME_IS_WD_READY, O_CREAT);
     is_wdt_ready = sem_open(SEM_NAME_IS_WDT_READY, O_CREAT);
     is_watched = sem_open(SEM_NAME_IS_WATCHED, O_CREAT);
 
     uapp_pid = getppid();
-    sched = InitScheduler(Ping, ReviveUAppIfDead, &uapp_pid, argv + 1);
 
+    /* argv[0]: user program path, argv[1]: user program's argv */ 
+    sched = InitScheduler(Ping, ReviveUAppIfDead, &uapp_pid, argv);
+
+    // printf("WD: sem_post(is_wdt_ready)\n");
     sem_post(is_wd_ready);
-    printf("sem_post(is_wdt_ready)\n");
-    printf("before sem_wait(is_wd_ready)\n");
+    // printf("WD: before sem_wait(is_wd_ready)\n");
     sem_wait(is_wdt_ready);
-    printf("after sem_wait(is_wd_ready)\n");
+    // printf("WD: after sem_wait(is_wd_ready)\n");
+    // printf("WD: sem_post(is_watched)\n");
     sem_post(is_watched);
-    printf("sem_post(is_watched)\n");
 
     TSRun(sched);
+    TSDestroy(sched);
+    // printf("wd sched finished\n");
+    sem_post(is_wd_ready);
 
+    // printf("wd end\n");
     return 0;
 }
 
 int CreateUApp(void *uargv)
 {
-    // printf("%s\n", (char *)uargv);
     uapp_pid = fork();
 
     if (uapp_pid == 0) /* child - revived user process */
     {
-        /*execv(*(char **)uargv, (char **)(uargv) + 1);*/
-        execv("./user_app.out", NULL);
+        execv(*(char **)uargv, (char **)uargv);
     }
-    else if (uapp_pid > 0) /* parent - watchdog process */
-    {
-        return (WD_SUCCESS);
-    }
-    else
+    
+    if (uapp_pid < 0) /* parent - watchdog process */
     {
         return (WD_FAILURE);
     }
@@ -81,17 +81,22 @@ int CreateUApp(void *uargv)
 
 int ReviveUAppIfDead(void *uargv)
 {
-    printf("WD: thread counter = %d\n", interval_counter);
+    // printf("WD: thread counter = %d\n", interval_counter);
 
-    if (interval_counter > atoi(getenv("WD_MAXINTERVALS")))
+    if (0 != is_dnr)
     {
-        printf("uapp is dead\n");
-        /*printf("%s\n", *(char **)uargv);*/
+        return (REMOVE_TASK);
+    }
+
+    if (interval_counter >= atoi(getenv("WD_MAXINTERVALS")))
+    {
         interval_counter = 0;
+        printf("revive uapp: %s\n", *(char **)uargv);
         CreateUApp(uargv);
-        printf("reviveuapp: before sem_wait(is_wdt_ready)\n");
+        // printf("revive uapp: before sem_wait(is_wdt_ready)\n");
         sem_wait(is_wdt_ready);
-        printf("reviveuapp: after sem_wait(is_wdt_ready)\n");
+        // printf("revive uapp: after sem_wait(is_wdt_ready)\n");
+        // printf("revive uapp: sem_post(is_watched)\n");
         sem_post(is_watched);
     }
 
