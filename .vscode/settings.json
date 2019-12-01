@@ -1,9 +1,14 @@
 {
+    // Columns at which to show vertical rulers
+    "editor.rulers": [80],
+    
+    "workbench.colorTheme": "Cobalt",
+    "breadcrumbs.enabled": true,
+    "editor.minimap.enabled": false,
+    "workbench.activityBar.visible": false,
+    "diffEditor.ignoreTrimWhitespace": false,
+    "window.zoomLevel": 0,
     "files.associations": {
-        "rec_str.h": "c",
-        "priority_q.h": "c",
-        "stdlib.h": "c",
-        "math.h": "c",
-        "scheduler.h": "c"
+        "signal.h": "c"
     }
 }
