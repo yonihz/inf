@@ -24,7 +24,7 @@ int main(int argc, const char* argv[])
 
     printf("Critical code started\n");
 
-    time_left =	1000;
+    time_left =	10;
     while (time_left)
     {
         time_left = sleep(time_left);
