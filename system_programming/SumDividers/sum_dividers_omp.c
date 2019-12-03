@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <pthread.h>
 
-#define MAX_THREADS 32000
+#define MAX_THREADS 1 
 
 size_t *psums_arr_base;
 size_t sub_range;
@@ -16,7 +16,7 @@ void *PartialSumDividers(void *psums_arr_addr);
 int main()
 {
     size_t sum_div = 0;
-    size_t n = 32000000;
+    size_t n = 100;
 
     sum_div = SumDividers(n);
 
@@ -73,6 +73,7 @@ void *PartialSumDividers(void *psums_arr_addr)
     min = i * sub_range + 1;
     max = min + sub_range;
 
+    #pragma omp parallel for
     for (i = min; i < max; i++)
     {
         if (0 == num % i)
