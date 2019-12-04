@@ -9,6 +9,7 @@
     "diffEditor.ignoreTrimWhitespace": false,
     "window.zoomLevel": 0,
     "files.associations": {
-        "signal.h": "c"
+        "signal.h": "c",
+        "queue.h": "c"
     }
 }
