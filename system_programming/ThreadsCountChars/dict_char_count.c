@@ -4,7 +4,7 @@
 #include <ctype.h>
 #include <stddef.h>
 #include <pthread.h>
-#include <semaphore.h>
+
 #include <time.h>
 
 #define NTHREADS 8
@@ -21,7 +21,6 @@ typedef struct
 
 static size_t LUT[ASCII_RANGE];
 pthread_mutex_t lock;
-sem_t sem;
 
 /******************************************************************************/
 static char *LoadDictionaryToHash(char *dict_path);
@@ -37,7 +36,6 @@ int main()
     size_t i = 0;
     char_count_args_t char_count_args[NTHREADS];
     
-    sem_init(&sem, 0, 0);
     counter = strlen(str);
     seg_size = counter / NTHREADS;
     seg_remainder = counter % NTHREADS;
@@ -72,12 +70,7 @@ int main()
     {
         pthread_join(th[i], NULL);
     }
-/*
-    for (i = 0; i < NTHREADS; i++)
-    {
-        sem_wait(&sem);
-    }
-*/
+
     PrintLUT(LUT);
 
     free(str);
@@ -188,8 +181,6 @@ void *CharCount(void *char_count_args_void)
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
     printf("cpu_time_used = %f\n", cpu_time_used);
 */
-    /* sem_post(&sem); */
-
 /*
     pthread_mutex_lock(&lock);
 
