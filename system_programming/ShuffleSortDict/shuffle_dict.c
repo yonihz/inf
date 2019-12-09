@@ -27,17 +27,7 @@ FILE *file_ptr;
 int main()
 {
     int output_mergesort[ARR_SIZE] = {0};
-
-    clock_t clock_start = 0;
-    clock_t clock_end = 0;
-    double nclocks = 0;
-
-    clock_start = clock();
     MergeSort(output_mergesort, input, ARR_SIZE);
-    clock_end = clock();
-    nclocks = clock_end - clock_start;
-    VerifyInt(IsEqualArr(output_mergesort, expected, ARR_SIZE), 1, "MERGE SORT");  
-    printf("(%f seconds)\n", nclocks/CLOCKS_PER_SEC);
 }
 
 char *DictCreate(void)
@@ -46,7 +36,6 @@ char *DictCreate(void)
     char *dict = NULL, *dict_start = NULL;
     char **dict_arr = NULL;
     char word[WORD_MAX_LENGTH];
-    char c = 0;
     char *filename = "/usr/share/dict/american-english";
 
     file_ptr = fopen(filename, "r");
@@ -60,18 +49,6 @@ char *DictCreate(void)
     dict_total_chars = ftell(file_ptr);
     fseek(file_ptr, 0, SEEK_SET);
 
-    c = getc(file_ptr);
-    while (c != EOF)
-	{
-		if (c == 10)
-		{
-			dict_total_words++;
-		}
-		c = getc(file_ptr);
-	}
-    fseek(file_ptr, 0, SEEK_SET);
-
-    dict_arr = (char**)malloc(dict_total_words * DICT_NCOPIES);
     dict = (char*)malloc(dict_total_chars * DICT_NCOPIES);
     dict_start = dict;
 
@@ -80,15 +57,15 @@ char *DictCreate(void)
         return (NULL);
     }
 
-    for (i = 0; i < DICT_NCOPIES; ++i)
+    while (fgets(word, WORD_MAX_LENGTH, file_ptr))
     {
-        while (fgets(word, WORD_MAX_LENGTH, file_ptr))
-        {
-            strcpy(dict, word);
-            dict += strlen(word); 
-        }
-        fseek(file_ptr, 0, SEEK_SET);
+        strcpy(dict, word);
+        dict += strlen(word); 
+        dict_total_words++;
     }
+    fseek(file_ptr, 0, SEEK_SET);
+
+    dict_arr = (char**)malloc(dict_total_words * DICT_NCOPIES);
 
     dict++;
     *dict = '\0';
