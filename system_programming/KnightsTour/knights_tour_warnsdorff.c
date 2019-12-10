@@ -11,21 +11,25 @@ enum {SUCCESS = 0, FAILURE = 1} status_t;
 /* row and col are zero based: [0,7] */
 void KnightsTour(unsigned char row, unsigned char col, unsigned int LUT_moves[NROWS][NCOLS]);
 
-int RecKnightsTour(size_t bit_arr, int square, unsigned int count, unsigned int LUT_moves[NROWS][NCOLS], int move_options[8][3]);
+int RecKnightsTour(size_t bit_arr, int square, unsigned int count, unsigned int LUT_moves[NROWS][NCOLS], int move_options[NOPTIONS][3]);
 void SortOptionsArr(int move_options[NOPTIONS][3], size_t bit_arr, int square);
 void BubbleSort(int arr[NOPTIONS][3]);
 static void SwapInt(int *a, int *b);
 void PrintLUT(unsigned int arr[NROWS][NCOLS], size_t size1, size_t size2);
 void CheckLUT(unsigned int arr[NROWS][NCOLS], size_t size1, size_t size2);
+void Test(unsigned char row, unsigned char col);
 
 int main()
 {
-    unsigned int LUT_moves[NROWS][NCOLS] = {0};
-
-    KnightsTour(2, 2, LUT_moves);
-
-    CheckLUT(LUT_moves, NROWS, NCOLS);
-    PrintLUT(LUT_moves, NROWS, NCOLS);
+    size_t i = 0, j = 0;
+    
+    for (i = 0; i < NROWS; i++)
+    {
+        for (j = 0; j < NROWS; j++)
+        { 
+            Test(i, j);
+        }
+    }
 
     return 0;
 }
@@ -232,4 +236,15 @@ void CheckLUT(unsigned int arr[NROWS][NCOLS], size_t size1, size_t size2)
     }
 
     (count == NSQUARES) ? printf("TEST PASS\n") : printf("TEST FAIL\n");
+}
+
+void Test(unsigned char row, unsigned char col)
+{
+    unsigned int LUT_moves[NROWS][NCOLS] = {0};
+
+    KnightsTour(row, col, LUT_moves);
+
+    printf("First square: (%d, %d) ", row, col);
+    CheckLUT(LUT_moves, NROWS, NCOLS);
+    /* PrintLUT(LUT_moves, NROWS, NCOLS); */
 }
