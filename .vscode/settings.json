@@ -10,6 +10,7 @@
     "window.zoomLevel": 0,
     "files.associations": {
         "signal.h": "c",
-        "queue.h": "c"
+        "queue.h": "c",
+        "cmath": "cpp"
     }
 }
