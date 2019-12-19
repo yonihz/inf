@@ -24,6 +24,14 @@ Point::~Point()
     printf("Dtor\n");
 }
 
+Point& Point::operator=(const Point& other_)
+{
+    x = other_.x;
+    y = other_.y;
+
+    return *this;
+}
+
 Point &Point::AdjustBy(Point &p)
 {
     g_totalLength -= this->Length();

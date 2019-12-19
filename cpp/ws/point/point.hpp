@@ -11,6 +11,8 @@ struct Point
 
     ~Point();
 
+    Point& operator=(const Point& other_);
+
     enum ParenthesesType { ROUND, SQUARE, CURLY, ANGULAR };
 
     Point &AdjustBy(Point &p);

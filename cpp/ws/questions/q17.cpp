@@ -1,5 +1,26 @@
 #include <stdio.h>
 
+struct Counter
+{
+    void Inc();  
+    void Dec();
+
+    int m_a;
+    int m_b;                                                                                     
+};
+
+void Counter::Inc()
+{
+    ++m_a;
+    m_b += 2;
+}
+
+void Counter::Dec()
+{
+    --m_a;
+    m_b /= 2;
+}
+
 struct X
 {
     explicit X();
@@ -59,53 +80,24 @@ struct Y
 
 int main()
 {
-    X x1;
-    X x2(7,1);
-    X x3(9, 10);
-    X x4(x1);
+    Counter x2;
 
-    x1 = x3;
+    float *f = new float(12.6);
+    delete f;
 
-    Y y1 = {X(0, 0), 0};
-    y1.m_x.m_a = 250;
-    // y1.m_x.m_b = 750;
-    Y y2(y1);
-    Y y3 = {X(0, 0), 0};
-    y3 = y1;
+    f = new float[15];
+    delete[] f;
+
+    Counter *c1 = new Counter;
+    X *x1 = new X;
+    Y *y1 = new Y;
+
+    delete y1;
+    delete c1;
+    delete x1;
+
+    X* xp = new X[10];
+    delete[] xp;
 
     return 0;
 }
-
-/* code has ctor, cctor, assignment operator, dtor
-0000000000000b50 W Y::operator=(Y const&)
-0000000000000b1c W Y::Y(Y const&)
-0000000000000ae4 W Y::Y()
-0000000000000b1c W Y::Y(Y const&)
-0000000000000ae4 W Y::Y()
-0000000000000b00 W Y::~Y()
-0000000000000b00 W Y::~Y()
-*/
-
-/* code only has ctor
-0000000000000a5a W Y::Y()
-0000000000000a5a W Y::Y()
-0000000000000a76 W Y::~Y()
-0000000000000a76 W Y::~Y()
-*/
-
-/* code only has cctor
-
-*/
-
-/* code when removing assignment operator
-0000000000000af2 W Y::Y(Y const&)
-0000000000000aba W Y::Y()
-0000000000000af2 W Y::Y(Y const&)
-0000000000000aba W Y::Y()
-0000000000000ad6 W Y::~Y()
-0000000000000ad6 W Y::~Y()
-*/
-
-/* code only has dtor
-
-*/
