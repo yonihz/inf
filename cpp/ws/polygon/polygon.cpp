@@ -15,8 +15,10 @@ Polygon::~Polygon()
 }
 
 Polygon::Polygon(const Polygon& other_)
+    : m_numPoints(other_.m_numPoints)
 {
     size_t i = 0;
+    m_points = new Point[m_numPoints];
     
     for (i = 0; i < m_numPoints; i++)
     {
@@ -43,10 +45,13 @@ void Polygon::Add(const Point &p)
 
     for (i = 0; i < m_numPoints; i++)
     {
-        m_points[i] = new_m_points[i];
+        new_m_points[i] = m_points[i]; 
     }
 
     new_m_points[m_numPoints] = p;
+    delete[] m_points;
+    m_points = new_m_points;
+    m_numPoints += 1;
     
 }
 

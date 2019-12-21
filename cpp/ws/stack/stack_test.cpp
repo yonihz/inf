@@ -28,5 +28,7 @@ int main()
     printf("IsEmpty: %d\n", s1.IsEmpty());
     printf("Count: %lu\n", s1.Count());
     printf("Top: %d\n", s1.Top());
-    s1.Pop();    
+    s1.Pop();
+
+    return 0;
 }

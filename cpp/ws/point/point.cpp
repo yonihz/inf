@@ -8,20 +8,20 @@ double g_totalLength = 0;
 Point::Point()
     : x(0), y(0), last_len(0), is_len_updated(1), last_x(0), last_y(0)
 {
-    printf("Default Ctor\n");
+    //printf("Default Ctor\n");
 }
 
 Point::Point(int dx, int dy)
     : x(dx), y(dy), last_len(0), is_len_updated(0), last_x(dx), last_y(dy)
 {
     g_totalLength += this->Length();
-    printf("Ctor(int,int)\n");
+    //printf("Ctor(int,int)\n");
 }
 
 Point::~Point()
 {
     g_totalLength -= this->Length();
-    printf("Dtor\n");
+    //printf("Dtor\n");
 }
 
 Point& Point::operator=(const Point& other_)

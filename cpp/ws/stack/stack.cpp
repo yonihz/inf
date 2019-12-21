@@ -8,7 +8,10 @@ Stack::Stack()
 
 Stack::~Stack()
 {
-
+    while (!IsEmpty())
+    {
+        Pop();
+    }
 }
 
 void Stack::Push(DataType data)
