@@ -4,13 +4,19 @@ alias gd='gcc -ansi -pedantic-errors -Wall -Wextra -g'
 alias gc='gcc -ansi -pedantic-errors -Wall -Wextra -DNDEBUG -O3'
 alias gd9='gcc -std=c99 -pedantic-errors -Wall -Wextra -g'
 alias gc9='gcc -std=c99 -pedantic-errors -Wall -Wextra -DNDEBUG -O3'
-
-alias gdpp='g++ -ansi -pedantic-errors -Wall -Wextra -g'
-alias gcpp='g++ -ansi -pedantic-errors -Wall -Wextra -DNDEBUG -O3'
+#
+# g++ compliation aliases: debug mode, release mode
+alias gd98='g++ -std=c++98 -pedantic-errors -Wall -Wextra -g'
+alias gc98='g++ -std=c++98 -pedantic-errors -Wall -Wextra -DNDEBUG -O3'
+alias gd11='g++ -std=c++11 -pedantic-errors -Wall -Wextra -g'
+alias gc11='g++ -std=c++11 -pedantic-errors -Wall -Wextra -DNDEBUG -O3'
 #
 # Valgrind alias
 alias vlg='valgrind --leak-check=yes --track-origins=yes'
 #
 # git clones aliases
-alias gitclab='git clone http://git.ilrd/ilrd/ramat-gan/OL74/yoni-horovitz.git'
-alias gitchome='git clone http://31.168.84.220:918/ilrd/ramat-gan/OL74/yoni.horovitz.git'
+# (old) alias gitclab='git clone http://git.ilrd/ilrd/ramat-gan/OL74/yoni-horovitz.git'
+# (old) alias gitchome='git clone http://31.168.84.220:918/ilrd/ramat-gan/OL74/yoni.horovitz.git'
+alias gitclab='git clone http://git.ilrd/ilrd/ramat-gan/rd73-74/yoni-horovitz.git'
+alias gitchome='git clone http://31.168.84.220:918/ilrd/ramat-gan/rd73-74/yoni-horovitz.git'
+
