@@ -11,6 +11,7 @@
     "files.associations": {
         "signal.h": "c",
         "queue.h": "c",
-        "cmath": "cpp"
+        "cmath": "cpp",
+        "iostream": "cpp"
     }
 }

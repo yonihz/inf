@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 struct Counter
 {
@@ -85,13 +86,21 @@ int main()
     float *f = new float(12.6);
     delete f;
 
+    f = NULL;
+    delete f;
+
     f = new float[15];
     delete[] f;
 
     Counter *c1 = new Counter;
+    
     X *x1 = new X;
     Y *y1 = new Y;
+    X *x3 = (X*)malloc(sizeof(X));
+    X *x4 = new X;
 
+    delete x3;
+    free(x4);
     delete y1;
     delete c1;
     delete x1;
