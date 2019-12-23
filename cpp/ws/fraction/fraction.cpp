@@ -6,6 +6,8 @@ using namespace std;
 
 static int GCD(int a, int b);
 
+size_t Fraction::s_count = 0;
+
 Fraction::Fraction(int numr, int denr)
     : m_numr(numr), m_denr(denr)
 {
@@ -13,10 +15,13 @@ Fraction::Fraction(int numr, int denr)
     {
         ReduceFrac();
     }
+    
+    ++s_count;
 }
 
 Fraction::~Fraction()
 {
+    --s_count;
 }
 
 Fraction::Fraction(const Fraction& other_)
@@ -26,6 +31,8 @@ Fraction::Fraction(const Fraction& other_)
     {
         ReduceFrac();
     }
+
+    ++s_count;
 }
 
 Fraction& Fraction::operator=(const Fraction& other_)
@@ -103,13 +110,11 @@ Fraction Fraction::operator+() const
 
 Fraction Fraction::operator-() const
 {
-    Fraction temp(-m_numr, m_denr);
-    
-    return temp;
+    return Fraction(-m_numr, m_denr);
 }
 
 // prefix inc
-Fraction Fraction::operator++()
+Fraction& Fraction::operator++()
 {
     this->m_numr += this->m_denr;
     return *this;
@@ -124,7 +129,7 @@ Fraction Fraction::operator++(int)
 }
 
 // prefix dec
-Fraction Fraction::operator--()
+Fraction& Fraction::operator--()
 {
     this->m_numr -= this->m_denr;
     return *this;
@@ -138,34 +143,67 @@ Fraction Fraction::operator--(int)
     return temp;
 }
 
-bool Fraction::IsUndefined()
+Fraction& Fraction::operator+=(const Fraction& other_)
 {
-    return (m_denr == 0);
-}
-
-void Fraction::AddToSelf(Fraction& f)
-{
-    if (IsUndefined() || f.IsUndefined())
+    if (IsUndefined() || ((Fraction)other_).IsUndefined())
     {
         cout << "Error: undefined number!\n";
-        return;
+        return *this;
     }
 
-    m_numr = (m_numr * f.m_denr) + (f.m_numr * m_denr);
-    m_denr = m_denr * f.m_denr; 
+    m_numr = (m_numr * other_.m_denr) + (other_.m_numr * m_denr);
+    m_denr = m_denr * other_.m_denr; 
     ReduceFrac();
+
+    return *this;
 }
 
-void Fraction::AddToSelf(int num)
+Fraction& Fraction::operator+=(int n)
 {
     if (IsUndefined())
     {
         cout << "Error: undefined number!\n";
-        return;
+        return *this;
     }
 
-    m_numr += num * m_denr;
+    m_numr += n * m_denr;
     ReduceFrac();
+
+    return *this;
+}
+
+Fraction& Fraction::operator-=(const Fraction& other_)
+{
+    if (IsUndefined() || ((Fraction)other_).IsUndefined())
+    {
+        cout << "Error: undefined number!\n";
+        return *this;
+    }
+
+    m_numr = (m_numr * other_.m_denr) - (other_.m_numr * m_denr);
+    m_denr = m_denr * other_.m_denr; 
+    ReduceFrac();
+
+    return *this;
+}
+
+Fraction& Fraction::operator-=(int n)
+{
+    if (IsUndefined())
+    {
+        cout << "Error: undefined number!\n";
+        return *this;
+    }
+
+    m_numr -= n * m_denr;
+    ReduceFrac();
+
+    return *this;
+}
+
+bool Fraction::IsUndefined()
+{
+    return (m_denr == 0);
 }
 
 void Fraction::Print()

@@ -1,7 +1,7 @@
 #ifndef ILRD_OL734_FRACTION_HPP
 #define ILRD_OL734_FRACTION_HPP
 
-#include <stdlib.h>
+#include <cstdlib>
 
 class Fraction {
 public:
@@ -22,21 +22,29 @@ public:
     Fraction operator+() const; // unary +
     Fraction operator-() const; // unary -
 
-    Fraction operator++(); // prefix ++
+    Fraction& operator++(); // prefix ++
     Fraction operator++(int); // postfix ++
 
-    Fraction operator--(); // prefix --
+    Fraction& operator--(); // prefix --
     Fraction operator--(int); // postfix --
   
-    bool IsUndefined();
     void AddToSelf(Fraction& f);
     void AddToSelf(int num);
+
+    Fraction& operator+=(const Fraction& other_);
+    Fraction& operator+=(int n);
+
+    Fraction& operator-=(const Fraction& other_);
+    Fraction& operator-=(int n);
+
+    bool IsUndefined();
     void Print();
 
     int GetValueNum();
     int GetValueDen();
     void SetValueNum(int n);
     void SetValueDen(int n);
+    static size_t s_count;
 
 private:
     void ReduceFrac();
