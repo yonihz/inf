@@ -34,12 +34,14 @@ void TestBasic()
     char s1[] = "abcd";
     char s2[] = "abce";
     char s3[] = "abcd";
+    char s4[] = "dsfdsfdsffds";
 
     String str1(s1);
     String str2(s2);
     String str3(s3);
     String str4("Hello");
     String str5(str1);
+    String str6(s4);
 
     std::cout << "str1: " << str1 << std::endl;
     std::cout << "str2: " << str2 << std::endl;

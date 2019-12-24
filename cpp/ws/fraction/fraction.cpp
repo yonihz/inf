@@ -1,12 +1,15 @@
 #include <iostream>
 
-using namespace std;
-
 #include "fraction.hpp"
+
+using namespace ilrd;
 
 static int GCD(int a, int b);
 
 size_t Fraction::s_count = 0;
+const Fraction Fraction::ZERO(0, 1);
+const Fraction Fraction::HALF(1, 2);
+const Fraction Fraction::ONE(1, 1);
 
 Fraction::Fraction(int numr, int denr)
     : m_numr(numr), m_denr(denr)
@@ -52,7 +55,7 @@ bool Fraction::operator==(const Fraction& other_) const
 {
     if (((Fraction)*this).IsUndefined() || ((Fraction)other_).IsUndefined())
     {
-        cout << "Error: undefined number!\n";
+        std::cout << "Error: undefined number!\n";
         return false;
     }
     return ((m_numr * other_.m_denr) == (other_.m_numr * m_denr));
@@ -62,7 +65,7 @@ bool Fraction::operator==(int n) const
 {
     if (((Fraction)*this).IsUndefined())
     {
-        cout << "Error: undefined number!\n";
+        std::cout << "Error: undefined number!\n";
         return false;
     }
 
@@ -75,7 +78,7 @@ Fraction Fraction::operator+(const Fraction& other_) const
 
     if (((Fraction)*this).IsUndefined() || ((Fraction)other_).IsUndefined())
     {
-        cout << "Error: undefined number!\n";
+        std::cout << "Error: undefined number!\n";
         return res;
     }
 
@@ -92,7 +95,7 @@ Fraction Fraction::operator-(const Fraction& other_) const
     
     if (((Fraction)*this).IsUndefined() || ((Fraction)other_).IsUndefined())
     {
-        cout << "Error: undefined number!\n";
+        std::cout << "Error: undefined number!\n";
         return res;
     }
 
@@ -101,16 +104,6 @@ Fraction Fraction::operator-(const Fraction& other_) const
     res.ReduceFrac();
 
     return res;
-}
-
-Fraction Fraction::operator+() const
-{
-    return (*this);
-}
-
-Fraction Fraction::operator-() const
-{
-    return Fraction(-m_numr, m_denr);
 }
 
 // prefix inc
@@ -147,7 +140,7 @@ Fraction& Fraction::operator+=(const Fraction& other_)
 {
     if (IsUndefined() || ((Fraction)other_).IsUndefined())
     {
-        cout << "Error: undefined number!\n";
+        std::cout << "Error: undefined number!\n";
         return *this;
     }
 
@@ -162,7 +155,7 @@ Fraction& Fraction::operator+=(int n)
 {
     if (IsUndefined())
     {
-        cout << "Error: undefined number!\n";
+        std::cout << "Error: undefined number!\n";
         return *this;
     }
 
@@ -176,7 +169,7 @@ Fraction& Fraction::operator-=(const Fraction& other_)
 {
     if (IsUndefined() || ((Fraction)other_).IsUndefined())
     {
-        cout << "Error: undefined number!\n";
+        std::cout << "Error: undefined number!\n";
         return *this;
     }
 
@@ -191,7 +184,7 @@ Fraction& Fraction::operator-=(int n)
 {
     if (IsUndefined())
     {
-        cout << "Error: undefined number!\n";
+        std::cout << "Error: undefined number!\n";
         return *this;
     }
 
@@ -208,15 +201,15 @@ bool Fraction::IsUndefined()
 
 void Fraction::Print()
 {
-    cout << m_numr << "/" << m_denr << "\n";
+    std::cout << m_numr << "/" << m_denr << "\n";
 }
 
-int Fraction::GetValueNum()
+int Fraction::GetValueNum() const
 {
     return m_numr;
 }
 
-int Fraction::GetValueDen()
+int Fraction::GetValueDen() const
 {
     return m_denr;
 }
@@ -253,4 +246,9 @@ static int GCD(int a, int b)
     gcd = b;
 
     return gcd;
+}
+
+std::ostream& ilrd::operator<<(std::ostream& os, const Fraction& frac)
+{
+    return os << frac.GetValueNum() << "/" << frac.GetValueDen() << " ";
 }

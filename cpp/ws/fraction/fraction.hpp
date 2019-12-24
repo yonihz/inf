@@ -2,6 +2,10 @@
 #define ILRD_OL734_FRACTION_HPP
 
 #include <cstdlib>
+#include <iostream>
+
+namespace ilrd
+{
 
 class Fraction {
 public:
@@ -40,16 +44,34 @@ public:
     bool IsUndefined();
     void Print();
 
-    int GetValueNum();
-    int GetValueDen();
+    int GetValueNum() const;
+    int GetValueDen() const;
     void SetValueNum(int n);
     void SetValueDen(int n);
+
     static size_t s_count;
+    static const Fraction ZERO;
+    static const Fraction HALF;
+    static const Fraction ONE;
 
 private:
     void ReduceFrac();
     int m_numr;
     int m_denr;
 };
+
+inline Fraction Fraction::operator+() const
+{
+    return (*this);
+}
+
+inline Fraction Fraction::operator-() const
+{
+    return Fraction(-m_numr, m_denr);
+}
+
+std::ostream& operator<<(std::ostream& os, const Fraction& frac);
+
+} // namespace ilrd
 
 #endif
