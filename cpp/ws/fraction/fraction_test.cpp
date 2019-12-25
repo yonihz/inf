@@ -148,4 +148,7 @@ int main()
     std::cout << "r1 + r2: " << r1 + r2 << std::endl;
     std::cout << "r1 + 3: " << r1 + 3 << std::endl;
     std::cout << "3 + r1: " << 3 + r1 << std::endl;
+    std::cout << "r1 - r2: " << r1 - r2 << std::endl;
+    std::cout << "r1 - 3: " << r1 - 3 << std::endl;
+    std::cout << "3 - r1: " << 3 - r1 << std::endl;
 }

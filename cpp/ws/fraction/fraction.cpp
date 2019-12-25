@@ -250,5 +250,15 @@ static int GCD(int a, int b)
 
 std::ostream& ilrd::operator<<(std::ostream& os, const Fraction& frac)
 {
-    return os << frac.GetValueNum() << "/" << frac.GetValueDen() << " ";
+    return os << frac.GetValueNum() << "/" << frac.GetValueDen();
+}
+
+Fraction::operator int ()
+{
+    return (GetValueNum() / GetValueDen());
+}
+
+Fraction::operator float()
+{
+    return ((float)GetValueNum() / (float)GetValueDen());
 }
