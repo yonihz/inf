@@ -143,4 +143,9 @@ int main()
     std::cout << "HALF: " << Fraction::HALF << std::endl;
     std::cout << "ONE: " << Fraction::ONE << std::endl;
     std::cout << "ZERO: " << Fraction::ZERO << std::endl;
+
+    Fraction r1(1, 2), r2(3);
+    std::cout << "r1 + r2: " << r1 + r2 << std::endl;
+    std::cout << "r1 + 3: " << r1 + 3 << std::endl;
+    std::cout << "3 + r1: " << 3 + r1 << std::endl;
 }

@@ -9,7 +9,7 @@ namespace ilrd
 
 class Fraction {
 public:
-    explicit Fraction(int numr = 0, int denr = 1);
+    Fraction(int numr = 0, int denr = 1);
     
     ~Fraction();
 
@@ -31,15 +31,22 @@ public:
 
     Fraction& operator--(); // prefix --
     Fraction operator--(int); // postfix --
-  
-    void AddToSelf(Fraction& f);
-    void AddToSelf(int num);
 
     Fraction& operator+=(const Fraction& other_);
     Fraction& operator+=(int n);
 
     Fraction& operator-=(const Fraction& other_);
     Fraction& operator-=(int n);
+
+    // operator int ()
+    // {
+    //     return (GetValueNum() / GetValueDen());
+    // }
+
+    operator float()
+    {
+        return ((float)GetValueNum() / (float)GetValueDen());
+    }
 
     bool IsUndefined();
     void Print();
