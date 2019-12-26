@@ -1,12 +1,14 @@
 #include "stack.hpp"
 
-Stack::Stack()
-    : m_dummy(0, NULL)
+template <class DataType>
+Stack<DataType>::Stack()
+    : m_dummy(DataType(), NULL)
 {
 
 }
 
-Stack::~Stack()
+template <class DataType>
+Stack<DataType>::~Stack()
 {
     while (!IsEmpty())
     {
@@ -14,12 +16,14 @@ Stack::~Stack()
     }
 }
 
-void Stack::Push(DataType data)
+template <class DataType>
+void Stack<DataType>::Push(DataType data)
 {
     m_dummy.m_next = new Node(data, m_dummy.m_next);
 }
 
-void Stack::Pop()
+template <class DataType>
+void Stack<DataType>::Pop()
 {
     if (IsEmpty())
     {
@@ -32,7 +36,8 @@ void Stack::Pop()
     delete to_remove;
 }
 
-DataType Stack::Top() const
+template <class DataType>
+DataType Stack<DataType>::Top() const
 {
     if (IsEmpty())
     {
@@ -42,7 +47,8 @@ DataType Stack::Top() const
     return m_dummy.m_next->GetData();
 }
 
-size_t Stack::Count() const
+template <class DataType>
+size_t Stack<DataType>::Count() const
 {
     size_t size = 0;
     const Node *curr = &m_dummy;
@@ -56,34 +62,40 @@ size_t Stack::Count() const
     return size;
 }
 
-bool Stack::IsEmpty() const
+template <class DataType>
+bool Stack<DataType>::IsEmpty() const
 {
     return !(m_dummy.HasNext());
 }
 
-Stack::Node::Node()
+template <class DataType>
+Stack<DataType>::Node::Node()
     : m_data(0), m_next(NULL)
 {
 
 }
 
-Stack::Node::Node(DataType data, const Node *next)
+template <class DataType>
+Stack<DataType>::Node::Node(DataType data, const Node *next)
     : m_data(data), m_next(next)
 {
 
 }
 
-DataType Stack::Node::GetData() const
+template <class DataType>
+DataType Stack<DataType>::Node::GetData() const
 {
     return m_data;
 }
 
-bool Stack::Node::HasNext() const
+template <class DataType>
+bool Stack<DataType>::Node::HasNext() const
 {
     return (this->m_next != NULL);
 }
 
-const Stack::Node &Stack::Node::GetNext() const
+template <class DataType>
+const typename Stack<DataType>::Node &Stack<DataType>::Node::GetNext() const
 {
     return *m_next;
 }

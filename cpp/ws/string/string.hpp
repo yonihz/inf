@@ -9,7 +9,7 @@ namespace ilrd
 class String
 {
 public:
-    String(const char* str); // non-explicit
+    String(const char* str = ""); // non-explicit
     String(const String& other_);
     ~String();
 
