@@ -18,9 +18,8 @@ public:
     virtual ~Surpriser();
     
     static Surpriser *GetRandomSurprise();
-    static Surpriser m_surprise;
     
-    void SurpriseMe() const;
+    virtual void SurpriseMe() const;
 };
 
 class SurpriserD1: public Surpriser
@@ -30,9 +29,9 @@ public:
     
     ~SurpriserD1() {};
 
-    void Surprise() const;
+    void SurpriseMe() const;
 
-    static Surpriser m_surprise;
+    static SurpriserD1 s_surprise;
 };
 
 class SurpriserD2: public Surpriser
@@ -42,9 +41,9 @@ public:
     
     ~SurpriserD2() {};
 
-    void Surprise() const;
+    void SurpriseMe() const;
 
-    static Surpriser m_surprise;
+    static SurpriserD2 s_surprise;
 };
 
 class SurpriserD3: public Surpriser
@@ -54,9 +53,9 @@ public:
     
     ~SurpriserD3() {};
 
-    void Surprise() const;
+    void SurpriseMe() const;
 
-    static Surpriser m_surprise;
+    static SurpriserD3 s_surprise;
 };
 
 }
