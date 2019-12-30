@@ -25,8 +25,20 @@ int main()
     X& x1 = y1;
     X& x2 = y2;
 
+// (gdb) p x1
+// $1 = (X &) @0x7fffffffdc30: {_vptr.X = 0x555555755d58 <vtable for Y+16>, m_a = 0}
+// (gdb) p x2
+// $2 = (X &) @0x7fffffffdc50: {_vptr.X = 0x555555755d58 <vtable for Y+16>, m_a = 14.199999999999999}
+
     x1 = x2;
     y3 = y4;
+
+// (gdb) p x1
+// $1 = (X &) @0x7fffffffdc30: {_vptr.X = 0x555555755d58 <vtable for Y+16>, m_a = 14.199999999999999}
+// (gdb) p y1
+// $2 = {<X> = {_vptr.X = 0x555555755d58 <vtable for Y+16>, m_a = 14.199999999999999}, m_b = 0}
+// (gdb) p y3
+// $3 = {<X> = {_vptr.X = 0x555555755d58 <vtable for Y+16>, m_a = 14.199999999999999}, m_b = 5}
 
     return 0;
 }
