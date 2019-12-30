@@ -20,7 +20,7 @@ void Histo()
         getline(std::cin, s1);
     }
 
-    std::cout << "End text\n" << "-----\n";
+    std::cout << "End text\n" << "-----" << std::endl;
     
     while (!q1.empty())
     {
@@ -39,4 +39,4 @@ void Histo()
     }
 }
 
-}
+} // _ILRD_RD743_HISTO_HPP_

@@ -68,4 +68,4 @@ static int InitRand()
     return(rand() % NSURPRISES + 0);
 }
 
-}
+} // namespace ilrd

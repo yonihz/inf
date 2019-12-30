@@ -58,6 +58,7 @@ public:
     static SurpriserD3 s_surprise;
 };
 
-}
+} // namespace ilrd
+
 #endif // _ILRD_RD743_SURPRISER_HPP_
 

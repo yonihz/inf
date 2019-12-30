@@ -75,4 +75,4 @@ std::ostream& operator<<(std::ostream& os, const Fraction& frac);
 
 } // namespace ilrd
 
-#endif
+#endif // ILRD_OL734_FRACTION_HPP

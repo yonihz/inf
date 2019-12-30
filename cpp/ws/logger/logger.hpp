@@ -1,4 +1,10 @@
+#ifndef ILRD_OL734_LOGGER_HPP
+#define ILRD_OL734_LOGGER_HPP
+
 #include <iosfwd>
+
+namespace ilrd
+{
 
 class Logger
 {
@@ -18,3 +24,7 @@ private:
     Severity m_severity;
     std::ostream *m_os;
 };
+
+} // namespace ilrd
+
+#endif // ILRD_OL734_LOGGER_HPP

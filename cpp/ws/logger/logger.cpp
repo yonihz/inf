@@ -2,6 +2,9 @@
 
 #include "logger.hpp"
 
+namespace ilrd
+{
+
 Logger::Logger(Severity initialSeverity)
     : m_severity(initialSeverity), m_os(&std::cerr)
 {
@@ -36,3 +39,5 @@ void Logger::SetOutput(std::ostream &output)
 {
     m_os = &output;
 }
+
+} // namespace ilrd

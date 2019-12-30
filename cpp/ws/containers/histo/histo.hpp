@@ -8,9 +8,7 @@
 namespace ilrd
 {
 
-
 void Histo();
-
 
 }
 #endif // _ILRD_RD743_HISTO_HPP_

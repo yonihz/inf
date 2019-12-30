@@ -5,6 +5,8 @@
 
 #include "logger.hpp"
 
+using namespace ilrd;
+
 void TestDefault();
 void TestFile();
 void TestOSS();
