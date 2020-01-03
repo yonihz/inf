@@ -16,20 +16,19 @@ namespace ilrd
 class Shape
 {
 public:
-    Shape(const Point& pos_, double angle_, COLORS color_, const Point& center_);
+    Shape(const Point& pos_, double angle_, COLORS color_);
     virtual ~Shape();
     virtual void Draw() =0;
     virtual void SetPos(const Point& pos_);
     const Point& GetPos() const;
-    virtual void SetAngle(const double angle_);
+    virtual void SetAngle(double angle_);
     double GetAngle() const;
-    virtual void SetColor(const COLORS color_);
+    virtual void SetColor(COLORS color_);
     COLORS GetColor() const;
-    void Revolve(const Point& pivot_, const double angle_);
+    void Revolve(const Point& pivot_, double angle_);
 protected:
-    Point m_position; // offset from (0, 0)
+    Point m_position; // center of primitive shape, origin of shape group
     double m_angle;
-    Point m_center;
     COLORS m_color;
 };
  

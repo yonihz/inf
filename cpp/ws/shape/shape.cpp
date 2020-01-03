@@ -6,8 +6,8 @@
 namespace ilrd
 {
 
-Shape::Shape(const Point& pos_, double angle_, COLORS color_, const Point& center_)
-    : m_position(pos_), m_angle(angle_), m_color(color_), m_center(center_)
+Shape::Shape(const Point& pos_, double angle_, COLORS color_)
+    : m_position(pos_), m_angle(angle_), m_color(color_)
 {
 }
 
@@ -17,7 +17,7 @@ Shape::~Shape()
 
 void Shape::SetPos(const Point& pos_)
 {
-    m_position = pos_;
+    m_position.Move(pos_.GetX(), pos_.GetY());
 }
 
 const Point& Shape::GetPos() const
@@ -47,7 +47,9 @@ COLORS Shape::GetColor() const
 
 void Shape::Revolve(const Point& pivot_, double angle_)
 {
-    m_center.Revolve(pivot_, angle_);
+    Point end(m_position);
+    SetPos(end.Revolve(pivot_, angle_));
+    SetAngle(GetAngle() + angle_);
 }
 
 Circle::Circle(int radius_, const Point& pos_, double angle_, COLORS color_)
@@ -73,18 +75,16 @@ int Circle::GetRadius() const
 
 void Circle::Draw()
 {
-    std::cout << "Draw circle" << std::endl;
+    DrawCircle(m_color, (int)m_position.GetX(), (int)m_position.GetY(), m_radius);
 }
 
 Rectangle::Rectangle(int width_, int height_, const Point& pos_, double angle_, COLORS color_)
-    : Shape(pos_, angle_, color_), m_height(height_), m_width(width_)
+    : Shape(pos_, angle_, color_), m_width(width_), m_height(height_)
 {
-
 }
 
 Rectangle::~Rectangle()
 {
-
 }
 
 void Rectangle::SetWidth(int width_)
@@ -109,7 +109,29 @@ int Rectangle::GetHeight() const
 
 void Rectangle::Draw()
 {
-    std::cout << "Draw rectangle" << std::endl;    
+    Point p1, p2, p3, p4;
+
+    p1.Move(m_position.GetX() - (m_width/2), m_position.GetY() + (m_height/2));
+    p2.Move(m_position.GetX() + (m_width/2), m_position.GetY() + (m_height/2));
+    p3.Move(m_position.GetX() + (m_width/2), m_position.GetY() - (m_height/2));
+    p4.Move(m_position.GetX() - (m_width/2), m_position.GetY() - (m_height/2));
+
+    p1.Revolve(m_position, m_angle);
+    p2.Revolve(m_position, m_angle);
+    p3.Revolve(m_position, m_angle);
+    p4.Revolve(m_position, m_angle);
+
+    DrawPolygon(
+        m_color,
+        4,
+        (int)p1.GetX(),
+        (int)p1.GetY(),
+        (int)p2.GetX(),
+        (int)p2.GetY(),
+        (int)p3.GetX(),
+        (int)p3.GetY(),
+        (int)p4.GetX(),
+        (int)p4.GetY());        
 }
 
 Square::Square(int side_, const Point& pos_, double angle_, COLORS color_)
@@ -135,7 +157,29 @@ int Square::GetSide() const
 
 void Square::Draw()
 {
-    std::cout << "Draw square" << std::endl;  
+    Point p1, p2, p3, p4;
+
+    p1.Move(m_position.GetX() - (m_side/2), m_position.GetY() + (m_side/2));
+    p2.Move(m_position.GetX() + (m_side/2), m_position.GetY() + (m_side/2));
+    p3.Move(m_position.GetX() + (m_side/2), m_position.GetY() - (m_side/2));
+    p4.Move(m_position.GetX() - (m_side/2), m_position.GetY() - (m_side/2));
+
+    p1.Revolve(m_position, m_angle);
+    p2.Revolve(m_position, m_angle);
+    p3.Revolve(m_position, m_angle);
+    p4.Revolve(m_position, m_angle);
+
+    DrawPolygon(
+        m_color,
+        4,
+        (int)p1.GetX(),
+        (int)p1.GetY(),
+        (int)p2.GetX(),
+        (int)p2.GetY(),
+        (int)p3.GetX(),
+        (int)p3.GetY(),
+        (int)p4.GetX(),
+        (int)p4.GetY());     
 }
 
 
@@ -162,7 +206,21 @@ int Line::GetLength() const
 
 void Line::Draw()
 {
-    std::cout << "Draw line" << std::endl;     
+    Point p1, p2;
+
+    p1.Move(m_position.GetX() - (m_length/2), m_position.GetY());
+    p2.Move(m_position.GetX() + (m_length/2), m_position.GetY());
+
+    p1.Revolve(m_position, m_angle);
+    p2.Revolve(m_position, m_angle);
+
+    DrawPolygon(
+        m_color,
+        2,
+        (int)p1.GetX(),
+        (int)p1.GetY(),
+        (int)p2.GetX(),
+        (int)p2.GetY());       
 }
 
 

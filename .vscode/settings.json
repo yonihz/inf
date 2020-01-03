@@ -53,6 +53,7 @@
         "typeinfo": "cpp",
         "ctime": "cpp",
         "functional": "cpp",
-        "numeric": "cpp"
+        "numeric": "cpp",
+        "list": "cpp"
     }
 }
