@@ -6,6 +6,8 @@
 
 #include "shape.hpp"
 
+#define UNUSED(x) (void)(x)
+
 using namespace ilrd;
 
 int drawCircle = 1;
@@ -15,8 +17,6 @@ double rCircle = 100;
 
 static void DrawFunction1();
 static void DrawFunction2();
-static void DrawFunction3();
-static void DrawFunction4();
 static int KeyboardFunction(unsigned char key, int x, int y);
 static int MouseFunction(int button, int state, int x, int y);
 static int MotionFunction(int x, int y);
@@ -53,42 +53,66 @@ static void DrawFunction1()
     // if (drawCircle)
     //     DrawCircle(COLOR_GREEN, xCircle, yCircle, rCircle);
 
-    Circle c1(50, Point(250,500), 0, COLOR_BLUE);
-    Circle c2(50, Point(500,500), 0, COLOR_GREEN);
-    Circle c3(50, Point(100,500), 0, COLOR_GREEN);
-    Circle c4(50, Point(900,500), 0, COLOR_GREEN);
-    Circle c5(50, Point(500,100), 0, COLOR_GREEN);
-    Circle c6(50, Point(500,900), 0, COLOR_GREEN);
+    Rectangle rec1(50, 100, Point(500,500), 0, COLOR_BLUE);
+    Square sq1(50, Point(500,250), 0, COLOR_MAGENTA);
+    Line line1(50, Point(500,750), 0, COLOR_YELLOW);
+    Circle c1(50, Point(250,500));
 
+    sq1.Draw();
+    rec1.Draw();
     c1.Draw();
-    c2.Draw();
-    c3.Draw();
-    c4.Draw();
-    c5.Draw();
-    c6.Draw();
+    line1.Draw();
 
+    sq1.Revolve(Point(500,500), 3.14/4);
+    rec1.Revolve(Point(500,500), 3.14/2);
+    line1.Revolve(Point(500,750), 3.14*3/4);
     c1.Revolve(Point(500,500), 3.14/2);
 
     c1.Draw();
+    rec1.Draw();
+    sq1.Draw();
+    line1.Draw();
 }
 
 static void DrawFunction2()
 {
-    /* printf("Drawing\n"); */
-
-    // /* draw rectangle */
-    // DrawPolygon(COLOR_MAGENTA, 4, (int)150, (int)400, (int)150, (int)650, (int)300, (int)650, (int)300, (int)400);
-
-    // if (drawCircle)
-    //     DrawCircle(COLOR_GREEN, xCircle, yCircle, rCircle);
-
+    ShapeGroup group1;
+    group1.SetPos(Point(500,500));
     Rectangle rec1(50, 100, Point(500,500), 0, COLOR_BLUE);
+    Circle c1(25, Point(500,425));
+    Line l1(50, Point(450,480), 0, COLOR_YELLOW);
+    Line l2(50, Point(550,480), 0, COLOR_YELLOW);
+    Line l3(50, Point(485,575), 3.14/2, COLOR_YELLOW);
+    Line l4(50, Point(515,575), 3.14/2, COLOR_YELLOW);
 
-    rec1.Draw();
+    group1.Add(&rec1);
+    group1.Add(&c1);
+    group1.Add(&l1);
+    group1.Add(&l2);
+    group1.Add(&l3);
+    group1.Add(&l4);
 
-    rec1.Revolve(Point(500,500), 3.14/2);
+    group1.Draw();
 
-    rec1.Draw();
+    group1.SetPos(group1.GetPos() + Point(0,-300));
+
+    group1.Draw();
+
+    group1.SetAngle(group1.GetAngle() + 3.14/2);
+
+    group1.Draw();
+    
+    group1.Revolve(Point(500,500), 3.14/4);
+
+    group1.Draw();
+
+    group1.Revolve(Point(500,500), 3.14/4);
+
+    group1.Draw();
+
+    group1.SetAngle(group1.GetAngle() + 3.14/2);
+
+    group1.Draw();
 }
 
 
@@ -124,6 +148,11 @@ static int MouseFunction(int button, int state, int x, int y)
     //     return 1;
     // }
 
+    UNUSED(button);
+    UNUSED(state);
+    UNUSED(x);
+    UNUSED(y);
+
     return 0;
 }
 
@@ -131,6 +160,9 @@ static int MouseFunction(int button, int state, int x, int y)
 static int MotionFunction(int x, int y)
 {
     // printf("Mouse: %d,%d\n", x, y);
+
+    UNUSED(x);
+    UNUSED(y);
 
     return 0;
 }

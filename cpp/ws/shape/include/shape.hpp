@@ -27,7 +27,7 @@ public:
     COLORS GetColor() const;
     void Revolve(const Point& pivot_, double angle_);
 protected:
-    Point m_position; // center of primitive shape, origin of shape group
+    Point m_position;
     double m_angle;
     COLORS m_color;
 };
@@ -37,7 +37,7 @@ class Circle : public Shape
 public:
     Circle(int radius_ = 1, const Point& pos_ = Point(), double angle_ = 0, COLORS color_ = COLOR_RED);
     ~Circle(); // remove dtor from all shape types?
-    void SetRadius(const int radius_);
+    void SetRadius(int radius_);
     int GetRadius() const;
     virtual void Draw(); // this const?
 private:
@@ -49,9 +49,9 @@ class Rectangle : public Shape
 public:
     Rectangle(int width_ = 1, int height_ = 1, const Point& pos_ = Point(), double angle_ = 0, COLORS color_ = COLOR_RED);
     ~Rectangle();
-    void SetWidth(const int width_);
+    void SetWidth(int width_);
     int GetWidth() const;
-    void SetHeight(const int height_);
+    void SetHeight(int height_);
     int GetHeight() const;
     virtual void Draw();
 private:
@@ -64,7 +64,7 @@ class Square : public Shape
 public:
     Square(int side_ = 1, const Point& pos_ = Point(), double angle_ = 0, COLORS color_ = COLOR_RED);
     ~Square();
-    void SetSide(const int side_);
+    void SetSide(int side_);
     int GetSide() const;
     virtual void Draw();
 private:
@@ -76,7 +76,7 @@ class Line : public Shape
 public:
     Line(int length_ = 1, const Point& pos_ = Point(), double angle_ = 0, COLORS color_ = COLOR_RED);
     ~Line();
-    void SetLength(const int length_);
+    void SetLength(int length_);
     int GetLength() const;
     virtual void Draw();
 private:
@@ -92,11 +92,11 @@ public:
     void Add(Shape* to_add_);
     void Remove(Shape* to_remove_);
     virtual void SetPos(const Point& pos_);
-    virtual void SetAngle(const double angle_);
-    virtual void SetColor(const COLORS color_);
-    size_t GetGroupSize();
+    virtual void SetAngle(double angle_);
+    virtual void SetColor(COLORS color_);
+    size_t GetGroupSize() const;
 private:
-    std::list<Shape*> m_arr;
+    std::list<Shape*> m_list;
     size_t m_group_size; // cache
 };
 

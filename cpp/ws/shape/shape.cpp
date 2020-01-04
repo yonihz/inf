@@ -55,12 +55,10 @@ void Shape::Revolve(const Point& pivot_, double angle_)
 Circle::Circle(int radius_, const Point& pos_, double angle_, COLORS color_)
     : Shape(pos_, angle_, color_), m_radius(radius_)
 {
-
 }
 
 Circle::~Circle()
 {
-
 }
 
 void Circle::SetRadius(int radius_)
@@ -137,12 +135,10 @@ void Rectangle::Draw()
 Square::Square(int side_, const Point& pos_, double angle_, COLORS color_)
     : Shape(pos_, angle_, color_), m_side(side_)
 {
-
 }
 
 Square::~Square()
 {
-
 }
 
 void Square::SetSide(int side_)
@@ -186,12 +182,10 @@ void Square::Draw()
 Line::Line(int length_, const Point& pos_, double angle_, COLORS color_)
     : Shape(pos_, angle_, color_), m_length(length_)
 {
-
 }
 
 Line::~Line()
 {
-
 }
 
 void Line::SetLength(int length_)
@@ -225,7 +219,7 @@ void Line::Draw()
 
 
 ShapeGroup::ShapeGroup()
-    : Shape(Point(), 0, COLOR_RED), m_arr(std::list<Shape*>())  
+    : Shape(Point(), 0, COLOR_RED), m_list(std::list<Shape*>())  
 {
 }
 
@@ -235,37 +229,79 @@ ShapeGroup::~ShapeGroup()
 
 void ShapeGroup::Draw()
 {
+    std::list<Shape*>::iterator it;
 
+	for (it = m_list.begin(); it != m_list.end(); ++it)
+    {
+        (*it)->Draw();
+    }
 }
 
 void ShapeGroup::Add(Shape* to_add_)
 {
-
+    m_list.push_back(to_add_);
 }
 
 void ShapeGroup::Remove(Shape* to_remove_)
 {
-
+    m_list.remove(to_remove_);
 }
 
 void ShapeGroup::SetPos(const Point& pos_)
 {
+    double x_offset = 0, y_offset = 0;
+    double x_new = 0, y_new = 0;
 
+    x_offset = pos_.GetX() - m_position.GetX();
+    y_offset = pos_.GetY() - m_position.GetY();
+
+    std::list<Shape*>::iterator it;
+
+	for (it = m_list.begin(); it != m_list.end(); ++it)
+    {
+        x_new = (*it)->GetPos().GetX() + x_offset;
+        y_new = (*it)->GetPos().GetY() + y_offset;
+
+        (*it)->SetPos(Point(x_new, y_new));
+    }
+
+    m_position = pos_;
 }
 
 void ShapeGroup::SetAngle(double angle_)
 {
+    double x_sum = 0, y_sum = 0;
+    size_t list_size = m_list.size();
 
+    std::list<Shape*>::iterator it;
+
+	for (it = m_list.begin(); it != m_list.end(); ++it)
+    {
+        x_sum += (*it)->GetPos().GetX();
+        y_sum += (*it)->GetPos().GetY();
+    }
+
+    Point center(x_sum / list_size, y_sum / list_size);
+
+	for (it = m_list.begin(); it != m_list.end(); ++it)
+    {
+        (*it)->Revolve(center, angle_);
+    }
 }
 
 void ShapeGroup::SetColor(COLORS color_)
 {
+    std::list<Shape*>::iterator it;
 
+	for (it = m_list.begin(); it != m_list.end(); ++it)
+    {
+        (*it)->SetColor(color_);
+    }
 }
 
-size_t ShapeGroup::GetGroupSize()
+size_t ShapeGroup::GetGroupSize() const
 {
-
+    return m_list.size();
 }
 
 
