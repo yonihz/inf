@@ -1,5 +1,6 @@
 // compile command:
-// gcc demo.c -I ./include -Wl,-rpath=. ./lib/libglut_utils.so
+// gd98 shape_test.cpp shape.cpp -Iinclude -I ../include -Wl,-rpath=. ./lib/libglut_utils.so -L./lib -lpoint
+// install glut: sudo apt-get install freeglut3
 
 #include <cstdio>
 #include <mcheck.h>
