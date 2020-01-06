@@ -8,7 +8,7 @@
 static int s_count = 0;
 
 /******************************************************************************/
-/*** typedef to structs *******************************************************/
+/*** structs ******************************************************************/
 /******************************************************************************/
 
 typedef struct PublicTransport PublicTransport_t;
@@ -110,6 +110,10 @@ void PrintInfoPublicTransport(PublicTransport_t *a);
 void PrintInfoCount();
 void PrintInfoMinibus(Minibus_t *m);
 void PrintInfoInt(PublicTransport_t* ret_publict, int i);
+
+/******************************************************************************/
+/*** vtables init *************************************************************/
+/******************************************************************************/
 
 vtable_PublicTransport_t vtable_PublicTransport = {
     .dtor = PublicTransportDtor,
@@ -295,7 +299,7 @@ void PublicConvoyCCtor(PublicConvoy_t *this, PublicConvoy_t *other)
 }
 
 /******************************************************************************/
-/*** methods and global functions *********************************************/
+/*** function definitions *****************************************************/
 /******************************************************************************/
 
 int GetID(PublicTransport_t* this)
@@ -376,6 +380,10 @@ void PrintInfoInt(PublicTransport_t* ret_publict, int i)
     PublicTransportCCtor(ret_publict, (PublicTransport_t*)&ret);
     MinibusDtor((PublicTransport_t*)&ret);
 }
+
+/******************************************************************************/
+/*** main *********************************************************************/
+/******************************************************************************/
 
 int main()
 {
