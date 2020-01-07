@@ -346,13 +346,17 @@ void PublicConvoyDisplay(PublicTransport_t *this)
 
     ((vtable_Minibus_t*)(this_p->m_pt1->vtable))->display(this_p->m_pt1);
     ((vtable_Taxi_t*)(this_p->m_pt2->vtable))->display(this_p->m_pt2);
-    ((vtable_Minibus_t*)(this_p->m_m.PublicTransport.vtable))->display((PublicTransport_t*)&this_p->m_m);
-    ((vtable_Taxi_t*)(this_p->m_t.PublicTransport.vtable))->display((PublicTransport_t*)&this_p->m_t);
+
+    MinibusDisplay((PublicTransport_t*)&this_p->m_m);
+    TaxiDisplay((PublicTransport_t*)&this_p->m_t);
+    // ((vtable_Minibus_t*)(this_p->m_m.PublicTransport.vtable))->display((PublicTransport_t*)&this_p->m_m);
+    // ((vtable_Taxi_t*)(this_p->m_t.PublicTransport.vtable))->display((PublicTransport_t*)&this_p->m_t);
 }
 
 void TaxiDisplayGlobal(Taxi_t s)
 {
-    ((vtable_Taxi_t*)(s.PublicTransport.vtable))->display((PublicTransport_t*)&s);
+    TaxiDisplay((PublicTransport_t*)&s);
+    // ((vtable_Taxi_t*)(s.PublicTransport.vtable))->display((PublicTransport_t*)&s);
 }
 
 void PrintInfoPublicTransport(PublicTransport_t *a)
@@ -375,8 +379,9 @@ void PrintInfoInt(PublicTransport_t* ret_publict, int i)
     UNUSED(i);
     Minibus_t ret;
     MinibusCtor(&ret);
-    printf("print_info(int i)\n");   
-    ((vtable_Minibus_t*)(ret.PublicTransport.vtable))->display((PublicTransport_t*)&ret);
+    printf("print_info(int i)\n");
+    MinibusDisplay((PublicTransport_t*)&ret);
+    // ((vtable_Minibus_t*)(ret.PublicTransport.vtable))->display((PublicTransport_t*)&ret);
     PublicTransportCCtor(ret_publict, (PublicTransport_t*)&ret);
     MinibusDtor((PublicTransport_t*)&ret);
 }
@@ -397,7 +402,8 @@ int main()
     // print_info(3).display();
     PublicTransport_t temp_p; // no ctor since cctor will be called next
     PrintInfoInt(&temp_p, 3);
-    ((vtable_PublicTransport_t*)(temp_p.vtable))->display(&temp_p);
+    PublicTransportDisplay(&temp_p);
+    // ((vtable_PublicTransport_t*)(temp_p.vtable))->display(&temp_p);
     ((vtable_PublicTransport_t*)(temp_p.vtable))->dtor(&temp_p);
 
     // PublicTransport *array[] = { new Minibus(), new Taxi(), new Minibus() };
@@ -474,7 +480,8 @@ int main()
     // }
 
     for (int i = 0; i < 3; ++i) {
-        ((vtable_PublicTransport_t*)(arr2[i].vtable))->display(&arr2[i]);
+        PublicTransportDisplay(&arr2[i]);
+        // ((vtable_PublicTransport_t*)(arr2[i].vtable))->display(&arr2[i]);
     }   
 
     // print_info(arr2[0]);
@@ -572,9 +579,14 @@ int main()
     }
 
     ((vtable_Minibus_t*)(m_2.PublicTransport.vtable))->dtor((PublicTransport_t*)&m_2);
-    ((vtable_PublicTransport_t*)(publict1.vtable))->dtor(&publict1);
-    ((vtable_PublicTransport_t*)(taxi1_p.vtable))->dtor(&taxi1_p);
-    ((vtable_PublicTransport_t*)(minibus1_p.vtable))->dtor(&minibus1_p);
+
+    for (int i = 0; i < 3; ++i) {
+        ((vtable_PublicTransport_t*)(arr2[4 - 1 - i].vtable))->dtor((PublicTransport_t*)&arr2[3 - 1 - i]);
+    }
+
+    // ((vtable_PublicTransport_t*)(publict1.vtable))->dtor(&publict1);
+    // ((vtable_PublicTransport_t*)(taxi1_p.vtable))->dtor(&taxi1_p);
+    // ((vtable_PublicTransport_t*)(minibus1_p.vtable))->dtor(&minibus1_p);
     ((vtable_Minibus_t*)(m.PublicTransport.vtable))->dtor((PublicTransport_t*)&m);
 
     return 0;
