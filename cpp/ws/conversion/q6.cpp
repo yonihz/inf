@@ -27,7 +27,7 @@ X::operator unsigned int()
     return m_a;
 }
 
-void Fifi(int x_)
+void Fifi(double x_)
 {
     std::cout << x_ << std::endl;
 }
