@@ -19,7 +19,7 @@ typedef struct PublicConvoy PublicConvoy_t;
 
 struct PublicTransport {
     void *vtable;
-    int (*get_id)(PublicTransport_t *this);
+    int (*get_id)(PublicTransport_t *const this);
     void (*print_count)(void);
     int m_license_plate;
 };
@@ -50,62 +50,64 @@ struct PublicConvoy {
 /******************************************************************************/
 
 typedef struct {
-    void (*dtor)(PublicTransport_t *this);
-    void (*display)(PublicTransport_t *this);
+    void (*dtor)(PublicTransport_t *const this);
+    void (*display)(PublicTransport_t *const this);
 } vtable_PublicTransport_t;
 
 typedef struct {
-    void (*dtor)(PublicTransport_t *this);
-    void (*display)(PublicTransport_t *this);
+    void (*dtor)(PublicTransport_t *const this);
+    void (*display)(PublicTransport_t *const this);
 } vtable_Taxi_t;
 
 typedef struct {
-    void (*dtor)(PublicTransport_t *this);
-    void (*display)(PublicTransport_t *this);
-    void (*wash)(Minibus_t *this, int minutes);
+    void (*dtor)(PublicTransport_t *const this);
+    void (*display)(PublicTransport_t *const this);
+    void (*wash)(Minibus_t *const this, int minutes);
 } vtable_Minibus_t;
 
 typedef struct {
-    void (*dtor)(PublicTransport_t *this);
-    void (*display)(PublicTransport_t *this);
+    void (*dtor)(PublicTransport_t *const this);
+    void (*display)(PublicTransport_t *const this);
 } vtable_SpecialTaxi_t;
 
 typedef struct {
-    void (*dtor)(PublicTransport_t *this);
-    void (*display)(PublicTransport_t *this);
+    void (*dtor)(PublicTransport_t *const this);
+    void (*display)(PublicTransport_t *const this);
 } vtable_PublicConvoy_t;
 
 /******************************************************************************/
 /*** function declarations ****************************************************/
 /******************************************************************************/
 
-void PublicTransportCtor(PublicTransport_t *this);
-void TaxiCtor(Taxi_t *this);
-void MinibusCtor(Minibus_t *this);
-void SpecialTaxiCtor(SpecialTaxi_t *this);
-void PublicConvoyCtor(PublicConvoy_t *this);
+void PublicTransportCtor(PublicTransport_t *const this);
+void PublicTransportCCtor(PublicTransport_t *const this, PublicTransport_t *const other);
+void PublicTransportDtor(PublicTransport_t *const this);
+void PublicTransportDisplay(PublicTransport_t *const this);
 
-void PublicTransportDtor(PublicTransport_t *this);
-void TaxiDtor(PublicTransport_t *this);
-void MinibusDtor(PublicTransport_t *this);
-void SpecialTaxiDtor(PublicTransport_t *this);
-void PublicConvoyDtor(PublicTransport_t *this);
+void TaxiCtor(Taxi_t *const this);
+void TaxiCCtor(Taxi_t *const this, Taxi_t *const other);
+void TaxiDtor(PublicTransport_t *const this);
+void TaxiDisplay(PublicTransport_t *const this);
 
-void PublicTransportCCtor(PublicTransport_t *this, PublicTransport_t *other);
-void MinibusCCtor(Minibus_t *this, Minibus_t *other);
-void TaxiCCtor(Taxi_t *this, Taxi_t *other);
-void SpecialTaxiCCtor(SpecialTaxi_t *this, SpecialTaxi_t *other);
-void PublicConvoyCCtor(PublicConvoy_t *this, PublicConvoy_t *other);
+void MinibusCtor(Minibus_t *const this);
+void MinibusCCtor(Minibus_t *const this, Minibus_t *const other);
+void MinibusDtor(PublicTransport_t *const this);
+void MinibusWash(Minibus_t *const this, int minutes);
+void MinibusDisplay(PublicTransport_t *const this);
 
-int GetID(PublicTransport_t* this);
+void SpecialTaxiCtor(SpecialTaxi_t *const this);
+void SpecialTaxiCCtor(SpecialTaxi_t *const this, SpecialTaxi_t *const other);
+void SpecialTaxiDtor(PublicTransport_t *const this);
+void SpecialTaxiDisplay(PublicTransport_t *const this);
+
+void PublicConvoyCtor(PublicConvoy_t *const this);
+void PublicConvoyCCtor(PublicConvoy_t *const this, PublicConvoy_t *const other);
+void PublicConvoyDtor(PublicTransport_t *const this);
+void PublicConvoyDisplay(PublicTransport_t *const this);
+
+int GetID(PublicTransport_t *const this);
 static void PrintCount();
-void MinibusWash(Minibus_t *this, int minutes);
-void PublicTransportDisplay(PublicTransport_t *this);
-void MinibusDisplay(PublicTransport_t *this);
-void TaxiDisplay(PublicTransport_t *this);
-void SpecialTaxiDisplay(PublicTransport_t *this);
-void PublicConvoyDisplay(PublicTransport_t *this);
-void TaxiDisplayGlobal(Taxi_t s);
+void TaxiDisplayTaxi(Taxi_t s);
 void PrintInfoPublicTransport(PublicTransport_t *a);
 void PrintInfoCount();
 void PrintInfoMinibus(Minibus_t *m);
@@ -137,10 +139,10 @@ vtable_PublicConvoy_t vtable_PublicConvoy = {
     .display = PublicConvoyDisplay};
 
 /******************************************************************************/
-/*** Ctors ********************************************************************/
+/*** PublicTransport methods **************************************************/
 /******************************************************************************/
 
-void PublicTransportCtor(PublicTransport_t *this)
+void PublicTransportCtor(PublicTransport_t *const this)
 {
     this->vtable = &vtable_PublicTransport;
     this->print_count = PrintCount;
@@ -151,7 +153,45 @@ void PublicTransportCtor(PublicTransport_t *this)
     printf("PublicTransport::Ctor() %d\n", this->m_license_plate);
 }
 
-void TaxiCtor(Taxi_t *this)
+void PublicTransportCCtor(PublicTransport_t *const this, PublicTransport_t *const other)
+{
+    UNUSED(other);
+    this->vtable = &vtable_PublicTransport;
+    this->print_count = PrintCount;
+    this->get_id = GetID;
+
+    ++s_count;
+    this->m_license_plate = s_count;
+    printf("PublicTransport::CCtor() %d\n", this->m_license_plate);
+}
+
+void PublicTransportDtor(PublicTransport_t *const this)
+{
+    --s_count;
+    printf("PublicTransport::Dtor() %d\n", this->m_license_plate);
+}
+
+void PublicTransportDisplay(PublicTransport_t *const this)
+{
+    printf("PublicTransport::display(): %d\n", this->m_license_plate);
+}
+
+int GetID(PublicTransport_t *const this)
+{
+    return this->m_license_plate;
+}
+
+/* static member function - global in c */
+static void PrintCount()
+{
+    printf("s_count: %d\n", s_count);
+}
+
+/******************************************************************************/
+/*** Taxi methods *************************************************************/
+/******************************************************************************/
+
+void TaxiCtor(Taxi_t *const this)
 {
     PublicTransportCtor((PublicTransport_t*)this);
     this->PublicTransport.vtable = &vtable_Taxi;
@@ -159,7 +199,31 @@ void TaxiCtor(Taxi_t *this)
     printf("Taxi::Ctor()\n");
 }
 
-void MinibusCtor(Minibus_t *this)
+void TaxiCCtor(Taxi_t *const this, Taxi_t *const other)
+{
+    PublicTransportCCtor((PublicTransport_t*)this,(PublicTransport_t*)other);
+    this->PublicTransport.vtable = &vtable_Taxi;
+
+    printf("Taxi::CCtor()\n");
+}
+
+void TaxiDtor(PublicTransport_t *const this)
+{
+    printf("Taxi::Dtor()\n");
+
+    PublicTransportDtor(this);
+}
+
+void TaxiDisplay(PublicTransport_t *const this)
+{
+    printf("Taxi::display() ID: %d\n", GetID(this));
+}
+
+/******************************************************************************/
+/*** Minibus methods **********************************************************/
+/******************************************************************************/
+
+void MinibusCtor(Minibus_t *const this)
 {
     PublicTransportCtor((PublicTransport_t*)this);
     this->PublicTransport.vtable = &vtable_Minibus;
@@ -168,7 +232,39 @@ void MinibusCtor(Minibus_t *this)
     printf("Minibus::Ctor()\n");
 }
 
-void SpecialTaxiCtor(SpecialTaxi_t *this)
+void MinibusCCtor(Minibus_t *const this, Minibus_t *const other)
+{
+    PublicTransportCCtor((PublicTransport_t*)this,(PublicTransport_t*)other);
+    this->PublicTransport.vtable = &vtable_Minibus;
+
+    this->m_numSeats = other->m_numSeats;
+    printf("Minibus::CCtor()\n");
+}
+
+void MinibusDtor(PublicTransport_t *const this)
+{
+    printf("Minibus::Dtor()\n");
+
+    PublicTransportDtor(this);
+}
+
+void MinibusDisplay(PublicTransport_t *const this)
+{
+    Minibus_t *this_m = (Minibus_t*)this;
+    printf("Minibus::display() ID: %d", GetID(this));
+    printf(" num seats: %d\n", this_m->m_numSeats);
+}
+
+void MinibusWash(Minibus_t *const this, int minutes)
+{
+    printf("Minibus::wash(%d) ID: %d\n", minutes, GetID((PublicTransport_t*)this));
+}
+
+/******************************************************************************/
+/*** SpecialTaxi methods ******************************************************/
+/******************************************************************************/
+
+void SpecialTaxiCtor(SpecialTaxi_t *const this)
 {
     TaxiCtor((Taxi_t*)this);
     this->Taxi.PublicTransport.vtable = &vtable_SpecialTaxi;
@@ -176,7 +272,31 @@ void SpecialTaxiCtor(SpecialTaxi_t *this)
     printf("SpecialTaxi::Ctor()\n");
 }
 
-void PublicConvoyCtor(PublicConvoy_t *this)
+void SpecialTaxiCCtor(SpecialTaxi_t *const this, SpecialTaxi_t *const other)
+{
+    TaxiCCtor((Taxi_t*)this,(Taxi_t*)other);
+    this->Taxi.PublicTransport.vtable = &vtable_SpecialTaxi;
+
+    printf("SpecialTaxi::CCtor()\n");
+}
+
+void SpecialTaxiDtor(PublicTransport_t *const this)
+{
+    printf("SpecialTaxi::Dtor()\n");
+
+    TaxiDtor(this);
+}
+
+void SpecialTaxiDisplay(PublicTransport_t *const this)
+{
+    printf("SpecialTaxi::display() ID: %d\n", GetID(this));
+}
+
+/******************************************************************************/
+/*** PublicConvoy methods *****************************************************/
+/******************************************************************************/
+
+void PublicConvoyCtor(PublicConvoy_t *const this)
 {
     PublicTransportCtor((PublicTransport_t*)this);
     this->PublicTransport.vtable = &vtable_PublicConvoy;
@@ -192,38 +312,18 @@ void PublicConvoyCtor(PublicConvoy_t *this)
     TaxiCtor(&(this->m_t));
 }
 
-/******************************************************************************/
-/*** Dtors ********************************************************************/
-/******************************************************************************/
-
-void PublicTransportDtor(PublicTransport_t *this)
+void PublicConvoyCCtor(PublicConvoy_t *const this, PublicConvoy_t *const other)
 {
-    --s_count;
-    printf("PublicTransport::Dtor() %d\n", this->m_license_plate);
+    PublicTransportCCtor((PublicTransport_t*)this,(PublicTransport_t*)other);
+    this->PublicTransport.vtable = &vtable_PublicConvoy;
+
+    this->m_pt1 = other->m_pt1;
+    this->m_pt2 = other->m_pt2;
+    MinibusCCtor(&(this->m_m), &(other->m_m));
+    TaxiCCtor(&(this->m_t), &(other->m_t));
 }
 
-void TaxiDtor(PublicTransport_t *this)
-{
-    printf("Taxi::Dtor()\n");
-
-    PublicTransportDtor(this);
-}
-
-void MinibusDtor(PublicTransport_t *this)
-{
-    printf("Minibus::Dtor()\n");
-
-    PublicTransportDtor(this);
-}
-
-void SpecialTaxiDtor(PublicTransport_t *this)
-{
-    printf("SpecialTaxi::Dtor()\n");
-
-    TaxiDtor(this);
-}
-
-void PublicConvoyDtor(PublicTransport_t *this)
+void PublicConvoyDtor(PublicTransport_t *const this)
 {
     PublicConvoy_t *this_p = (PublicConvoy_t*)this;
 
@@ -246,101 +346,7 @@ void PublicConvoyDtor(PublicTransport_t *this)
     PublicTransportDtor(this);
 }
 
-/******************************************************************************/
-/*** CCtors *******************************************************************/
-/******************************************************************************/
-
-void PublicTransportCCtor(PublicTransport_t *this, PublicTransport_t *other)
-{
-    UNUSED(other);
-    this->vtable = &vtable_PublicTransport;
-    this->print_count = PrintCount;
-    this->get_id = GetID;
-
-    ++s_count;
-    this->m_license_plate = s_count;
-    printf("PublicTransport::CCtor() %d\n", this->m_license_plate);
-}
-
-void MinibusCCtor(Minibus_t *this, Minibus_t *other)
-{
-    PublicTransportCCtor((PublicTransport_t*)this,(PublicTransport_t*)other);
-    this->PublicTransport.vtable = &vtable_Minibus;
-
-    this->m_numSeats = other->m_numSeats;
-    printf("Minibus::CCtor()\n");
-}
-
-void TaxiCCtor(Taxi_t *this, Taxi_t *other)
-{
-    PublicTransportCCtor((PublicTransport_t*)this,(PublicTransport_t*)other);
-    this->PublicTransport.vtable = &vtable_Taxi;
-
-    printf("Taxi::CCtor()\n");
-}
-
-void SpecialTaxiCCtor(SpecialTaxi_t *this, SpecialTaxi_t *other)
-{
-    TaxiCCtor((Taxi_t*)this,(Taxi_t*)other);
-    this->Taxi.PublicTransport.vtable = &vtable_SpecialTaxi;
-
-    printf("SpecialTaxi::CCtor()\n");
-}
-
-void PublicConvoyCCtor(PublicConvoy_t *this, PublicConvoy_t *other)
-{
-    PublicTransportCCtor((PublicTransport_t*)this,(PublicTransport_t*)other);
-    this->PublicTransport.vtable = &vtable_PublicConvoy;
-
-    this->m_pt1 = other->m_pt1;
-    this->m_pt2 = other->m_pt2;
-    MinibusCCtor(&(this->m_m), &(other->m_m));
-    TaxiCCtor(&(this->m_t), &(other->m_t));
-}
-
-/******************************************************************************/
-/*** function definitions *****************************************************/
-/******************************************************************************/
-
-int GetID(PublicTransport_t* this)
-{
-    return this->m_license_plate;
-}
-
-/* static member function - global in c */
-static void PrintCount()
-{
-    printf("s_count: %d\n", s_count);
-}
-
-void MinibusWash(Minibus_t *this, int minutes)
-{
-    printf("Minibus::wash(%d) ID: %d\n", minutes, GetID((PublicTransport_t*)this));
-}
-
-void PublicTransportDisplay(PublicTransport_t *this)
-{
-    printf("PublicTransport::display(): %d\n", this->m_license_plate);
-}
-
-void MinibusDisplay(PublicTransport_t *this)
-{
-    Minibus_t *this_m = (Minibus_t*)this;
-    printf("Minibus::display() ID: %d", GetID(this));
-    printf(" num seats: %d\n", this_m->m_numSeats);
-}
-
-void TaxiDisplay(PublicTransport_t *this)
-{
-    printf("Taxi::display() ID: %d\n", GetID(this));
-}
-
-void SpecialTaxiDisplay(PublicTransport_t *this)
-{
-    printf("SpecialTaxi::display() ID: %d\n", GetID(this));
-}
-
-void PublicConvoyDisplay(PublicTransport_t *this)
+void PublicConvoyDisplay(PublicTransport_t *const this)
 {
     PublicConvoy_t *this_p = (PublicConvoy_t*)this;
 
@@ -353,7 +359,11 @@ void PublicConvoyDisplay(PublicTransport_t *this)
     // ((vtable_Taxi_t*)(this_p->m_t.PublicTransport.vtable))->display((PublicTransport_t*)&this_p->m_t);
 }
 
-void TaxiDisplayGlobal(Taxi_t s)
+/******************************************************************************/
+/*** global functions *********************************************************/
+/******************************************************************************/
+
+void TaxiDisplayTaxi(Taxi_t s)
 {
     TaxiDisplay((PublicTransport_t*)&s);
     // ((vtable_Taxi_t*)(s.PublicTransport.vtable))->display((PublicTransport_t*)&s);
@@ -364,7 +374,7 @@ void PrintInfoPublicTransport(PublicTransport_t *a)
     ((vtable_PublicTransport_t*)(a->vtable))->display(a);
 }
 
-void PrintInfoCount()
+void PrintInfoVoid()
 {
     PrintCount();
 }
@@ -525,8 +535,8 @@ int main()
     // std::cout << max_func(1, 2) << "\n";
     // std::cout << max_func<int>(1, 2.0f)<< "\n";
 
-    printf("%d\n", MAX_FUNC(1, 2));
-    printf("%d\n", MAX_FUNC((int)1, (int)2.0f));
+    printf("%d\n", (((1) > (2)) ? (1) : (2)));
+    printf("%d\n", (((int)1) > ((int)2.0f)) ? ((int)1) : ((int)2.0f));
 
     // SpecialTaxi st;
     // taxi_display(st);
@@ -536,7 +546,7 @@ int main()
 
     Taxi_t st_t;
     TaxiCCtor(&st_t, (Taxi_t*)&st);
-    TaxiDisplayGlobal(st_t);
+    TaxiDisplayTaxi(st_t);
     ((vtable_Taxi_t*)(st_t.PublicTransport.vtable))->dtor((PublicTransport_t*)&st_t);
 
     // PublicConvoy *ts1 = new PublicConvoy();
