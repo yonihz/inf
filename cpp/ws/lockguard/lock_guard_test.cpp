@@ -1,52 +1,70 @@
 #include <iostream>
 #include <mutex>
+#include <thread>
+#include <vector>
 
 #include "lock_guard.hpp"
-#include "thread.hpp"
 
-#define COUNTER_SIZE 10
-#define NPRODUCERS 4
+void ProducerThread();
+void ConsumerThread();
 
-using namespace ilrd;
-
-LockGuard<std::mutex> lg(std::mutex);
+std::mutex mutex_lock;
 size_t counter;
+const size_t counter_size = 100;
 
 int main()
 {
-    Thread th_array[NPRODUCERS] = {
-        Thread(producer, NULL),
-        Thread(producer, NULL),
-        Thread(producer, NULL),
-        Thread(producer, NULL)};
+    const size_t nproducers = 10;
+    const size_t nconsumers = 10;
+    
+    std::vector<std::thread> producer_vector;
+    std::vector<std::thread> consumer_vector;
 
-    for (size_t i = 0; i < NPRODUCERS; ++i)
+    for (size_t i = 0; i < nproducers; ++i)
     {
-        th_array[i].Join();
+        producer_vector.push_back(std::thread(ProducerThread));
+    }
+
+    for (size_t i = 0; i < nconsumers; ++i)
+    {
+        consumer_vector.push_back(std::thread(ConsumerThread));
+    }
+
+    for (size_t i = 0; i < nproducers; ++i)
+    {
+        producer_vector[i].join();
+    }
+
+    for (size_t i = 0; i < nconsumers; ++i)
+    {
+        consumer_vector[i].join();
     }
 
     return 0;
 }
 
-void *producer(void *)
+void ProducerThread()
 {
-    while (counter < COUNTER_SIZE)
+    while (counter < counter_size)
     {
-        int data = 1;
-
-        pthread_mutex_lock(&lock);        
+        ilrd::LockGuard<std::mutex> lg(mutex_lock); 
 
         /* start of critical section */
-        std::cout << "Thread ID: " << 
-        QEnqueue(queue, &data);
-        printf("Producer %lu, counter %lu, Queue_size %lu\n", thread_id, counter, QSize(queue));
-        is_empty = 0;
-        counter++;
+        std::cout << "Producer Thread ID: " << std::this_thread::get_id() << " counter: " << counter << std::endl;
+        ++counter;
         /* end of critical section */
-
-        pthread_mutex_unlock(&lock);
-        sleep(0);
     }
+}
 
-    return (NULL);
+void ConsumerThread()
+{
+    while (counter < counter_size)
+    {
+        ilrd::LockGuard<std::mutex> lg(mutex_lock); 
+
+        /* start of critical section */
+        std::cout << "Consumer Thread ID: " << std::this_thread::get_id() << " counter: " << counter << std::endl;
+        ++counter;
+        /* end of critical section */
+    }
 }

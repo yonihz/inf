@@ -22,13 +22,13 @@ template<typename Resource, void(Resource::*Acquire)(), void(Resource::*Release)
 ScopeGuard<Resource, Acquire, Release>::ScopeGuard(Resource& resource_)
     : m_resource(resource_)
 {
-    resource_.Acquire();
+    (m_resource.*Acquire)();
 }
 
 template<typename Resource, void(Resource::*Acquire)(), void(Resource::*Release)()>
 ScopeGuard<Resource, Acquire, Release>::~ScopeGuard()
 {
-    resource_.Release();
+    (m_resource.*Release)();
 }
 
 } //namespace ilrd

@@ -22,13 +22,13 @@ template<typename Lockable>
 LockGuard<Lockable>::LockGuard(Lockable& lockable_)
     : m_lockable(lockable_)
 {
-    m_lockable_.lock();
+    m_lockable.lock();
 }
 
 template<typename Lockable>
 LockGuard<Lockable>::~LockGuard()
 {
-    m_lockable_.unlock();
+    m_lockable.unlock();
 }
 
 } //namespace ilrd
