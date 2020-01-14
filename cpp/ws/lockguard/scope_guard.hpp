@@ -18,6 +18,19 @@ private:
     const ScopeGuard& operator=(const ScopeGuard&);
 };
 
+template<typename Resource, void(Resource::*Acquire)(), void(Resource::*Release)()>
+ScopeGuard<Resource, Acquire, Release>::ScopeGuard(Resource& resource_)
+    : m_resource(resource_)
+{
+    resource_.Acquire();
+}
+
+template<typename Resource, void(Resource::*Acquire)(), void(Resource::*Release)()>
+ScopeGuard<Resource, Acquire, Release>::~ScopeGuard()
+{
+    resource_.Release();
+}
+
 } //namespace ilrd
 
 #endif // _ILRD_RD743_SCOPE_GUARD_HPP_
