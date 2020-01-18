@@ -54,6 +54,19 @@
         "ctime": "cpp",
         "functional": "cpp",
         "numeric": "cpp",
-        "list": "cpp"
+        "list": "cpp",
+        "csignal": "cpp",
+        "strstream": "cpp",
+        "bitset": "cpp",
+        "chrono": "cpp",
+        "complex": "cpp",
+        "ratio": "cpp",
+        "iomanip": "cpp",
+        "mutex": "cpp",
+        "thread": "cpp",
+        "cfenv": "cpp",
+        "cinttypes": "cpp",
+        "typeindex": "cpp",
+        "*.ipp": "cpp"
     }
 }

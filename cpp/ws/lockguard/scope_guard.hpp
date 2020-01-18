@@ -1,11 +1,13 @@
 #ifndef _ILRD_RD743_SCOPE_GUARD_HPP_
 #define _ILRD_RD743_SCOPE_GUARD_HPP_
 
+#include <boost/core/noncopyable.hpp>
+
 namespace ilrd
 {
 
 template<typename Resource, void(Resource::*Acquire)(), void(Resource::*Release)()>
-class ScopeGuard
+class ScopeGuard : private boost::noncopyable
 {    
 public:
     explicit ScopeGuard(Resource& resource_);

@@ -19,6 +19,9 @@ public:
     void* Join();
     void Detach();
     size_t GetID() const;
+    static size_t GetIDSelf();
+
+    //static function get self id
 
 private:
     pthread_t m_id;
@@ -37,7 +40,7 @@ public:
         Attr(const pthread_attr_t& attr_);
         ~Attr();
 
-        pthread_attr_t *GetAttr();
+        pthread_attr_t &GetAttr();
 
     private:
         pthread_attr_t attr;

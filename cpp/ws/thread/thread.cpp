@@ -2,6 +2,8 @@
 
 #include <errno.h>
 
+enum {SUCCESS = 0};
+
 namespace ilrd
 {
 
@@ -17,13 +19,22 @@ Thread::Attr Thread::default_attr;
  * @throw NoResource in case of Insufficient resources to create a thread
  * @throw InvalidAttr in case of Invalid settings in attr_
  * @throw NoPremission in case of No permission to set the parameters specified in attr_
+ * @throw ThreadException in case of unexpected error
  */
 
 Thread::Thread(void*(*start_routine_)(void*), void* args_, Attr& attr_)
-    : m_joinable(true)
 {   
-    switch(pthread_create(&m_id, attr_.GetAttr(), start_routine_, args_))
+    // get detach state from attr_ and set m_joinable
+    int detach_state;
+    pthread_attr_getdetachstate(&attr_.GetAttr(), &detach_state);
+    m_joinable = (detach_state == PTHREAD_CREATE_JOINABLE);
+
+    switch(pthread_create(&m_id, &attr_.GetAttr(), start_routine_, args_))
     {
+        case SUCCESS:
+        {
+            break;
+        }
         case EAGAIN:
         {
             throw NoResource();
@@ -41,6 +52,7 @@ Thread::Thread(void*(*start_routine_)(void*), void* args_, Attr& attr_)
         }
         default:
         {
+            throw ThreadException();
             break;
         }
     }
@@ -56,6 +68,7 @@ Thread::~Thread()
     if (true == m_joinable)
     {
         pthread_cancel(m_id);
+        pthread_join(m_id, NULL);
     }
 }
 /**
@@ -65,7 +78,7 @@ Thread::~Thread()
  * 
  * @throw NonJoinable in case of Thread is not joinable or another thread is already waiting to join with this Thread
  * @throw Deadlock in case of A deadlock  was  detected or Thread specifies the calling Thread
- * @throw ThreadException in case of No thread with the ID thread could be found
+ * @throw ThreadException in case of unexpceted error
  */
 
 void* Thread::Join()
@@ -74,6 +87,11 @@ void* Thread::Join()
     
     switch(pthread_join(m_id, &thread_return))
     {
+        case SUCCESS:
+        {
+            m_joinable = false; // used for check in dtor
+            break;
+        }
         case EDEADLK:
         {
             throw Deadlock();
@@ -91,7 +109,7 @@ void* Thread::Join()
         }
         default:
         {
-            m_joinable = false;
+            throw ThreadException();
             break;
         }
     }
@@ -111,6 +129,11 @@ void Thread::Detach()
 {  
     switch(pthread_detach(m_id))
     {
+        case SUCCESS:
+        {
+            m_joinable = false; // used for check in dtor
+            break;
+        }    
         case EINVAL:
         {
             throw NonJoinable();
@@ -123,7 +146,7 @@ void Thread::Detach()
         }
         default:
         {
-            m_joinable = false;
+            throw ThreadException();
             break;
         }
     }
@@ -168,7 +191,7 @@ Thread::Attr::Attr(const pthread_attr_t& attr_)
 
 Thread::Attr::~Attr()
 {
-    pthread_attr_destroy(GetAttr());
+    pthread_attr_destroy(&GetAttr());
 }
 
 /**
@@ -177,9 +200,14 @@ Thread::Attr::~Attr()
  * @return pthread_attr_t* pointer to attributes structure
  */
 
-pthread_attr_t *Thread::Attr::GetAttr()
+pthread_attr_t &Thread::Attr::GetAttr()
 {
-    return &attr;
+    return attr;
+}
+
+size_t Thread::GetIDSelf()
+{
+    return pthread_self();
 }
 
 } //namespace ilrd

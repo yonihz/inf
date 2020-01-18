@@ -1,11 +1,13 @@
 #ifndef _ILRD_RD743_LOCK_GUARD_HPP_
 #define _ILRD_RD743_LOCK_GUARD_HPP_
 
+#include <boost/core/noncopyable.hpp>
+
 namespace ilrd
 {
 
 template<typename Lockable>
-class LockGuard
+class LockGuard : private boost::noncopyable
 {    
 public:
     explicit LockGuard(Lockable& lockable_);

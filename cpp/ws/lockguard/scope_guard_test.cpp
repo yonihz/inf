@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include <mutex>
 
 #include "scope_guard.hpp"
 
@@ -43,7 +42,17 @@ int main ()
         ilrd::ScopeGuard<File, &File::Acquire, &File::Release> sg(file1);
 
         file1.GetFile() << "Hello\n";
-        file1.GetFile() << "la la la\n";
+        file1.GetFile() << "Goodbye\n";
         std::cout << "end of scope\n";
     }
+
+    {
+        std::cout << "start of scope\n";
+        ilrd::ScopeGuard<File, &File::Acquire, &File::Release> sg(file1);
+
+        file1.GetFile() << "Hello\n";
+        file1.GetFile() << "Goodbye\n";
+        std::cout << "end of scope\n";
+    }
+
 }

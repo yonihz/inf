@@ -3,40 +3,47 @@
 
 #include "thread.hpp"
 
+#define RED   "\x1B[31m"
+#define GRN   "\x1B[32m"
+#define MAG  "\x1B[35m"
+#define RESET "\x1B[0m"
+
+void REQUIRE(bool test, const char test_name[])
+{
+	(true == test) ?
+	std::cout << GRN << "TEST PASS: " << test_name << std::endl :
+	std::cout << RED << "TEST FAIL: " << test_name << std::endl;
+    std::cout << RESET;
+}
+
+using namespace ilrd;
+
 void *TestThread1(void *arg);
 void *TestThread2(void *arg);
 
 void TestNoLeaks();
-void TestGetID();
 void TestExceptionDetachJoin();
 void TestExceptionDoubleJoin();
 void TestExceptionJoinDetach();
-void TestExceptionDeadlock();
 void TestExceptionMemory();
 
 int main()
 {
     TestNoLeaks();
-    // TestGetID();
-    // TestExceptionDetachJoin();
-    // TestExceptionDoubleJoin();
-    // TestExceptionJoinDetach();
-    // TestExceptionDeadlock();
-    // TestExceptionMemory();
+    TestExceptionDetachJoin();
+    TestExceptionDoubleJoin();
+    TestExceptionJoinDetach();
+    TestExceptionMemory();
 
     return 0;
 }
 
-void TestExceptionDeadlock()
+void TestNoLeaks()
 {
-    try
-    {
-        ilrd::Thread th1(TestThread2, NULL);
-    }
-    catch(const ilrd::ThreadException& e)
-    {
-        std::cerr << e.what() << std::endl;
-    }
+    std::cout << "Test is successful if valgrind shows no leaks" << std::endl;
+    ilrd::Thread th1(TestThread2, NULL);
+    std::cout << "Thread ID: " << th1.GetID() << std::endl; 
+    sleep(2);
 }
 
 void TestExceptionDetachJoin()
@@ -49,6 +56,9 @@ void TestExceptionDetachJoin()
     }
     catch(const ilrd::ThreadException& e)
     {
+        REQUIRE(static_cast<std::string>(e.what()) == 
+            static_cast<std::string>(ilrd::NonJoinable().what()),
+            "Join after Detach");
         std::cerr << e.what() << std::endl;
     }
 }
@@ -63,6 +73,9 @@ void TestExceptionJoinDetach()
     }
     catch(const ilrd::ThreadException& e)
     {
+        REQUIRE(static_cast<std::string>(e.what()) == 
+        static_cast<std::string>(ilrd::ThreadException().what()),
+        "Detach after join");
         std::cerr << e.what() << std::endl;
     }
 }
@@ -77,39 +90,29 @@ void TestExceptionDoubleJoin()
     }
     catch(const ilrd::ThreadException& e)
     {
+        REQUIRE(static_cast<std::string>(e.what()) == 
+        static_cast<std::string>(ilrd::ThreadException().what()),
+        "Double Join");        
         std::cerr << e.what() << std::endl;
     }
 }
 
-void TestGetID()
-{
-    ilrd::Thread th1(TestThread1, NULL);
-    ilrd::Thread th2(TestThread1, NULL);
-    std::cout << th1.GetID() << std::endl;
-    std::cout << th2.GetID() << std::endl;
-}
-
-void TestNoLeaks()
-{
-    ilrd::Thread th1(TestThread1, NULL);
-    ilrd::Thread th2(TestThread1, NULL);
-    ilrd::Thread th3(TestThread1, NULL);
-    ilrd::Thread th4(TestThread1, NULL);
-    ilrd::Thread th5(TestThread1, NULL);
-}
-
 void TestExceptionMemory()
 {
-    std::cout << "test 100k threads" << std::endl;
     try
     {
-        for (size_t i = 0; i < 100000; ++i)
-        {
-            ilrd::Thread(TestThread1, NULL);
-        }
+        pthread_attr_t pattr;
+        pthread_attr_init(&pattr);
+        pthread_attr_setstacksize(&pattr, 1e10);
+        Thread::Attr attr(pattr);
+
+        ilrd::Thread(TestThread1, NULL, attr);
     }
     catch(const std::exception& e)
     {
+        REQUIRE(static_cast<std::string>(e.what()) == 
+        static_cast<std::string>(ilrd::NoResource().what()),
+        "Insufficient resources");                
         std::cerr << e.what() << '\n';
     }
 }
@@ -117,15 +120,14 @@ void TestExceptionMemory()
 void *TestThread1(void *arg)
 {
     (void)(arg);
-    std::cout << "Test" << std::endl;
-    sleep(2);
+    write(0, "Test thread\n", 12);
     return NULL;
 }
 
 void *TestThread2(void *arg)
 {
     (void)(arg);
-    std::cout << "Test" << std::endl;
-    throw ilrd::Deadlock();
+    sleep(1);
+    std::cout << "Self ID: " << ilrd::Thread::GetIDSelf() << std::endl;
     return NULL;
 }
