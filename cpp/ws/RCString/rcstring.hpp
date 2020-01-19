@@ -10,24 +10,40 @@ namespace ilrd
 
 class RCString
 {
+    class CharProxy;
+
 public:
     RCString(const char* cStr_ = ""); // non explicit
     RCString(const RCString& other_);    
     ~RCString();
     RCString& operator=(const RCString& other_);
-    
+    void SetChar(size_t idx_, char c);
+
     // char operator[](size_t index_) const;
-    // CharProxy operator[](size_t index_);
+    CharProxy operator[](size_t index_);
 
     const char* GetCStr() const;
     size_t Length() const;
     bool IsShared() const;
 
 private:
-    size_t* m_counter;
-    char* m_cStr;
+    size_t *m_counter;
+    char *m_cStr;
 
-    void CleanupLast();
+    void CleanUpIfLast();
+
+    class CharProxy
+    {
+    public:
+        CharProxy(RCString &str_, size_t idx_);
+        ~CharProxy();
+        char operator=(char c);
+        operator char() const;
+
+    private:
+        RCString *m_org;
+        size_t m_idx;
+    };
 };
  
 bool operator<(const RCString& lhs, const RCString& rhs);
