@@ -52,5 +52,17 @@ int main()
 
     REQUIRE(s2[6] == '1', "s2[6] == 1");
 
+    std::cout << "s1[6] = 3" << std::endl;
+    s1[6] = '3';
+    std::cout << "op<< s1: " << s1 << std::endl;
+
+    REQUIRE(s1.IsShared() == false, "s1 is unique after s1[6] = 3");
+    REQUIRE(s3.IsShared() == true, "s3 is not unique after s1[6] = 3");
+
+    std::cout << "s2[6] = 4" << std::endl;
+    s2[6] = '4';
+
+    REQUIRE(s2.IsShared() == false, "s2 is unique after s2[6] = 4");
+    REQUIRE(s3.IsShared() == false, "s3 is unique after s2[6] = 4");
 
 }
