@@ -38,6 +38,7 @@ private:
         CharProxy(RCString &str_, size_t idx_);
         ~CharProxy();
         char operator=(char c);
+        CharProxy& operator=(CharProxy cp);
         operator char() const;
 
     private:

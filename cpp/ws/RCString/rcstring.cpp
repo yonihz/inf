@@ -5,6 +5,15 @@
 namespace ilrd
 {
 
+inline void AllocStr(size_t **m_counter, char **m_cStr, const char *cStr_)
+{
+    void *alloc = new char[strlen(cStr_) + 1 + sizeof(size_t)];
+    *m_counter = static_cast<size_t*>(alloc);
+    **m_counter = 1;
+    *m_cStr = static_cast<char*>(alloc) + sizeof(size_t);
+    strcpy(*m_cStr, cStr_);
+}
+
 /**
  * @brief Construct a new RCString::RCString object
  * An RCString object references to the same string when copied, so no new
@@ -16,11 +25,7 @@ namespace ilrd
 RCString::RCString(const char* cStr_)
     : m_counter(), m_cStr()
 {
-    void *alloc = new char[strlen(cStr_) + 1 + sizeof(size_t)];
-    m_counter = static_cast<size_t*>(alloc);
-    *m_counter = 1;
-    m_cStr = static_cast<char*>(alloc) + sizeof(size_t);
-    strcpy(m_cStr, cStr_);
+    AllocStr(&m_counter, &m_cStr, cStr_);
 }
 
 /**
@@ -244,22 +249,16 @@ char RCString::CharProxy::operator=(char c)
     {
         return  m_org->GetCStr()[m_idx];
     }
-
-    // if RCString is not unique create a new string and counter
-    if (m_org->IsShared())
-    {
-        const char *org_cstr = m_org->GetCStr();
-        --(*m_org->m_counter);
-        void *alloc = new char[m_org->Length() + 1 + sizeof(size_t)];
-        m_org->m_counter = static_cast<size_t*>(alloc);
-        *m_org->m_counter = 1;
-        m_org->m_cStr = static_cast<char*>(alloc) + sizeof(size_t);
-        strcpy(m_org->m_cStr, org_cstr);
-    }
     
     m_org->SetChar(m_idx, c);
     
     return m_org->GetCStr()[m_idx];
+}
+
+RCString::CharProxy& RCString::CharProxy::operator=(CharProxy cp)
+{
+    m_org->SetChar(m_idx, cp.m_org->GetCStr()[cp.m_idx]);
+    return *this;
 }
 
 /**
@@ -282,6 +281,14 @@ RCString::CharProxy::operator char() const
 
 void RCString::SetChar(size_t idx_, char c)
 {
+    // if RCString is not unique create a new string and counter
+    if (IsShared())
+    {
+        const char *org_cStr = GetCStr();
+        --(*m_counter);
+        AllocStr(&m_counter, &m_cStr, org_cStr);
+    }
+
     m_cStr[idx_] = c;
 }
 
