@@ -1,3 +1,6 @@
+// compile command:
+// gd98 lock_guard_test.cpp ../thread/thread.cpp -I../thread/ -pthread
+
 #ifndef _ILRD_RD743_LOCK_GUARD_HPP_
 #define _ILRD_RD743_LOCK_GUARD_HPP_
 
@@ -24,13 +27,27 @@ template<typename Lockable>
 LockGuard<Lockable>::LockGuard(Lockable& lockable_)
     : m_lockable(lockable_)
 {
-    m_lockable.lock();
+    try
+    {
+        m_lockable.lock();
+    }
+    catch(...)
+    {
+        std::cerr << "LockGuard error in lock()" << '\n';
+    }
 }
 
 template<typename Lockable>
 LockGuard<Lockable>::~LockGuard()
 {
-    m_lockable.unlock();
+    try
+    {
+        m_lockable.unlock();
+    }
+    catch(...)
+    {
+        std::cerr << "LockGuard error in unlock()" << '\n';
+    }
 }
 
 } //namespace ilrd

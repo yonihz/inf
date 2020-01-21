@@ -1,11 +1,16 @@
 #include "thread.hpp"
 
 #include <errno.h>
+#include <assert.h>
 
 enum {SUCCESS = 0};
 
 namespace ilrd
 {
+
+void CreateExceptionCheck(int status);
+void JoinExceptionCheck(int status);
+void DetachExceptionCheck(int status);
 
 Thread::Attr Thread::default_attr;
 
@@ -29,33 +34,7 @@ Thread::Thread(void*(*start_routine_)(void*), void* args_, Attr& attr_)
     pthread_attr_getdetachstate(&attr_.GetAttr(), &detach_state);
     m_joinable = (detach_state == PTHREAD_CREATE_JOINABLE);
 
-    switch(pthread_create(&m_id, &attr_.GetAttr(), start_routine_, args_))
-    {
-        case SUCCESS:
-        {
-            break;
-        }
-        case EAGAIN:
-        {
-            throw NoResource();
-            break;
-        }
-        case EINVAL:
-        {
-            throw InvalidAttr();
-            break;
-        }
-        case EPERM:
-        {
-            throw NoPremission();
-            break;
-        }
-        default:
-        {
-            throw ThreadException();
-            break;
-        }
-    }
+    JoinExceptionCheck(pthread_create(&m_id, &attr_.GetAttr(), start_routine_, args_));
 }
 
 /**
@@ -67,8 +46,7 @@ Thread::~Thread()
 {
     if (true == m_joinable)
     {
-        pthread_cancel(m_id);
-        pthread_join(m_id, NULL);
+        Join();
     }
 }
 /**
@@ -85,35 +63,9 @@ void* Thread::Join()
 {
     void *thread_return;
     
-    switch(pthread_join(m_id, &thread_return))
-    {
-        case SUCCESS:
-        {
-            m_joinable = false; // used for check in dtor
-            break;
-        }
-        case EDEADLK:
-        {
-            throw Deadlock();
-            break;
-        }
-        case EINVAL:
-        {
-            throw NonJoinable();
-            break;
-        }
-        case ESRCH:
-        {
-            throw ThreadException();
-            break;
-        }
-        default:
-        {
-            throw ThreadException();
-            break;
-        }
-    }
+    JoinExceptionCheck(pthread_join(m_id, &thread_return));
 
+    m_joinable = false; // used for check in dtor
     return thread_return;
 }
 
@@ -127,29 +79,9 @@ void* Thread::Join()
 
 void Thread::Detach()
 {  
-    switch(pthread_detach(m_id))
-    {
-        case SUCCESS:
-        {
-            m_joinable = false; // used for check in dtor
-            break;
-        }    
-        case EINVAL:
-        {
-            throw NonJoinable();
-            break;
-        }
-        case ESRCH:
-        {
-            throw ThreadException();
-            break;
-        }
-        default:
-        {
-            throw ThreadException();
-            break;
-        }
-    }
+    DetachExceptionCheck(pthread_detach(m_id));
+
+    m_joinable = false; // used for check in dtor
 }
 
 /**
@@ -208,6 +140,88 @@ pthread_attr_t &Thread::Attr::GetAttr()
 size_t Thread::GetIDSelf()
 {
     return pthread_self();
+}
+
+void CreateExceptionCheck(int status)
+{
+    switch(status)
+    {
+        case SUCCESS:
+        {
+            break;
+        }
+        case EAGAIN:
+        {
+            throw NoResource();
+            break;
+        }
+        case EINVAL:
+        {
+            throw InvalidAttr();
+            break;
+        }
+        case EPERM:
+        {
+            throw NoPremission();
+            break;
+        }
+        default:
+        {
+            throw ThreadException();
+            break;
+        }
+    }    
+}
+
+void JoinExceptionCheck(int status)
+{
+    switch(status)
+    {
+        case SUCCESS:
+        {
+            break;
+        }
+        case EDEADLK:
+        {
+            throw Deadlock();
+            break;
+        }
+        case EINVAL:
+        {
+            throw NonJoinable();
+            break;
+        }
+        default:
+        {
+            throw ThreadException();
+            break;
+        }
+    }
+    
+    assert(status != ESRCH); 
+}
+
+void DetachExceptionCheck(int status)
+{
+    switch(status)
+    {
+        case SUCCESS:
+        {
+            break;
+        }    
+        case EINVAL:
+        {
+            throw NonJoinable();
+            break;
+        }
+        default:
+        {
+            throw ThreadException();
+            break;
+        }
+    }
+
+    assert(status != ESRCH);
 }
 
 } //namespace ilrd

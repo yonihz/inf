@@ -24,13 +24,27 @@ template<typename Resource, void(Resource::*Acquire)(), void(Resource::*Release)
 ScopeGuard<Resource, Acquire, Release>::ScopeGuard(Resource& resource_)
     : m_resource(resource_)
 {
-    (m_resource.*Acquire)();
+    try
+    {
+        (m_resource.*Acquire)();
+    }
+    catch(...)
+    {
+        std::cerr << "ScopeGuard error in Acquire()" << '\n';
+    }  
 }
 
 template<typename Resource, void(Resource::*Acquire)(), void(Resource::*Release)()>
 ScopeGuard<Resource, Acquire, Release>::~ScopeGuard()
 {
-    (m_resource.*Release)();
+    try
+    {
+        (m_resource.*Release)();
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << "ScopeGuard error in Release()" << '\n';
+    }   
 }
 
 } //namespace ilrd
