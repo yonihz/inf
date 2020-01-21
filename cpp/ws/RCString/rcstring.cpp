@@ -5,6 +5,15 @@
 namespace ilrd
 {
 
+/**
+ * @brief allocate memory for a new string and reference counter and copy
+ * the given string to it
+ * 
+ * @param m_counter reference counter
+ * @param m_cStr string in the RCString object that cStr_ will be copied to it
+ * @param cStr_ input string 
+ */
+
 inline void AllocStr(size_t **m_counter, char **m_cStr, const char *cStr_)
 {
     void *alloc = new char[strlen(cStr_) + 1 + sizeof(size_t)];
@@ -138,7 +147,7 @@ size_t RCString::Length() const
 
 bool RCString::IsShared() const
 {
-    return (*m_counter != 1);
+    return (*m_counter > 1);
 }
 
 /**
