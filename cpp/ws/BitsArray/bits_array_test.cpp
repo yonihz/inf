@@ -2,8 +2,20 @@
 
 #include "bits_array.hpp"
 
+#define RED   "\x1B[31m"
+#define GRN   "\x1B[32m"
+#define MAG  "\x1B[35m"
+#define RESET "\x1B[0m"
+
+void REQUIRE(bool test, const char test_name[])
+{
+	(true == test) ?
+	std::cout << GRN << "TEST PASS: " << test_name << std::endl :
+	std::cout << RED << "TEST FAIL: " << test_name << std::endl;
+    std::cout << RESET;
+}
+
 void Test1();
-void Test2();
 
 using namespace ilrd;
 
@@ -12,121 +24,107 @@ void PrintBitsArray(BitsArray<N> &ba, DWORD size);
 
 int main()
 {
-    // Test1();
-    Test2();
+    Test1();
 }
 
 void Test1()
 {
-    std::cout << "BitsArray<80> ba1" << std::endl;
-    BitsArray<80> ba1;
-    BitsArray<80> ba3;
+    const size_t ba_size = 80;
+    BitsArray<ba_size> ba1;
+    BitsArray<ba_size> ba3;
+    BitsArray<ba_size> ba4;
 
-    // std::cout << ba1[1] << std::endl;
-    std::cout << "----- test: SetBit() to 1" << std::endl;
-    std::cout << "ba1.SetBit(1, 1)" << std::endl; ba1.SetBit(1, 1);
-    std::cout << "ba1.SetBit(3, 1)" << std::endl; ba1.SetBit(3, 1);
-    std::cout << "ba1.SetBit(5, 1)" << std::endl; ba1.SetBit(5, 1);
-    std::cout << "ba1.SetBit(65, 1)" << std::endl; ba1.SetBit(65, 1);
-    PrintBitsArray(ba1, 80);
+    ba1.SetBit(0, 1);
+    ba1.SetBit(66, 1);
 
-    std::cout << "ba1.GetBit(1) " << ba1.GetBit(1) << std::endl;
-    std::cout << "ba1.GetBit(2) " << ba1.GetBit(2) << std::endl;
-    std::cout << "ba1.GetBit(3) " << ba1.GetBit(3) << std::endl;
-    std::cout << "ba1.GetBit(4) " << ba1.GetBit(4) << std::endl;
-    std::cout << "ba1.GetBit(5) " << ba1.GetBit(5) << std::endl;
-    std::cout << "ba1.GetBit(64) " << ba1.GetBit(64) << std::endl;
-    std::cout << "ba1.GetBit(65) " << ba1.GetBit(65) << std::endl;
-    std::cout << "ba1[65] " << ba1[65] << std::endl;
+    REQUIRE(ba1.GetBit(0) == true, "ba1.GetBit(0) after ba1.SetBit(0, 1)");
+    REQUIRE(ba1.GetBit(66) == true, "ba1.GetBit(66) after ba1.SetBit(66, 1)");
+    REQUIRE(ba1[0] == true, "ba1[0] after ba1.SetBit(0, 1)");
+    REQUIRE(ba1[66] == true, "ba1[66] after ba1.SetBit(66, 1)");
 
-    std::cout << "----- test: CCtor" << std::endl;
-    std::cout << "BitsArray<80> ba2(ba1)" << std::endl;
+    ba1.SetBit(0, 0);
+    ba1.SetBit(66, 0);
+
+    REQUIRE(ba1.GetBit(0) == false, "ba1.GetBit(0) after ba1.SetBit(0, 0)");
+    REQUIRE(ba1.GetBit(66) == false, "ba1.GetBit(66) after ba1.SetBit(66, 0)");
+
+    for (size_t i = 0; i < ba_size; i=i+2)
+    {
+        ba1.SetBit(i, true);
+    }
+
+    for (size_t i = 1; i < ba_size; i=i+2)
+    {
+        ba4.SetBit(i, true);
+    }
+
     BitsArray<80> ba2(ba1);
-    PrintBitsArray(ba2, 80);
-
-    std::cout << "----- test: op=" << std::endl;
-    std::cout << "ba3 = ba1" << std::endl;
     ba3 = ba1;
-    PrintBitsArray(ba3, 80);
 
-    std::cout << "----- test: SetBit() to 0" << std::endl;
-    std::cout << "ba1.SetBit(3, 0)" << std::endl; ba1.SetBit(3, 0);
-    std::cout << "ba1.SetBit(65, 0)" << std::endl; ba1.SetBit(65, 0);
-    PrintBitsArray(ba1, 80);
-    std::cout << "ba1.GetBit(3) " << ba1.GetBit(3) << std::endl;
-    std::cout << "ba1.GetBit(65) " << ba1.GetBit(65) << std::endl;
-    std::cout << "ba1[65] " << ba1[65] << std::endl;
+    REQUIRE((ba2 == ba1) == true, "ba2 == ba1 after ba2(ba1)");
+    REQUIRE((ba3 == ba1) == true, "ba3 == ba1 after ba3 = ba1");
+    
+    ba3.ToggleAll();
+    REQUIRE((ba3 == ba4) == true, "ba4 == ba3");
+    REQUIRE((ba3 != ba1) == true, "ba3 != ba1");
 
-    std::cout << "----- test: ToggleOne()" << std::endl;
-    std::cout << "ba1.GetBit(5) " << ba1.GetBit(5) << std::endl;
-    std::cout << "ba1.GetBit(65) " << ba1.GetBit(65) << std::endl;
-    std::cout << "ba1.ToggleOne(5)" << std::endl; ba1.ToggleOne(5);
-    std::cout << "ba1.ToggleOne(65)" << std::endl; ba1.ToggleOne(65);
-    PrintBitsArray(ba1, 80);
-    std::cout << "ba1.GetBit(5) " << ba1.GetBit(5) << std::endl;
-    std::cout << "ba1.GetBit(65) " << ba1.GetBit(65) << std::endl;
+    ba1.ToggleOne(0);
+    ba1.ToggleOne(65);
+    REQUIRE(ba1.GetBit(0) == false, "ba1.GetBit(0) after ba1.ToggleOne(0)");
+    REQUIRE(ba1.GetBit(65) == true, "ba1.GetBit(65) after ba1.ToggleOne(65)");
 
-    std::cout << "----- test: ToggleAll()" << std::endl;
-    std::cout << "ba1.GetBit(1) " << ba1.GetBit(1) << std::endl;
-    std::cout << "ba1.GetBit(2) " << ba1.GetBit(2) << std::endl;
-    std::cout << "ba1.GetBit(3) " << ba1.GetBit(3) << std::endl;
-    std::cout << "ba1.GetBit(4) " << ba1.GetBit(4) << std::endl;
-    std::cout << "ba1.GetBit(5) " << ba1.GetBit(5) << std::endl;
-    std::cout << "ba1.ToggleAll()" << std::endl; ba1.ToggleAll();
-    PrintBitsArray(ba1, 80);
-    std::cout << "ba1.GetBit(1) " << ba1.GetBit(1) << std::endl;
-    std::cout << "ba1.GetBit(2) " << ba1.GetBit(2) << std::endl;
-    std::cout << "ba1.GetBit(3) " << ba1.GetBit(3) << std::endl;
-    std::cout << "ba1.GetBit(4) " << ba1.GetBit(4) << std::endl;
-    std::cout << "ba1.GetBit(5) " << ba1.GetBit(5) << std::endl;
-    std::cout << "----- test: op[]" << std::endl;  
-}
+    ba1.ToggleOne(0);
+    ba1.ToggleOne(65);
+    REQUIRE(ba1.GetBit(0) == true, "ba1.GetBit(0) after ba1.ToggleOne(0)");
+    REQUIRE(ba1.GetBit(65) == false, "ba1.GetBit(65) after ba1.ToggleOne(65)");
 
-void Test2()
-{
-    std::cout << "BitsArray<80> ba1, ba2" << std::endl;
-    BitsArray<80> ba1;
-    BitsArray<80> ba2;
-    PrintBitsArray(ba1, 80);
-    PrintBitsArray(ba2, 80);
-
-    std::cout << "ba1.SetBit(1, 1)" << std::endl; ba1.SetBit(1, 1);
-    std::cout << "ba1.SetBit(3, 1)" << std::endl; ba1.SetBit(3, 1);
-    std::cout << "ba1.SetBit(5, 1)" << std::endl; ba1.SetBit(5, 1);
-    std::cout << "ba1.SetBit(65, 1)" << std::endl; ba1.SetBit(65, 1);
-    PrintBitsArray(ba1, 80);
-
-    std::cout << "ba1.GetBit(1) " << ba1.GetBit(1) << std::endl;
-    std::cout << "ba1.GetBit(2) " << ba1.GetBit(2) << std::endl;
-    std::cout << "ba1.GetBit(3) " << ba1.GetBit(3) << std::endl;
-    std::cout << "ba1.GetBit(4) " << ba1.GetBit(4) << std::endl;
-    std::cout << "ba1.GetBit(5) " << ba1.GetBit(5) << std::endl;
-    std::cout << "ba1.GetBit(64) " << ba1.GetBit(64) << std::endl;
-    std::cout << "ba1.GetBit(65) " << ba1.GetBit(65) << std::endl;
-
-    std::cout << "ba2 == ba1 " << (ba2 == ba1) << std::endl;
-    std::cout << "ba2 != ba1 " << (ba2 != ba1) << std::endl;
-    std::cout << "----- test: ba2 =| ba1" << std::endl;
-    ba2 |= ba1;
-    PrintBitsArray(ba2, 80);
-
-    std::cout << "ba2.GetBit(1) " << ba2.GetBit(1) << std::endl;
-    std::cout << "ba2.GetBit(2) " << ba2.GetBit(2) << std::endl;
-    std::cout << "ba2.GetBit(3) " << ba2.GetBit(3) << std::endl;
-    std::cout << "ba2.GetBit(4) " << ba2.GetBit(4) << std::endl;
-    std::cout << "ba2.GetBit(5) " << ba2.GetBit(5) << std::endl;
-    std::cout << "ba2.GetBit(64) " << ba2.GetBit(64) << std::endl;
-    std::cout << "ba2.GetBit(65) " << ba2.GetBit(65) << std::endl;
-
-    std::cout << "ba2 == ba1 " << (ba2 == ba1) << std::endl; 
-    std::cout << "ba2 != ba1 " << (ba2 != ba1) << std::endl;
-
-    std::cout << "----- test: ba2.SetAll(true)" << std::endl;
-    ba2.SetAll(true);
-    PrintBitsArray(ba2, 80);
-    std::cout << "----- test: ba2.SetAll(false)" << std::endl;
     ba2.SetAll(false);
-    PrintBitsArray(ba2, 80);
+    BitsArray<ba_size> ba5;
+    REQUIRE((ba2 == ba5) == true, "ba2 == ba5 after ba2.SetAll(false)");
+
+    for (size_t i = 0; i < ba_size; ++i)
+    {
+        ba5.SetBit(i, true);
+    }
+
+    ba2.SetAll(true);
+    REQUIRE((ba2 == ba5) == true, "ba2 == ba5 after ba2.SetAll(true)");
+
+    ba1.SetAll(true);
+    ba2.SetAll(false);
+    ba3.SetAll(true);
+    ba1 |= ba2;
+    REQUIRE((ba1 == ba3) == true, "ba1 == ba3 after ba1 |= ba2");
+
+    ba1.SetAll(true);
+    ba2.SetAll(false);
+    ba3.SetAll(false);
+    ba1 &= ba2;
+    REQUIRE((ba1 == ba3) == true, "ba1 == ba3 after ba1 &= ba2");  
+
+    ba1.SetAll(true);
+    ba2.SetAll(true);
+    ba3.SetAll(false);
+    ba1 ^= ba2;
+    REQUIRE((ba1 == ba3) == true, "ba1 == ba3 after ba1 ^= ba2");
+
+    ba3.SetAll(true);
+    ba1 ^= ba2;
+    REQUIRE((ba1 == ba3) == true, "ba1 == ba3 after ba1 ^= ba2");
+
+    ba1.SetAll(false);
+    ba1.SetBit(0, 1);
+    ba1.SetBit(1, 1);
+    ba1.SetBit(3, 1);
+    ba1.SetBit(66, 1);
+
+    ba1[2] = true;
+    REQUIRE(ba1[2] == true, "ba1[2] = true");
+    ba1[2] = ba1[5];
+    REQUIRE(ba1[2] == false, "ba1[2] = ba1[5]");
+
+    REQUIRE((ba1.Count(true) == 4), "ba1.Count() == 4");  
+    REQUIRE((ba1.Count(false) == ba_size - 4), "ba1.Count() == 76");  
 }
 
 template<size_t N>

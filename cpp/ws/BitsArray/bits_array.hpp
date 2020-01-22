@@ -23,6 +23,7 @@ struct ToggleAll_;
 struct BitwiseAnd_;
 struct BitwiseOr_;
 struct BitwiseXor_;
+struct CountWord_;
 
 template<size_t N>
 class BitsArray
@@ -53,7 +54,7 @@ public:
     bool operator!=(const BitsArray& other_);
 
     void SetAll(bool val_ = true);
-    size_t Count(bool val_ = true) const;
+    size_t Count(bool val_ = true);
 
     BitsArray& ToggleAll();
     BitsArray& ToggleOne(size_t idx_);
@@ -80,7 +81,11 @@ private:
 
 template<size_t N>
 BitsArray<N>::BitsArray()
-    : m_arr() {}
+    : m_arr() 
+{
+    // std::cout << "N_DWORD " << N_DWORD << std::endl;
+    // std::cout << "BIT_DWORD " << BIT_DWORD << std::endl;
+}
 
 template<size_t N>
 BitsArray<N>::~BitsArray() { }
@@ -96,6 +101,7 @@ template<size_t N>
 BitsArray<N>& BitsArray<N>::operator=(const BitsArray<N>& other_)
 {
     std::copy(other_.m_arr, other_.m_arr + N_DWORD, m_arr);
+    return *this;
 }
 
 template<size_t N>
@@ -127,6 +133,7 @@ BitsArray<N>& BitsArray<N>::operator&=(const BitsArray<N>& other_)
 {
     BitwiseAnd_ bitwise_and;
     std::transform(m_arr, m_arr + N_DWORD, (const_cast<BitsArray<N>&>(other_)).m_arr, m_arr, bitwise_and);
+    return *this;
 }
 
 template<size_t N>
@@ -134,6 +141,7 @@ BitsArray<N>& BitsArray<N>::operator|=(const BitsArray<N>& other_)
 {
     BitwiseOr_ bitwise_or;
     std::transform(m_arr, m_arr + N_DWORD, (const_cast<BitsArray<N>&>(other_)).m_arr, m_arr, bitwise_or);
+    return *this;
 }
 
 template<size_t N>
@@ -141,18 +149,29 @@ BitsArray<N>& BitsArray<N>::operator^=(const BitsArray<N>& other_)
 {
     BitwiseXor_ bitwise_xor;
     std::transform(m_arr, m_arr + N_DWORD, (const_cast<BitsArray<N>&>(other_)).m_arr, m_arr, bitwise_xor);
+    return *this;
 }
 
 template<size_t N>
 bool BitsArray<N>::operator==(const BitsArray& other_)
 {
+    m_arr[N_DWORD - 1] &= ~((~(DWORD)0) << (N%BIT_DWORD));
+
+    (const_cast<BitsArray&>(other_)).m_arr[N_DWORD - 1] &=
+        ~((~(DWORD)0) << (N%BIT_DWORD));
+
     return (std::equal(m_arr, m_arr + N_DWORD, other_.m_arr));
 }
 
 template<size_t N>
 bool BitsArray<N>::operator!=(const BitsArray& other_)
 {
-   return !(std::equal(m_arr, m_arr + N_DWORD, other_.m_arr));
+    m_arr[N_DWORD - 1] &= ~((~(DWORD)0) << (N%BIT_DWORD));
+
+    (const_cast<BitsArray&>(other_)).m_arr[N_DWORD - 1] &=
+        ~((~(DWORD)0) << (N%BIT_DWORD));
+
+    return !(std::equal(m_arr, m_arr + N_DWORD, other_.m_arr));
 }
 
 template<size_t N>
@@ -162,9 +181,15 @@ void BitsArray<N>::SetAll(bool val_)
 }
 
 template<size_t N>
-size_t BitsArray<N>::Count(bool val_) const
+size_t BitsArray<N>::Count(bool val_)
 {
+    m_arr[N_DWORD - 1] &= ~((~(DWORD)0) << (N%BIT_DWORD));
 
+    CountWord_ count_word;
+    size_t count = std::accumulate(m_arr, m_arr + N_DWORD, 0ul, count_word);
+    count = val_ ? count : (N - count - ((BIT_DWORD-N%BIT_DWORD)/BIT_DWORD));
+
+    return count;
 }
 
 template<size_t N>
@@ -188,9 +213,11 @@ BitsArray<N>& BitsArray<N>::ToggleOne(size_t idx_)
 template<size_t N>
 BitsArray<N>& BitsArray<N>::SetBit(size_t idx_, bool val_)
 {
-    DWORD m = (1 << (idx_ % BIT_DWORD));
+    // std::cout << "idx_ % BIT_DWORD " << (idx_ % BIT_DWORD) << std::endl;
+    // std::cout << "idx_ / BIT_DWORD " << (idx_ / BIT_DWORD) << std::endl;
+    DWORD m = ((DWORD)1 << (idx_ % BIT_DWORD));
     m_arr[idx_ / BIT_DWORD] &= (~m);
-    m_arr[idx_ / BIT_DWORD] |= (val_ << (idx_ % BIT_DWORD));
+    m_arr[idx_ / BIT_DWORD] |= ((DWORD)val_ << (idx_ % BIT_DWORD));
 
     return *this;
 }
@@ -228,19 +255,17 @@ BitsArray<N>::BitProxy::operator bool() const
     return m_org->GetBit(m_idx);
 }
 
-struct CountWord
+struct CountWord_
 {
-    void operator() (DWORD &elem)
+    size_t operator() (size_t sum, DWORD &elem)
     {
+        unsigned char *p = (unsigned char *)&elem;
+        sum += set_bits_lut[p[0]] + set_bits_lut[p[1]] + 
+            set_bits_lut[p[2]] + set_bits_lut[p[3]] +
+            set_bits_lut[p[4]] + set_bits_lut[p[5]] +
+            set_bits_lut[p[6]] + set_bits_lut[p[7]];
         
-    }
-};
-
-struct CountChar
-{
-    void operator() (char &elem)
-    {
-        
+        return sum;
     }
 };
 
@@ -248,7 +273,7 @@ struct ToggleAll_
 {
     void operator() (DWORD &elem)
     {
-        elem ^= (~0);
+        elem ^= ~(DWORD)0;
     }
 };
 

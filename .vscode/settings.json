@@ -67,6 +67,14 @@
         "cfenv": "cpp",
         "cinttypes": "cpp",
         "typeindex": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "csetjmp": "cpp",
+        "condition_variable": "cpp",
+        "forward_list": "cpp",
+        "unordered_set": "cpp",
+        "future": "cpp",
+        "scoped_allocator": "cpp",
+        "regex": "cpp",
+        "valarray": "cpp"
     }
 }
