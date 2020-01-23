@@ -7,15 +7,19 @@
 #include <map>
 #include <boost/core/noncopyable.hpp>
 #include <boost/shared_ptr.hpp>
+#include <algorithm>
 
+// user must have a function that take an instance of a class and make
+// map<string, string> of it.
 // map<std::string, std::string> ToMap(T&);
+
 namespace ilrd
 {
 
 template <typename T>
 class Serializer : private boost::noncopyable
 {
-    typedef boost::shared_ptr<T> (*Creator)(std::map<std::string, std::string>&);
+    typedef boost::shared_ptr<T> (*Creator)(std::map<std::string, std::string>);
 
 public:
     Serializer(std::iostream& ios_);
@@ -25,11 +29,13 @@ public:
     void AddType(Creator creator_);  
 
     void Serialize(std::vector<T*>& instances_);
-    std::vector<boost::shared_ptr<T> > Deserialize(); //throws: type_not_found, bad_alloc
+
+    //throws: type_not_found, bad_alloc
+    std::vector<boost::shared_ptr<T> > Deserialize(); 
 
 private:
     std::map<std::string, Creator> m_types;
-    std::iostream m_ios;
+    std::iostream &m_ios;
 };
 
 template <typename T>
@@ -47,19 +53,19 @@ template <typename T>
 template <typename D>
 void Serializer<T>::AddType(Creator creator_)
 {
-    m_types.insert(creator_);
+    m_types.insert(typeid(T)::name(), creator_);
 }  
 
 template <typename T>
 void Serializer<T>::Serialize(std::vector<T*>& instances_)
 {
-    instances_.insert();
+    instances_.ToMap();
 }
 
 template <typename T>
 std::vector<boost::shared_ptr<T> > Serializer<T>::Deserialize()
 {
-
+    
 }
 
 } // namespace ilrd

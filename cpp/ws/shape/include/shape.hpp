@@ -26,6 +26,7 @@ public:
     virtual void SetColor(COLORS color_);
     COLORS GetColor() const;
     void Revolve(const Point& pivot_, double angle_);
+    virtual std::map<std::string, std::string> ToMap() = 0;
 protected:
     Point m_position;
     double m_angle;
@@ -36,10 +37,11 @@ class Circle : public Shape
 {
 public:
     Circle(int radius_ = 1, const Point& pos_ = Point(), double angle_ = 0, COLORS color_ = COLOR_RED);
-    ~Circle(); // remove dtor from all shape types?
+    ~Circle();
     void SetRadius(int radius_);
     int GetRadius() const;
-    virtual void Draw(); // this const?
+    virtual void Draw();
+    std::map<std::string, std::string> ToMap();
 private:
     int m_radius;
 };
@@ -54,6 +56,7 @@ public:
     void SetHeight(int height_);
     int GetHeight() const;
     virtual void Draw();
+    std::map<std::string, std::string> ToMap();
 private:
     int m_width;
     int m_height;
@@ -67,6 +70,7 @@ public:
     void SetSide(int side_);
     int GetSide() const;
     virtual void Draw();
+    std::map<std::string, std::string> ToMap();
 private:
     int m_side;
 };
@@ -79,6 +83,7 @@ public:
     void SetLength(int length_);
     int GetLength() const;
     virtual void Draw();
+    std::map<std::string, std::string> ToMap();
 private:
     int m_length;
 };
