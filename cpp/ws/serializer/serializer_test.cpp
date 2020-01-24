@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -10,27 +11,15 @@
 using namespace ilrd;
 using boost::lexical_cast;
 
-std::map<std::string, std::string> Circle::ToMap()
-{
-    std::map<std::string, std::string> m;
-
-    m.insert(std::pair<std::string,std::string>("pos_x",lexical_cast<std::string>(GetPos().GetX())));
-    m.insert(std::pair<std::string,std::string>("pos_y",lexical_cast<std::string>(GetPos().GetY())));
-    m.insert(std::pair<std::string,std::string>("angle",lexical_cast<std::string>(GetAngle())));
-    m.insert(std::pair<std::string,std::string>("color",lexical_cast<std::string>(GetColor())));
-    m.insert(std::pair<std::string,std::string>("radius",lexical_cast<std::string>(GetRadius())));
-
-    return m;
-}
-
 boost::shared_ptr<Circle> CircleCreator(std::map<std::string, std::string> m)
 {
     double pos_x = lexical_cast<double>(m["pos_x"]);
     double pos_y = lexical_cast<double>(m["pos_y"]);
     double angle = lexical_cast<double>(m["angle"]);
-    COLORS color = lexical_cast<COLORS>(m["color"]);
+    COLORS color = static_cast<COLORS>(lexical_cast<int>(m["color"]));
     int radius = lexical_cast<int>(m["radius"]);
-    boost::shared_ptr<Circle> c1(new Circle(radius, Point(), double(0.0), color));
+    boost::shared_ptr<Circle> c1(new Circle(radius, Point(pos_x, pos_y), angle, color));
+    return c1;
 }
 
 int main()
@@ -41,10 +30,16 @@ int main()
     Circle c1(50, Point(250,500));
 
     std::vector<Shape*> shape_instances;
+    
     // shape_instances.push_back(&rec1);
     // shape_instances.push_back(&sq1);
     // shape_instances.push_back(&line1);
     shape_instances.push_back(&c1);
 
+    std::ofstream ofs;
+    ofs.open("myfile.txt", std::ofstream::out | std::ofstream::app);
+    Serializer<Shape> shape_serializer(ofs);
+    shape_serializer.Serialize(shape_instances);
+    ofs.close();
 
 }

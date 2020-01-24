@@ -4,8 +4,10 @@
 /* Rev. 1.1 */ 
 /* 02.01.20  11:00 */
 
-#include <list> //list
-#include <cstdlib> //size_t
+#include <list>     // list
+#include <cstdlib>  // size_t
+#include <map>      // std::map
+#include <string>   // std::string
 
 #include "point.hpp"    // Point
 #include "glut_utils.h"     // colors
@@ -56,7 +58,7 @@ public:
     void SetHeight(int height_);
     int GetHeight() const;
     virtual void Draw();
-    std::map<std::string, std::string> ToMap();
+    // std::map<std::string, std::string> ToMap();
 private:
     int m_width;
     int m_height;
@@ -70,7 +72,7 @@ public:
     void SetSide(int side_);
     int GetSide() const;
     virtual void Draw();
-    std::map<std::string, std::string> ToMap();
+    // std::map<std::string, std::string> ToMap();
 private:
     int m_side;
 };
@@ -83,7 +85,7 @@ public:
     void SetLength(int length_);
     int GetLength() const;
     virtual void Draw();
-    std::map<std::string, std::string> ToMap();
+    // std::map<std::string, std::string> ToMap();
 private:
     int m_length;
 };

@@ -123,7 +123,16 @@ BitsArray<N>& BitsArray<N>::operator>>=(size_t n_)
 template<size_t N>
 BitsArray<N>& BitsArray<N>::operator<<=(size_t n_)
 {
+    // if (n_ >= N)
+    // {
+    //     return *this;
+    // }
 
+    // ShiftLeftWords_ shiftw_left;
+    // SetOffWord_ setoff_word;
+    // std::transform(m_arr, (m_arr + n_ - (n_ / BIT_DWORD)), (m_arr + (n_ / BIT_DWORD)) ,shiftw_left));
+    // std::for_each((m_arr + n_ - (n_ / BIT_DWORD)) + 1, m_arr + N_DWORD, setoff_word);
+    // std::transform(m_arr + 1, (m_arr + n_ - (n_ / BIT_DWORD)), (m_arr + (n_ / BIT_DWORD)) ,shift_left));
 }
 
 template<size_t N>
@@ -174,7 +183,7 @@ size_t BitsArray<N>::Count(bool val_)
 {
     CountWord_ count_word;
     size_t count = std::accumulate(m_arr, m_arr + N_DWORD, 0ul, count_word);
-    count = val_ ? count : (N - count - ((BIT_DWORD-N%BIT_DWORD)/BIT_DWORD));
+    count = val_ ? count : (N - count);
 
     return count;
 }
@@ -285,6 +294,22 @@ struct BitwiseXor_
     DWORD operator() (DWORD elem1, DWORD elem2)
     {
         return (elem1 ^= elem2);
+    }
+};
+
+struct ShiftLeftWords_
+{
+    DWORD operator() (DWORD elem1, DWORD elem2)
+    {
+        return (elem2);
+    }
+};
+
+struct SetOffWord_
+{
+    DWORD operator() (DWORD elem)
+    {
+        return (elem & 0ul);
     }
 };
 
