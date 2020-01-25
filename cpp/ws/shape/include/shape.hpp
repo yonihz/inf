@@ -58,7 +58,7 @@ public:
     void SetHeight(int height_);
     int GetHeight() const;
     virtual void Draw();
-    // std::map<std::string, std::string> ToMap();
+    std::map<std::string, std::string> ToMap();
 private:
     int m_width;
     int m_height;
@@ -72,7 +72,7 @@ public:
     void SetSide(int side_);
     int GetSide() const;
     virtual void Draw();
-    // std::map<std::string, std::string> ToMap();
+    std::map<std::string, std::string> ToMap();
 private:
     int m_side;
 };
@@ -85,7 +85,7 @@ public:
     void SetLength(int length_);
     int GetLength() const;
     virtual void Draw();
-    // std::map<std::string, std::string> ToMap();
+    std::map<std::string, std::string> ToMap();
 private:
     int m_length;
 };

@@ -310,12 +310,52 @@ size_t ShapeGroup::GetGroupSize() const
 std::map<std::string, std::string> Circle::ToMap()
 {
     std::map<std::string, std::string> m;
-
+    m.insert(std::pair<std::string,std::string>("type", typeid(this).name()));
     m.insert(std::pair<std::string,std::string>("pos_x",lexical_cast<std::string>(GetPos().GetX())));
     m.insert(std::pair<std::string,std::string>("pos_y",lexical_cast<std::string>(GetPos().GetY())));
     m.insert(std::pair<std::string,std::string>("angle",lexical_cast<std::string>(GetAngle())));
     m.insert(std::pair<std::string,std::string>("color",lexical_cast<std::string>(GetColor())));
     m.insert(std::pair<std::string,std::string>("radius",lexical_cast<std::string>(GetRadius())));
+
+    return m;
+}
+
+std::map<std::string, std::string> Rectangle::ToMap()
+{
+    std::map<std::string, std::string> m;
+    m.insert(std::pair<std::string,std::string>("type", typeid(this).name()));
+    m.insert(std::pair<std::string,std::string>("pos_x",lexical_cast<std::string>(GetPos().GetX())));
+    m.insert(std::pair<std::string,std::string>("pos_y",lexical_cast<std::string>(GetPos().GetY())));
+    m.insert(std::pair<std::string,std::string>("angle",lexical_cast<std::string>(GetAngle())));
+    m.insert(std::pair<std::string,std::string>("color",lexical_cast<std::string>(GetColor())));
+    m.insert(std::pair<std::string,std::string>("width",lexical_cast<std::string>(GetWidth())));
+    m.insert(std::pair<std::string,std::string>("height",lexical_cast<std::string>(GetHeight())));
+
+    return m;
+}
+
+std::map<std::string, std::string> Square::ToMap()
+{
+    std::map<std::string, std::string> m;
+    m.insert(std::pair<std::string,std::string>("type", typeid(this).name()));
+    m.insert(std::pair<std::string,std::string>("pos_x",lexical_cast<std::string>(GetPos().GetX())));
+    m.insert(std::pair<std::string,std::string>("pos_y",lexical_cast<std::string>(GetPos().GetY())));
+    m.insert(std::pair<std::string,std::string>("angle",lexical_cast<std::string>(GetAngle())));
+    m.insert(std::pair<std::string,std::string>("color",lexical_cast<std::string>(GetColor())));
+    m.insert(std::pair<std::string,std::string>("side",lexical_cast<std::string>(GetSide())));
+
+    return m;
+}
+
+std::map<std::string, std::string> Line::ToMap()
+{
+    std::map<std::string, std::string> m;
+    m.insert(std::pair<std::string,std::string>("type", typeid(this).name()));
+    m.insert(std::pair<std::string,std::string>("pos_x",lexical_cast<std::string>(GetPos().GetX())));
+    m.insert(std::pair<std::string,std::string>("pos_y",lexical_cast<std::string>(GetPos().GetY())));
+    m.insert(std::pair<std::string,std::string>("angle",lexical_cast<std::string>(GetAngle())));
+    m.insert(std::pair<std::string,std::string>("color",lexical_cast<std::string>(GetColor())));
+    m.insert(std::pair<std::string,std::string>("length",lexical_cast<std::string>(GetLength())));
 
     return m;
 }

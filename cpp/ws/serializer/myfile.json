@@ -1,0 +1,35 @@
+{
+    "type": {
+        "width": "50",
+        "type": "PN4ilrd9RectangleE",
+        "pos_y": "500",
+        "pos_x": "500",
+        "height": "100",
+        "color": "1",
+        "angle": "0"
+    },
+    "type": {
+        "type": "PN4ilrd6SquareE",
+        "side": "50",
+        "pos_y": "250",
+        "pos_x": "500",
+        "color": "65537",
+        "angle": "0"
+    },
+    "type": {
+        "type": "PN4ilrd4LineE",
+        "pos_y": "750",
+        "pos_x": "500",
+        "length": "50",
+        "color": "65792",
+        "angle": "0"
+    },
+    "type": {
+        "type": "PN4ilrd6CircleE",
+        "radius": "50",
+        "pos_y": "500",
+        "pos_x": "250",
+        "color": "65536",
+        "angle": "0"
+    }
+}
