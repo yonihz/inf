@@ -102,6 +102,7 @@ public:
     virtual void SetAngle(double angle_);
     virtual void SetColor(COLORS color_);
     size_t GetGroupSize() const;
+    // std::map<std::string, std::string> ToMap();
 private:
     std::list<Shape*> m_list;
     size_t m_group_size; // cache

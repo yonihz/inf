@@ -1,7 +1,6 @@
 #ifndef _ILRD_RD734_SERIALIZER_HPP_
 #define _ILRD_RD734_SERIALIZER_HPP_
 
-#include <memory>
 #include <iostream>                             // op<<, op>>
 #include <vector>                               // std::vector
 #include <map>                                  // std::map
@@ -12,6 +11,8 @@
 #include <boost/property_tree/ptree.hpp>        // boost ptree
 #include <boost/property_tree/json_parser.hpp>  // write_json, read_json
 #include <boost/foreach.hpp>                    // BOOST_FOREACH
+
+#include "factory.hpp"
 
 using boost::property_tree::ptree;
 using boost::property_tree::read_json;
@@ -34,7 +35,7 @@ public:
     ~Serializer();
 
     template <typename D>
-    void AddType(Creator creator_);  
+    void AddType(Creator creator_); 
 
     void Serialize(std::vector<T*>& instances_);
 
@@ -42,16 +43,16 @@ public:
     std::vector<boost::shared_ptr<T> > Deserialize(); 
 
 private:
-    std::map<std::string, Creator> m_types;
+    Factory< boost::shared_ptr<T>, std::string, std::map<std::string, std::string>, Creator > m_types;
     std::iostream &m_ios;
 
-    struct MapInstance;
-    MapInstance m_map_instance;
+    struct ObjectToMap;
+    ObjectToMap m_object2map;
 };
 
 template <typename T>
 Serializer<T>::Serializer(std::iostream& ios_)
-    : m_types(), m_ios(ios_), m_map_instance(ios_)
+    : m_types(), m_ios(ios_), m_object2map(ios_)
 {
 }
 
@@ -64,15 +65,15 @@ template <typename T>
 template <typename D>
 void Serializer<T>::AddType(Creator creator_)
 {
-    m_types.insert(std::pair<std::string, Creator>(typeid(D*).name(), creator_));
+    m_types.Add(typeid(D*).name(), creator_);
 }  
 
 template <typename T>
 void Serializer<T>::Serialize(std::vector<T*>& instances_)
 {
-    std::for_each(instances_.begin(), instances_.end(), m_map_instance);
+    std::for_each(instances_.begin(), instances_.end(), m_object2map);
 
-    write_json(m_ios, *m_map_instance.GetPT());
+    write_json(m_ios, *m_object2map.GetPT());
 }
 
 template <typename T>
@@ -81,56 +82,53 @@ std::vector<boost::shared_ptr<T> > Serializer<T>::Deserialize()
     std::vector< boost::shared_ptr<T> > instances;
     ptree pt;
     read_json(m_ios, pt);
-    BOOST_FOREACH(boost::property_tree::ptree::value_type& iter_instance, pt)
+    BOOST_FOREACH(ptree::value_type& iter_instance, pt)
     {
         std::map<std::string, std::string> type_map;
-        BOOST_FOREACH(boost::property_tree::ptree::value_type& iter_property, iter_instance.second)
+        BOOST_FOREACH(ptree::value_type& iter_property, iter_instance.second)
         {
-            type_map.insert(std::pair<std::string,std::string>(iter_property.first, iter_property.second.data()));
+            type_map.insert(std::pair<std::string,std::string>(
+                iter_property.first,
+                iter_property.second.data()));
         }
-        instances.push_back(m_types[type_map["type"]](type_map));
+        instances.push_back(m_types.Create(type_map["type"], type_map));
     }
 
     return instances;
 }
 
 template <typename T>
-struct Serializer<T>::MapInstance
+struct Serializer<T>::ObjectToMap
 {
-    MapInstance(std::iostream& ios_) 
-        : m_ios(ios_), m_child(new ptree), m_pt(new ptree), m_serialize_instance(ios_, m_child) {}
+    ObjectToMap(std::iostream& ios_) 
+        : m_ios(ios_),
+        m_child(new ptree),
+        m_pt(new ptree),
+        m_map2serial(ios_, m_child) {}
 
-    ~MapInstance()
-    {
-        // m_pt->clear();
-        // m_child->clear();
-        // delete m_pt;
-        // delete m_child;
-    }
-
-    struct SerializeInstance;
+    struct MapToSerial;
     
-    ptree *GetPT() { return m_pt; }
+    boost::shared_ptr<ptree> GetPT() { return m_pt; }
 
     void operator()(T* instance)
     {
         std::map<std::string, std::string> instance_m = instance->ToMap();
-        std::for_each(instance_m.rbegin(), instance_m.rend(), m_serialize_instance);
+        std::for_each(instance_m.rbegin(), instance_m.rend(), m_map2serial);
         m_pt->add_child("type", *m_child);
 
         m_child->clear();
     }
 
     std::iostream &m_ios;
-    ptree *m_child;
-    ptree *m_pt;
-    SerializeInstance m_serialize_instance;
+    boost::shared_ptr<ptree> m_child;
+    boost::shared_ptr<ptree> m_pt;
+    MapToSerial m_map2serial;
 };
 
 template <typename T>
-struct Serializer<T>::MapInstance::SerializeInstance
+struct Serializer<T>::ObjectToMap::MapToSerial
 {
-    SerializeInstance(std::iostream& ios_, ptree *child_)
+    MapToSerial(std::iostream& ios_, boost::shared_ptr<ptree> child_)
         : m_ios(ios_), m_child(child_) {}
 
     void operator()(std::pair<std::string, std::string> pair)
@@ -139,7 +137,7 @@ struct Serializer<T>::MapInstance::SerializeInstance
     }
 
     std::iostream &m_ios;
-    ptree *m_child;
+    boost::shared_ptr<ptree> m_child;
 };
 
 } // namespace ilrd

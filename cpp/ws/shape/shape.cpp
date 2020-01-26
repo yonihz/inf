@@ -360,4 +360,20 @@ std::map<std::string, std::string> Line::ToMap()
     return m;
 }
 
+// std::map<std::string, std::string> ShapeGroup::ToMap()
+// {
+//     std::map<std::string, std::string> m;
+//     m.insert(std::pair<std::string,std::string>("type", typeid(this).name()));
+//     m.insert(std::pair<std::string,std::string>("pos_x",lexical_cast<std::string>(GetPos().GetX())));
+//     m.insert(std::pair<std::string,std::string>("pos_y",lexical_cast<std::string>(GetPos().GetY())));
+//     m.insert(std::pair<std::string,std::string>("angle",lexical_cast<std::string>(GetAngle())));
+//     m.insert(std::pair<std::string,std::string>("color",lexical_cast<std::string>(GetColor())));
+//     m.insert(std::pair<std::string,std::string>("group_size",lexical_cast<std::string>(GetGroupSize())));
+
+
+//     for_each(m_list.begin(), m_list.end(), to_map_each);
+
+//     return m;
+// }
+
 } //namespace ilrd
