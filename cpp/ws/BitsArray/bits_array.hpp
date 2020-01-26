@@ -33,7 +33,7 @@ class BitsArray
 public:
     const static DWORD BIT_DWORD = (CHAR_BIT * sizeof(DWORD));
     const static DWORD N_DWORD = (N/BIT_DWORD) + 1 - ((N%BIT_DWORD) == 0);
-    const static DWORD UNUSED_BITS_MASK = ~((~(DWORD)0) << (N % BIT_DWORD));
+    const static DWORD UNUSED_BITS_MASK = ~((~(static_cast<DWORD>(0))) << (N % BIT_DWORD));
 
     explicit BitsArray();
     ~BitsArray();
@@ -174,7 +174,7 @@ bool BitsArray<N>::operator!=(const BitsArray& other_)
 template<size_t N>
 void BitsArray<N>::SetAll(bool val_)
 {
-    std::fill(m_arr, m_arr + N_DWORD, ~(DWORD)val_ + 1ul);
+    std::fill(m_arr, m_arr + N_DWORD, ~(static_cast<DWORD>(val_)) + static_cast<DWORD>(1));
     FixTail();
 }
 
@@ -182,7 +182,7 @@ template<size_t N>
 size_t BitsArray<N>::Count(bool val_)
 {
     CountWord_ count_word;
-    size_t count = std::accumulate(m_arr, m_arr + N_DWORD, 0ul, count_word);
+    size_t count = std::accumulate(m_arr, m_arr + N_DWORD, static_cast<DWORD>(0), count_word);
     count = val_ ? count : (N - count);
 
     return count;
@@ -200,7 +200,7 @@ BitsArray<N>& BitsArray<N>::ToggleAll()
 template<size_t N>
 BitsArray<N>& BitsArray<N>::ToggleOne(size_t idx_)
 {
-    DWORD m = ((DWORD)1 << (idx_ % BIT_DWORD));
+    DWORD m = (static_cast<DWORD>(1) << (idx_ % BIT_DWORD));
 
     m_arr[idx_ / BIT_DWORD] ^= m;
 
@@ -210,9 +210,9 @@ BitsArray<N>& BitsArray<N>::ToggleOne(size_t idx_)
 template<size_t N>
 BitsArray<N>& BitsArray<N>::SetBit(size_t idx_, bool val_)
 {
-    DWORD m = ((DWORD)1 << (idx_ % BIT_DWORD));
+    DWORD m = (static_cast<DWORD>(1) << (idx_ % BIT_DWORD));
     m_arr[idx_ / BIT_DWORD] &= (~m);
-    m_arr[idx_ / BIT_DWORD] |= ((DWORD)val_ << (idx_ % BIT_DWORD));
+    m_arr[idx_ / BIT_DWORD] |= (static_cast<DWORD>(val_) << (idx_ % BIT_DWORD));
 
     return *this;
 }
@@ -220,7 +220,7 @@ BitsArray<N>& BitsArray<N>::SetBit(size_t idx_, bool val_)
 template<size_t N>
 bool BitsArray<N>::GetBit(size_t idx_) const
 {
-    return (m_arr[idx_ / BIT_DWORD] >> (idx_ % BIT_DWORD)) & 1ul;
+    return (m_arr[idx_ / BIT_DWORD] >> (idx_ % BIT_DWORD)) & static_cast<DWORD>(1);
 }
 
 template<size_t N>
@@ -269,7 +269,7 @@ struct ToggleAll_
 {
     void operator() (DWORD &elem)
     {
-        elem ^= ~(DWORD)0;
+        elem ^= ~(static_cast<DWORD>(0));
     }
 };
 
@@ -297,19 +297,19 @@ struct BitwiseXor_
     }
 };
 
-struct ShiftLeftWords_
-{
-    DWORD operator() (DWORD elem1, DWORD elem2)
-    {
-        return (elem2);
-    }
-};
+// struct ShiftLeftWords_
+// {
+//     DWORD operator() (DWORD elem1, DWORD elem2)
+//     {
+//         return (elem2);
+//     }
+// };
 
 struct SetOffWord_
 {
     DWORD operator() (DWORD elem)
     {
-        return (elem & 0ul);
+        return (elem & static_cast<DWORD>(0));
     }
 };
 
