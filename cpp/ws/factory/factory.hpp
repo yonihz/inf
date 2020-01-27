@@ -13,8 +13,8 @@ class Factory
 {
 
 public:
-    void Add(const Key key_, Create_Func creator_);  // does nothing if key exists
-    Obj_Handle Create(Key key_, Data data_) const;
+    void Add(const Key key_, Create_Func creator_);  // overrides if key exists
+    Obj_Handle Create(Key key_, Data data_) const; // may throw InvalidKey() exception if key is invalid
 
 private:
     typedef std::map<Key, Create_Func> factory_map_t;
@@ -22,30 +22,30 @@ private:
 };
 
 //  specialization for Data = void
-template <typename Obj_Handle, typename Key>
-class Factory <Obj_Handle, Key, void, Obj_Handle(*)(void)>
+template <typename Obj_Handle, typename Key, typename Create_Func>
+class Factory <Obj_Handle, Key, void, Create_Func>
 {
 
 public:
-    void Add(const Key key_, Obj_Handle(*)(void));  
+    void Add(const Key key_, Create_Func creator_);  
     Obj_Handle Create(Key key_) const;
 
 private:
-    typedef std::map<Key, Obj_Handle(*)(void)> factory_map_t;
+    typedef std::map<Key, Create_Func> factory_map_t;
     factory_map_t m_map;
 };
 
 template <typename Obj_Handle, typename Key, typename Data, typename Create_Func>
 void Factory<Obj_Handle, Key, Data, Create_Func>::Add(const Key key_, Create_Func creator_)
 {
-    m_map.insert(std::pair<Key, Create_Func>(key_, creator_));
+    m_map[key_] = creator_;
 }
 
 //  specialization for Data = void
-template <typename Obj_Handle, typename Key>
-void Factory<Obj_Handle, Key, void, Obj_Handle(*)(void)>::Add(const Key key_, Obj_Handle(*creator_)(void))
+template <typename Obj_Handle, typename Key, typename Create_Func>
+void Factory<Obj_Handle, Key, void, Create_Func>::Add(const Key key_, Create_Func creator_)
 {
-    m_map.insert(std::pair<Key, Obj_Handle(*)(void)>(key_, creator_));
+    m_map[key_] = creator_;
 }
 
 template <typename Obj_Handle, typename Key, typename Data, typename Create_Func>
@@ -61,8 +61,8 @@ Obj_Handle Factory<Obj_Handle, Key, Data, Create_Func>::Create(Key key_, Data da
 }
 
 //  specialization for Data = void
-template <typename Obj_Handle, typename Key>
-Obj_Handle Factory<Obj_Handle, Key, void, Obj_Handle(*)(void)>::Create(Key key_) const
+template <typename Obj_Handle, typename Key, typename Create_Func>
+Obj_Handle Factory<Obj_Handle, Key, void, Create_Func>::Create(Key key_) const
 {
     typename factory_map_t::const_iterator iter = m_map.find(key_);
     if (iter == m_map.end())
