@@ -7,6 +7,8 @@
 #define MAG  "\x1B[35m"
 #define RESET "\x1B[0m"
 
+typedef unsigned long TEST_DWORD;
+
 void REQUIRE(bool test, const char test_name[])
 {
 	(true == test) ?
@@ -20,7 +22,7 @@ void Test1();
 using namespace ilrd;
 
 template<size_t N>
-void PrintBitsArray(BitsArray<N> &ba, DWORD size);
+void PrintBitsArray(BitsArray<N> &ba, TEST_DWORD size);
 
 int main()
 {
@@ -128,7 +130,7 @@ void Test1()
 }
 
 template<size_t N>
-void PrintBitsArray(BitsArray<N> &ba, DWORD size)
+void PrintBitsArray(BitsArray<N> &ba, TEST_DWORD size)
 {
     for (size_t i = 0; i < size; ++i)
     {

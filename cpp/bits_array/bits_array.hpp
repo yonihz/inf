@@ -2,20 +2,13 @@
 #define _ILRD_RD743_BITS_ARRAY_HPP_
 
 #include <algorithm>    // for_each, accumulate, fill, transform, copy
-
 #include <bits/stdc++.h>    // CHAR_BIT
 
 // Set Bits char LUT
-
 #define B2(n) n, n + 1, n + 1, n + 2
 #define B4(n) B2(n), B2(n + 1), B2(n + 1), B2(n + 2)
 #define B6(n) B4(n), B4(n + 1), B4(n + 1), B4(n + 2)
 #define SET_BITS B6(0), B6(1), B6(1), B6(2)
-
-static size_t set_bits_lut[256] = { SET_BITS };
-
-// typedef of the word type used
-typedef unsigned long DWORD;
 
 namespace ilrd
 {
@@ -26,18 +19,17 @@ class BitsArray
     class BitProxy;
 
 public:
-
     explicit BitsArray();
     ~BitsArray();
-    BitsArray(const BitsArray& other_);
-
-    BitsArray& operator=(const BitsArray& other_);
+    // BitsArray(const BitsArray& other_); // generated is used
+    
+    // BitsArray& operator=(const BitsArray& other_); // generated is used
     
     bool operator[](size_t idx_) const;
     BitProxy operator[](size_t idx_);
     
-    BitsArray& operator>>=(size_t n_);
-    BitsArray& operator<<=(size_t n_);
+    // BitsArray& operator>>=(size_t n_);
+    // BitsArray& operator<<=(size_t n_);
 
     BitsArray& operator&=(const BitsArray& other_);
     BitsArray& operator|=(const BitsArray& other_);
@@ -56,12 +48,20 @@ public:
     bool GetBit(size_t idx_) const;
 
 private:
-
+    typedef unsigned long DWORD;
     const static DWORD BIT_DWORD = (CHAR_BIT * sizeof(DWORD));
     const static DWORD N_DWORD = (N/BIT_DWORD) + 1 - ((N%BIT_DWORD) == 0);
     const static DWORD UNUSED_BITS_MASK = ~((~(static_cast<DWORD>(0))) << (N % BIT_DWORD));
 
     DWORD m_arr[N_DWORD];
+
+    class ToggleWord;
+    class BitwiseAnd;
+    class BitwiseOr;
+    class BitwiseXor;
+    class CountWord;
+
+    static const size_t set_bits_lut[256];
 
     void FixTail();
 
@@ -74,17 +74,13 @@ private:
         BitProxy& operator=(bool rhs_);
         operator bool() const;
     private:
-        BitsArray *m_org;
+        BitsArray &m_org;
         DWORD m_idx;
     };
 };
 
-// Functors
-struct ToggleWord;
-struct BitwiseAnd;
-struct BitwiseOr;
-struct BitwiseXor;
-struct CountWord;
+template<size_t N>
+const size_t BitsArray<N>::set_bits_lut[256] = { SET_BITS };
 
 /**
  * @brief Construct a new Bits Array< N>:: Bits Array object
@@ -113,12 +109,12 @@ BitsArray<N>::~BitsArray() { }
  * @param other_ Bits Array object
  */
 
-template<size_t N>
-BitsArray<N>::BitsArray(const BitsArray<N>& other_)
-    : m_arr()
-{
-    std::copy(other_.m_arr, other_.m_arr + N_DWORD, m_arr);
-}
+// template<size_t N>
+// BitsArray<N>::BitsArray(const BitsArray<N>& other_)
+//     : m_arr()
+// {
+//     std::copy(other_.m_arr, other_.m_arr + N_DWORD, m_arr);
+// }
 
 /**
  * @brief Assignment operator that takes an equally sized Bits Array object
@@ -128,12 +124,12 @@ BitsArray<N>::BitsArray(const BitsArray<N>& other_)
  * @return BitsArray<N>& - newly assigned object
  */
 
-template<size_t N>
-BitsArray<N>& BitsArray<N>::operator=(const BitsArray<N>& other_)
-{
-    std::copy(other_.m_arr, other_.m_arr + N_DWORD, m_arr);
-    return *this;
-}
+// template<size_t N>
+// BitsArray<N>& BitsArray<N>::operator=(const BitsArray<N>& other_)
+// {
+//     std::copy(other_.m_arr, other_.m_arr + N_DWORD, m_arr);
+//     return *this;
+// }
 
 /**
  * @brief operator[] returns value at position idx_
@@ -145,7 +141,7 @@ BitsArray<N>& BitsArray<N>::operator=(const BitsArray<N>& other_)
 template<size_t N>
 bool BitsArray<N>::operator[](size_t idx_) const
 {
-    return GetBit(idx_);
+    return (m_arr[idx_ / BIT_DWORD] >> (idx_ % BIT_DWORD)) & static_cast<DWORD>(1);
 }
 
 /**
@@ -170,11 +166,11 @@ typename BitsArray<N>::BitProxy BitsArray<N>::operator[](size_t idx_)
  * @return BitsArray<N>& 
  */
 
-template<size_t N>
-BitsArray<N>& BitsArray<N>::operator>>=(size_t n_)
-{
+// template<size_t N>
+// BitsArray<N>& BitsArray<N>::operator>>=(size_t n_)
+// {
 
-}
+// }
 
 /**
  * @brief Shift right operator by n_ bits
@@ -184,11 +180,11 @@ BitsArray<N>& BitsArray<N>::operator>>=(size_t n_)
  * @return BitsArray<N>& 
  */
 
-template<size_t N>
-BitsArray<N>& BitsArray<N>::operator<<=(size_t n_)
-{
+// template<size_t N>
+// BitsArray<N>& BitsArray<N>::operator<<=(size_t n_)
+// {
 
-}
+// }
 
 /**
  * @brief Bitwise AND (&) operator between another Bits Array object. Returns
@@ -362,7 +358,7 @@ BitsArray<N>& BitsArray<N>::SetBit(size_t idx_, bool val_)
 template<size_t N>
 bool BitsArray<N>::GetBit(size_t idx_) const
 {
-    return (m_arr[idx_ / BIT_DWORD] >> (idx_ % BIT_DWORD)) & static_cast<DWORD>(1);
+    return (*this)[idx_];
 }
 
 /**
@@ -375,7 +371,7 @@ bool BitsArray<N>::GetBit(size_t idx_) const
 
 template<size_t N>
 BitsArray<N>::BitProxy::BitProxy(BitsArray &org_, size_t idx_)
-    : m_org(&org_), m_idx(idx_) {}
+    : m_org(org_), m_idx(idx_) {}
 
 /**
  * @brief Destroy the Bits Array< N>:: Bit Proxy:: Bit Proxy object
@@ -397,7 +393,7 @@ BitsArray<N>::BitProxy::~BitProxy() {}
 template<size_t N>
 typename BitsArray<N>::BitProxy& BitsArray<N>::BitProxy::operator=(BitProxy& rhs_)
 {
-    m_org->SetBit(m_idx, rhs_);
+    m_org.SetBit(m_idx, rhs_);
     return *this;
 }
 
@@ -412,7 +408,7 @@ typename BitsArray<N>::BitProxy& BitsArray<N>::BitProxy::operator=(BitProxy& rhs
 template<size_t N>
 typename BitsArray<N>::BitProxy& BitsArray<N>::BitProxy::operator=(bool rhs_)
 {
-    m_org->SetBit(m_idx, rhs_);
+    m_org.SetBit(m_idx, rhs_);
     return *this;
 }
 
@@ -427,13 +423,15 @@ typename BitsArray<N>::BitProxy& BitsArray<N>::BitProxy::operator=(bool rhs_)
 template<size_t N>
 BitsArray<N>::BitProxy::operator bool() const
 {
-    return m_org->GetBit(m_idx);
+    return m_org.GetBit(m_idx);
 }
 
 // Functors
 
-struct CountWord
+template<size_t N>
+class BitsArray<N>::CountWord
 {
+public:
     size_t operator() (size_t sum, DWORD &elem)
     {
         unsigned char *p = (unsigned char *)&elem;
@@ -447,32 +445,40 @@ struct CountWord
     }
 };
 
-struct ToggleWord
+template<size_t N>
+class BitsArray<N>::ToggleWord
 {
+public:
     void operator() (DWORD &elem)
     {
         elem ^= ~(static_cast<DWORD>(0));
     }
 };
 
-struct BitwiseAnd
+template<size_t N>
+class BitsArray<N>::BitwiseAnd
 {
+public:
     DWORD operator() (DWORD elem1, DWORD elem2)
     {
         return (elem1 &= elem2);
     }
 };
 
-struct BitwiseOr
+template<size_t N>
+class BitsArray<N>::BitwiseOr
 {
+public:
     DWORD operator() (DWORD elem1, DWORD elem2)
     {
         return (elem1 |= elem2);
     }
 };
 
-struct BitwiseXor
+template<size_t N>
+class BitsArray<N>::BitwiseXor
 {
+public:
     DWORD operator() (DWORD elem1, DWORD elem2)
     {
         return (elem1 ^= elem2);
@@ -496,16 +502,7 @@ inline void BitsArray<N>::FixTail()
 
 #endif // _ILRD_RD743_BITS_ARRAY_HPP_
 
-
-
-
-
-
-
-
-
-
-// struct ShiftLeftWords_
+// class ShiftLeftWords_
 // {
 //     DWORD operator() (DWORD elem1, DWORD elem2)
 //     {
@@ -513,7 +510,7 @@ inline void BitsArray<N>::FixTail()
 //     }
 // };
 
-// struct SetOffWord_
+// class SetOffWord_
 // {
 //     DWORD operator() (DWORD elem)
 //     {
