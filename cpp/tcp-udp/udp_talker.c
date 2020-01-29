@@ -1,5 +1,3 @@
-/* gd tcp_ping.c -D_POSIX_C_SOURCE=200112L -o tcp_server.out */
-
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -10,8 +8,7 @@
 #include <stdlib.h>
 #include <unistd.h>     /* sleep */
 
-#define PORT "3490"
-#define BACKLOG 10
+#define PORT "1235"
 #define MSG_SIZE 10
 
 #define UNUSED(x) (void)(x)
@@ -33,7 +30,8 @@ int main()
 
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC; /* AF_INET (IPv4), AF_INET6 (IPv6), AF_UNSPEC (both) */
-    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_socktype = SOCK_DGRAM;
+    hints.ai_flags = AI_PASSIVE;
 
     status = getaddrinfo(NULL, PORT, &hints, &serv_info);
     if (status != 0)
@@ -46,15 +44,7 @@ int main()
         socket_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
         if (socket_fd == -1)
         {
-            perror("client: socket");
-            continue;
-        }
-
-        status = connect(socket_fd, p->ai_addr, p->ai_addrlen);
-        if (status == -1) 
-        {
-            close(socket_fd);
-            perror("client: connect");
+            perror("talker: socket");
             continue;
         }
 
@@ -63,7 +53,7 @@ int main()
 
     if (p == NULL) 
     {
-        fprintf(stderr, "client: failed to connect\n");
+        fprintf(stderr, "talker: failed to connect\n");
         return 2;
     }
 
@@ -71,23 +61,23 @@ int main()
 
     for (i = 0; i < count; ++i)
     {
-        nbytes_sent = send(socket_fd, msg, len_msg, 0);
+        nbytes_sent = sendto(socket_fd, msg, len_msg, MSG_CONFIRM, p->ai_addr, p->ai_addrlen);
 
         if (nbytes_sent == -1)
         {
-            fprintf(stderr, "send error\n");
+            fprintf(stderr, "sendto error\n");
         }
 
-        nbytes_rcvd = recv(socket_fd, buf, MSG_SIZE, 0);
+        nbytes_rcvd = recvfrom(socket_fd, buf, MSG_SIZE, MSG_WAITALL, p->ai_addr, &p->ai_addrlen);
 
         if (nbytes_rcvd == -1)
         {
-            perror("recv error");
+            perror("recvfrom error");
         }
 
         buf[nbytes_rcvd] = '\0';
 
-        printf("client: received '%s'\n", buf);
+        printf("talker: received '%s'\n", buf);
         sleep(1);
     }
 
