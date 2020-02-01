@@ -75,6 +75,7 @@
         "future": "cpp",
         "scoped_allocator": "cpp",
         "regex": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "string.h": "c"
     }
 }

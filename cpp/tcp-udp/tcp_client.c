@@ -1,12 +1,4 @@
-#include <stdio.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <stdlib.h>
-#include <unistd.h>     /* sleep */
+#include "socket.h"
 
 #define PORT "1234"
 #define MSG_SIZE 10
