@@ -7,29 +7,42 @@
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <unistd.h>
-
+#include <fstream>
 #include <signal.h>
 #include <pthread.h>
 
-#include "server.h"
+#include "server.hpp"
+
+using namespace ilrd;
+
+#define UNUSUED(x) (void)(x)
 
 #define NTHREADS 3
 #define MAXDATASIZE 100
 #define BACKLOG 100
 
-typedef struct {
+struct ServerInput
+{
+public:
+    ServerInput(const char *ip_, const char *port_, Logger *logger_)
+        : ip(ip_), port(port_), logger(logger_) {}
     const char *ip;
     const char *port;
-} server_input_t;
+    Logger *logger;
+};
 
 void CreateServer(const char *tcp_port, const char *udp_port, const char *bc_port)
 {
-    server_input_t tcp_in, udp_in, bc_in;
+    std::ofstream ofs;
+    ofs.open("server.log", std::ofstream::out | std::ofstream::app);
+
+    Logger logger(Logger::WARNING);
+    logger.SetOutput(ofs);
     pthread_t console_th, tcp_th, udp_th, bc_th;
 
-    tcp_in.ip = NULL; tcp_port = tcp_port;
-    udp_in.ip = NULL; udp_port = udp_port;
-    bc_in.ip = NULL; bc_port = bc_port;
+    ServerInput tcp_in(NULL, tcp_port, &logger);
+    ServerInput udp_in(NULL, udp_port, &logger);
+    ServerInput bc_in(NULL, bc_port, &logger);
    
     pthread_create(&console_th, NULL, ConsoleThread, NULL);
     pthread_create(&tcp_th, NULL, TCPServerThread, (void*)&tcp_in);
@@ -44,6 +57,7 @@ void CreateServer(const char *tcp_port, const char *udp_port, const char *bc_por
 
 void *ConsoleThread(void* arg)
 {
+    UNUSUED(arg);
     char str[MAXDATASIZE]; 
     while(1)
     {
@@ -52,7 +66,7 @@ void *ConsoleThread(void* arg)
 
         if (strcmp(str, "exit") == 0)
         {
-            pthread_kill(pthread_t thread, int signo);
+            //pthread_kill(thread, signo);
         }
     }
 }
@@ -62,17 +76,20 @@ void *TCPServerThread(void *server_in)
     int status;
     int socket_fd, new_socket_fd;
     struct addrinfo *server_addrinfo;
-    struct addrinfo client_addrinfo;
+    struct sockaddr_storage client_addrinfo;
     socklen_t client_addrlen;
     pid_t pid;
 
+    printf("TCPServerThread started\n");
+
     InitAddrinfo(
-        ((server_input_t*)server_in)->ip,
-        ((server_input_t*)server_in)->port,
+        NULL,
+        "5555",
         AF_UNSPEC,
         SOCK_STREAM,
         AI_PASSIVE,
-        &server_addrinfo);
+        &server_addrinfo); // fix args
+
 
     socket_fd = TCPServerBindSocket(server_addrinfo);
 
@@ -82,7 +99,7 @@ void *TCPServerThread(void *server_in)
         exit(1);
     }
 
-    status = listen(socket_fd, backlog);
+    status = listen(socket_fd, BACKLOG); // backlog - user defined?
 
     if (status == -1)
     {
@@ -102,7 +119,7 @@ void *TCPServerThread(void *server_in)
             continue;
         }
 
-        PrintClientAddr(struct addrinfo *client_addrinfo);
+        PrintClientAddr(&client_addrinfo);
         
         pid = fork();
         if (pid == 0)   /* child process */
@@ -124,7 +141,7 @@ void TCPServerLoop(int new_socket_fd)
 {
     char buff[MAXDATASIZE];
     ssize_t nbytes_sent, nbytes_rcvd;
-    char *pong_msg = "Pong";
+    const char *pong_msg = "Pong";
     size_t len_pong_msg = strlen(pong_msg);
 
     while(1)
@@ -154,17 +171,16 @@ void TCPServerLoop(int new_socket_fd)
 
 void *UDPServerThread(void *server_in)
 {
-    int status;
     int socket_fd;
     struct addrinfo *server_addrinfo;
 
     InitAddrinfo(
-        ((server_input_t*)server_in)->ip,
-        ((server_input_t*)server_in)->port,
+        NULL,
+        "5556",
         AF_UNSPEC,
         SOCK_DGRAM,
         AI_PASSIVE,
-        &server_addrinfo);
+        &server_addrinfo); // fix args
 
     socket_fd = UDPServerBindSocket(server_addrinfo);
 
@@ -173,6 +189,8 @@ void *UDPServerThread(void *server_in)
         fprintf(stderr, "UDP server: failed to bind\n");
         exit(1);
     }
+
+    printf("UDP server: waiting to recvfrom...\n");
 
     UDPServerLoop(socket_fd);
 
@@ -188,7 +206,7 @@ void UDPServerLoop(int socket_fd)
 
     char buff[MAXDATASIZE];
     ssize_t nbytes_sent, nbytes_rcvd;
-    char *pong_msg = "Pong";
+    const char *pong_msg = "Pong";
     size_t len_pong_msg = strlen(pong_msg);
 
     while(1)
@@ -219,17 +237,16 @@ void UDPServerLoop(int socket_fd)
 
 void *UDPBroadcastServerThread(void *server_in)
 {
-    int status;
     int socket_fd;
     struct addrinfo *server_addrinfo;
 
     InitAddrinfo(
-        ((server_input_t*)server_in)->ip,
-        ((server_input_t*)server_in)->port,
+        NULL,
+        "5557",
         AF_UNSPEC,
         SOCK_DGRAM,
         AI_PASSIVE,
-        &server_addrinfo);
+        &server_addrinfo); // fix args
 
     socket_fd = UDPServerBindSocket(server_addrinfo);
 
@@ -238,6 +255,8 @@ void *UDPBroadcastServerThread(void *server_in)
         fprintf(stderr, "UDP server: failed to bind\n");
         exit(1);
     }
+
+    printf("UDP Broadcast server: waiting to recv...\n");
 
     UDPBroadcastServerLoop(socket_fd);
 
@@ -248,10 +267,8 @@ void *UDPBroadcastServerThread(void *server_in)
 
 void UDPBroadcastServerLoop(int socket_fd)
 {
-    struct addrinfo client_addrinfo;
-
     char buff[MAXDATASIZE];
-    ssize_t nbytes_sent, nbytes_rcvd;
+    ssize_t nbytes_rcvd;
 
     while(1)
     {

@@ -8,7 +8,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-void InitAddrinfo(const char *node, const char *service, int ai_family, int ai_socktype, int ai_flags, struct addrinfo **serv_info)
+#include "socket.hpp"
+
+void InitAddrinfo(const char *ip, const char *port, int ai_family, int ai_socktype, int ai_flags, struct addrinfo **server_addrinfo)
 {
     int status;
     struct addrinfo hints;
@@ -18,17 +20,17 @@ void InitAddrinfo(const char *node, const char *service, int ai_family, int ai_s
     hints.ai_socktype = ai_socktype; /* SOCK_STREAM, SOCK_DGRAM */
     hints.ai_flags = ai_flags; /* AI_PASSIVE */
 
-    status = getaddrinfo(node, service, &hints, &serv_info);
+    status = getaddrinfo(ip, port, &hints, server_addrinfo);
 
     if (status != 0)
     {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
-        return 1;
+        //return 1;
     }
 }
 
 /* frees serv_info, returns -1 or error */
-int TCPServerBindSocket(struct addrinfo **serv_info)
+int TCPServerBindSocket(struct addrinfo *serv_info)
 {
     struct addrinfo *p = NULL;
     int socket_fd = 0;
@@ -72,7 +74,7 @@ int TCPServerBindSocket(struct addrinfo **serv_info)
 }
 
 /* frees serv_info, returns -1 or error */
-int ClientConnectSocket(struct addrinfo **server_addrinfo)
+int ClientConnectSocket(struct addrinfo *server_addrinfo)
 {
     struct addrinfo *p = NULL;
     int socket_fd = 0;
@@ -109,7 +111,7 @@ int ClientConnectSocket(struct addrinfo **server_addrinfo)
 }
 
 /* frees serv_info, returns -1 or error */
-int UDPServerBindSocket(struct addrinfo **server_addrinfo)
+int UDPServerBindSocket(struct addrinfo *server_addrinfo)
 {
     struct addrinfo *p = NULL;
     int socket_fd = 0;
@@ -143,9 +145,11 @@ int UDPServerBindSocket(struct addrinfo **server_addrinfo)
         fprintf(stderr, "UDP server: failed to bind socket\n");
         return -1;
     }
+
+    return socket_fd;
 }
 
-PrintClientAddr(struct addrinfo *client_addrinfo)
+void PrintClientAddr(struct sockaddr_storage *client_addrinfo)
 {
     char s[INET6_ADDRSTRLEN];
     struct sockaddr *sa = (struct sockaddr *)client_addrinfo;
