@@ -5,6 +5,8 @@
 namespace ilrd
 {
 
+Logger g_logger(Logger::WARNING);
+
 Logger::Logger(Severity initialSeverity)
     : m_severity(initialSeverity), m_os(&std::cerr)
 {

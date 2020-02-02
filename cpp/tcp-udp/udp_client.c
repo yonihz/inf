@@ -8,7 +8,8 @@
 #include <stdlib.h>
 #include <unistd.h>     /* sleep */
 
-#define PORT "1235"
+#define PORT "5556"
+
 #define MSG_SIZE 10
 
 #define UNUSED(x) (void)(x)
@@ -20,7 +21,7 @@ int main()
     struct addrinfo hints, *serv_info, *p;
 
     char buf[MSG_SIZE];
-    char *msg = "Pong";
+    char *msg = "Ping";
     ssize_t nbytes_sent, nbytes_rcvd;
     size_t len_msg;
     const size_t count = 10;

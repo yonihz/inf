@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <iostream>
 
 #include "socket.hpp"
 // #include "logger.hpp"
@@ -14,7 +15,7 @@
 namespace ilrd
 {
 
-void InitAddrinfo(const char *ip, const char *port, int ai_family, int ai_socktype, int ai_flags, struct addrinfo **server_addrinfo)
+void InitAddrinfo(const char *ip, int port, int ai_family, int ai_socktype, int ai_flags, struct addrinfo **server_addrinfo)
 {
     int status;
     struct addrinfo hints;
@@ -24,12 +25,14 @@ void InitAddrinfo(const char *ip, const char *port, int ai_family, int ai_sockty
     hints.ai_socktype = ai_socktype; /* SOCK_STREAM, SOCK_DGRAM */
     hints.ai_flags = ai_flags; /* AI_PASSIVE */
 
-    status = getaddrinfo(ip, port, &hints, server_addrinfo);
+    char port_str[10];
+    snprintf(port_str, sizeof(port_str), "%d", port);
+
+    status = getaddrinfo(ip, port_str, &hints, server_addrinfo);
 
     if (status != 0)
     {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
-        //return 1;
     }
 }
 

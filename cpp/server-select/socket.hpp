@@ -4,7 +4,7 @@
 namespace ilrd
 {
 
-void InitAddrinfo(const char *ip, const char *port, int ai_family, int ai_socktype, int ai_flags, struct addrinfo **server_addrinfo);
+void InitAddrinfo(const char *ip, int port, int ai_family, int ai_socktype, int ai_flags, struct addrinfo **server_addrinfo);
 
 /* frees serv_info, returns -1 or error */
 int TCPServerBindSocket(struct addrinfo *serv_info);

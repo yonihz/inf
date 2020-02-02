@@ -1,6 +1,14 @@
-#include "socket.h"
+#include <stdio.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <unistd.h>
 
-#define PORT "1234"
+#define PORT "5555"
 #define MSG_SIZE 10
 
 #define UNUSED(x) (void)(x)
@@ -12,7 +20,7 @@ int main()
     struct addrinfo hints, *serv_info, *p;
 
     char buf[MSG_SIZE];
-    char *msg = "Pong";
+    char *msg = "Ping";
     ssize_t nbytes_sent, nbytes_rcvd;
     size_t len_msg;
     const size_t count = 10;
@@ -42,7 +50,7 @@ int main()
         status = connect(socket_fd, p->ai_addr, p->ai_addrlen);
         if (status == -1) 
         {
-            close(socket_fd);
+            /* close(socket_fd); */
             perror("client: connect");
             continue;
         }
@@ -57,8 +65,6 @@ int main()
     }
 
     freeaddrinfo(serv_info);
-
-    sleep(120);
 
     for (i = 0; i < count; ++i)
     {
@@ -81,6 +87,8 @@ int main()
         printf("client: received '%s'\n", buf);
         sleep(1);
     }
+
+    close(socket_fd);
 
     return 0;
 

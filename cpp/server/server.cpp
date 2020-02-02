@@ -10,10 +10,10 @@
 #include <fstream>
 #include <signal.h>
 #include <pthread.h>
+#include <vector>
 
 #include "server.hpp"
-
-using namespace ilrd;
+// #include "logger.hpp"
 
 #define UNUSUED(x) (void)(x)
 
@@ -21,28 +21,29 @@ using namespace ilrd;
 #define MAXDATASIZE 100
 #define BACKLOG 100
 
+namespace ilrd
+{
+
 struct ServerInput
 {
 public:
-    ServerInput(const char *ip_, const char *port_, Logger *logger_)
-        : ip(ip_), port(port_), logger(logger_) {}
+    ServerInput(const char *ip_, const char *port_)
+        : ip(ip_), port(port_) {}
     const char *ip;
     const char *port;
-    Logger *logger;
 };
 
 void CreateServer(const char *tcp_port, const char *udp_port, const char *bc_port)
 {
-    std::ofstream ofs;
-    ofs.open("server.log", std::ofstream::out | std::ofstream::app);
+    // std::ofstream ofs;
+    // ofs.open("server.log", std::ofstream::out | std::ofstream::app);
 
-    Logger logger(Logger::WARNING);
-    logger.SetOutput(ofs);
+    // g_logger.SetOutput(ofs);
     pthread_t console_th, tcp_th, udp_th, bc_th;
 
-    ServerInput tcp_in(NULL, tcp_port, &logger);
-    ServerInput udp_in(NULL, udp_port, &logger);
-    ServerInput bc_in(NULL, bc_port, &logger);
+    ServerInput tcp_in(NULL, tcp_port);
+    ServerInput udp_in(NULL, udp_port);
+    ServerInput bc_in(NULL, bc_port);
    
     pthread_create(&console_th, NULL, ConsoleThread, NULL);
     pthread_create(&tcp_th, NULL, TCPServerThread, (void*)&tcp_in);
@@ -64,9 +65,9 @@ void *ConsoleThread(void* arg)
         printf("Server Console - waiting for input:\n");
         fgets(str, MAXDATASIZE, stdin);
 
-        if (strcmp(str, "exit") == 0)
+        if (strcmp(str, "exit\n") == 0)
         {
-            //pthread_kill(thread, signo);
+            exit(1);
         }
     }
 }
@@ -78,7 +79,8 @@ void *TCPServerThread(void *server_in)
     struct addrinfo *server_addrinfo;
     struct sockaddr_storage client_addrinfo;
     socklen_t client_addrlen;
-    pid_t pid;
+    std::vector<pthread_t*> connection_threads;
+    std::vector<int> connection_sockets;
 
     printf("TCPServerThread started\n");
 
@@ -119,38 +121,39 @@ void *TCPServerThread(void *server_in)
             continue;
         }
 
-        PrintClientAddr(&client_addrinfo);
-        
-        pid = fork();
-        if (pid == 0)   /* child process */
-        { 
-            close(socket_fd);
-            TCPServerLoop(new_socket_fd);
-        }
-        else    /* parent process */
-        {
-            close(new_socket_fd);
-        }
+        connection_sockets.push_back(new_socket_fd);
+        printf("outside thread tcp connection sockfd: %d\n", new_socket_fd);
+        pthread_t *new_th = (pthread_t*)malloc(sizeof(pthread_t));
+        pthread_create(new_th, NULL, TCPConnectionThread, (void*)&(connection_sockets.back()));
+        connection_threads.push_back(new_th);
     }
 
     close(socket_fd);
     return 0;
 }
 
-void TCPServerLoop(int new_socket_fd)
+void *TCPConnectionThread(void *new_socket_fd_voidptr)
 {
+    int new_socket_fd = *(int*)new_socket_fd_voidptr;
     char buff[MAXDATASIZE];
     ssize_t nbytes_sent, nbytes_rcvd;
     const char *pong_msg = "Pong";
     size_t len_pong_msg = strlen(pong_msg);
 
+    printf("thread tcp connection sockfd: %d\n", new_socket_fd);
+
     while(1)
     {
         nbytes_rcvd = recv(new_socket_fd, buff, MAXDATASIZE, 0);
+        if (nbytes_rcvd == 0)
+        {
+            break;
+        }
 
         if (nbytes_rcvd == -1)
         {
             perror("TCP server recv error");
+            break;
         }
 
         buff[nbytes_rcvd] = '\0';
@@ -284,3 +287,5 @@ void UDPBroadcastServerLoop(int socket_fd)
         printf("UDP BC server: received '%s'\n", buff);
     }
 }
+
+} //namespace ilrd

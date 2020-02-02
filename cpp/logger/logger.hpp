@@ -25,6 +25,8 @@ private:
     std::ostream *m_os;
 };
 
+extern Logger g_logger;
+
 } // namespace ilrd
 
 #endif // ILRD_OL734_LOGGER_HPP
