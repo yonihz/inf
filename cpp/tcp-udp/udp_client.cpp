@@ -1,4 +1,4 @@
-// gd98 tcp_client.cpp ../server-select/socket.cpp ../logger/logger.cpp -I../server-select -I../logger
+// gd98 udp_client.cpp ../server-select/socket.cpp ../logger/logger.cpp -I../server-select -I../logger -o udp_client.out
 
 #include <stdio.h>
 #include <string.h>
@@ -29,30 +29,27 @@ int main(int argc, char *argv[])
     }
 
     struct addrinfo *server_ai;
-    InitAddrinfo(NULL, atoi(argv[1]), AF_UNSPEC, SOCK_STREAM, AI_PASSIVE, &server_ai);
-
-    printf("tcp client port: %d\n", atoi(argv[1]));
+    InitAddrinfo(NULL, atoi(argv[1]), AF_UNSPEC, SOCK_DGRAM, AI_PASSIVE, &server_ai);
 
     int sockfd;
-    sockfd = TCPClientConnectSocket(server_ai);
+    sockfd = UDPClientGetSocket(server_ai);
 
     if (sockfd == -1) 
     {
-        fprintf(stderr, "client: failed to connect\n");
+        fprintf(stderr, "UDP client: failed to connect\n");
         return 2;
     }
 
     ClientRoutine(sockfd);
 
-    close(sockfd);
-
     return 0;
+
 }
 
 void ClientRoutine(int sockfd)
 {
     char buf[MAXDATASIZE];
-    char *msg = "Ping";
+    const char *msg = "Ping";
     ssize_t nbytes_sent, nbytes_rcvd;
     size_t len_msg;
     const size_t count = 10;
@@ -62,23 +59,23 @@ void ClientRoutine(int sockfd)
 
     for (i = 0; i < count; ++i)
     {
-        nbytes_sent = send(sockfd, msg, len_msg, 0);
+        nbytes_sent = sendto(sockfd, msg, len_msg, MSG_CONFIRM, p->ai_addr, p->ai_addrlen);
 
         if (nbytes_sent == -1)
         {
-            fprintf(stderr, "send error\n");
+            fprintf(stderr, "sendto error\n");
         }
 
-        nbytes_rcvd = recv(sockfd, buf, MAXDATASIZE, 0);
+        nbytes_rcvd = recvfrom(sockfd, buf, MAXDATASIZE, MSG_WAITALL, p->ai_addr, &p->ai_addrlen);
 
         if (nbytes_rcvd == -1)
         {
-            perror("recv error");
+            perror("recvfrom error");
         }
 
         buf[nbytes_rcvd] = '\0';
 
-        printf("client: received '%s'\n", buf);
+        printf("UDP client: received '%s'\n", buf);
         sleep(1);
     }
 }

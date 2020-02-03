@@ -1,3 +1,5 @@
+// gd98 udp_client_bc.cpp ../server-select/socket.cpp ../logger/logger.cpp -I../server-select -I../logger -o udp_client_bc.out
+
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -6,22 +8,27 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdlib.h>
-#include <unistd.h>     /* sleep */
+#include <unistd.h>
 
-#define PORT 5555
-#define MSG_SIZE 10
+#include "socket.hpp"
 
-#define UNUSED(x) (void)(x)
+using namespace ilrd;
 
-int main()
-{
+int main(int argc, char *argv[])
+{  
+    if (argc != 2)
+    {
+        printf("Error: need 1 ports as argument to run\n");
+        return 0;
+    }
+
     int status;
     int socket_fd;
     struct sockaddr_in other_addr;
     struct hostent *host;
     int nbytes_sent;
-    int broadcast = 1;
-    char *msg = "LALALALA"; /* char broadcast = '1'; */
+    int broadcast = 1; /* char broadcast = '1'; */
+    const char *msg = "Hello";
 
     host = gethostbyname("10.1.255.255");
 
@@ -47,7 +54,7 @@ int main()
     }
 
     other_addr.sin_family = AF_INET;
-    other_addr.sin_port = htons(PORT);
+    other_addr.sin_port = htons(atoi(argv[1]));
     other_addr.sin_addr = *((struct in_addr *)host->h_addr_list[0]);
     memset(other_addr.sin_zero, '\0', sizeof other_addr.sin_zero);
 

@@ -7,7 +7,6 @@
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <iostream>
 
 #include "socket.hpp"
 #include "logger.hpp"
@@ -40,30 +39,30 @@ void InitAddrinfo(const char *ip, int port, int ai_family, int ai_socktype, int 
 int TCPServerBindSocket(struct addrinfo *serv_info)
 {
     struct addrinfo *p = NULL;
-    int socket_fd = 0;
+    int sockfd = 0;
     int status = 0, yes = 1;
 
     for (p = serv_info; p != NULL; p = p->ai_next)
     {
-        socket_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-        if (socket_fd == -1)
+        sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+        if (sockfd == -1)
         {
-            perror("server: socket");
+            perror("TCP server: socket");
             continue;
         }
 
-        status = setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+        status = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
         if (status == -1)
         {
-            perror("server: setsockopt");
+            perror("TCP server: setsockopt");
             continue;
         }
         
-        status = bind(socket_fd, p->ai_addr, p->ai_addrlen);
+        status = bind(sockfd, p->ai_addr, p->ai_addrlen);
         if (status == -1)
         {
-            close(socket_fd);
-            perror("server: bind");
+            close(sockfd);
+            perror("TCP server: bind");
             continue;
         }
 
@@ -77,30 +76,30 @@ int TCPServerBindSocket(struct addrinfo *serv_info)
 
     freeaddrinfo(serv_info);
 
-    return socket_fd;
+    return sockfd;
 }
 
 /* frees serv_info, returns -1 or error */
-int ClientConnectSocket(struct addrinfo *server_addrinfo)
+int TCPClientConnectSocket(struct addrinfo *server_addrinfo)
 {
     struct addrinfo *p = NULL;
-    int socket_fd = 0;
+    int sockfd = 0;
     int status = 0;
 
     for (p = server_addrinfo; p != NULL; p = p->ai_next)
     {
-        socket_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-        if (socket_fd == -1)
+        sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+        if (sockfd == -1)
         {
-            perror("client: socket");
+            perror("TCP client: socket");
             continue;
         }
 
-        status = connect(socket_fd, p->ai_addr, p->ai_addrlen);
+        status = connect(sockfd, p->ai_addr, p->ai_addrlen);
         if (status == -1) 
         {
-            close(socket_fd);
-            perror("client: connect");
+            close(sockfd);
+            perror("TCP client: connect");
             continue;
         }
 
@@ -109,35 +108,35 @@ int ClientConnectSocket(struct addrinfo *server_addrinfo)
 
     if (p == NULL) 
     {
-        fprintf(stderr, "client: failed to connect\n");
+        fprintf(stderr, "TCP client: failed to connect\n");
     }
 
     freeaddrinfo(server_addrinfo);
 
-    return socket_fd;
+    return sockfd;
 }
 
 /* frees serv_info, returns -1 or error */
 int UDPServerBindSocket(struct addrinfo *server_addrinfo)
 {
     struct addrinfo *p = NULL;
-    int socket_fd = 0;
+    int sockfd = 0;
     int status = 0;
 
     for (p = server_addrinfo; p != NULL; p = p->ai_next)
     {
-        socket_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-        if (socket_fd == -1)
+        sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+        if (sockfd == -1)
         {
             perror("UDP server: socket");
             continue;
         }
 
-        status = bind(socket_fd, p->ai_addr, p->ai_addrlen);
+        status = bind(sockfd, p->ai_addr, p->ai_addrlen);
 
         if (status == -1)
         {
-            close(socket_fd);
+            close(sockfd);
             perror("UDP server: bind");
             continue;
         }
@@ -153,7 +152,36 @@ int UDPServerBindSocket(struct addrinfo *server_addrinfo)
         return -1;
     }
 
-    return socket_fd;
+    return sockfd;
+}
+
+/* frees serv_info, returns -1 or error */
+int UDPClientGetSocket(struct addrinfo *server_addrinfo)
+{
+    struct addrinfo *p = NULL;
+    int sockfd = 0;
+
+    for (p = server_addrinfo; p != NULL; p = p->ai_next)
+    {
+        sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+        if (sockfd == -1)
+        {
+            perror("UDP client: socket");
+            continue;
+        }
+
+        break;
+    }
+
+    if (p == NULL) 
+    {
+        fprintf(stderr, "UDP client: failed to connect\n");
+        return -1;
+    }
+
+    freeaddrinfo(server_addrinfo);
+
+    return sockfd;
 }
 
 void PrintClientAddr(struct sockaddr_storage *client_addrinfo)

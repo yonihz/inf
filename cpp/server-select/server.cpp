@@ -29,14 +29,10 @@ namespace ilrd
 
 void CreateServer(int tcp_port, int udp_port)
 {
-    std::ofstream ofs;
-    ofs.open("server.log", std::ofstream::out | std::ofstream::app);
-
-    g_logger.SetOutput(ofs);
-    // g_logger.Log(Logger::WARNING, "WARNING msg\n");
-    // g_logger.Log(Logger::INFO, "INFO msg\n");
-    // g_logger.Log(Logger::DEBUG, "DEBUG msg\n");
-    // g_logger.Log(Logger::ERROR, "ERROR msg\n");
+    // std::ofstream ofs;
+    // ofs.open("server.log", std::ofstream::out | std::ofstream::app);
+    g_logger.SetOutputSeverity(Logger::DEBUG);
+    // g_logger.SetOutput(ofs);
 
     int status;
     int fdmax, udp_server_sockfd, tcp_server_sockfd, new_sockfd;
@@ -44,13 +40,6 @@ void CreateServer(int tcp_port, int udp_port)
     fd_set master, tcp_fds, read_fds;
     struct sockaddr_storage client_ai;
     socklen_t client_addrlen;
-
-    g_logger.Log(Logger::ERROR, "tcp port: ");
-    g_logger.Log(Logger::ERROR, lexical_cast<std::string>(tcp_port));
-    g_logger.Log(Logger::ERROR, "\n");
-    g_logger.Log(Logger::ERROR, strerror(errno));
-    g_logger.Log(Logger::ERROR, "\n");
-
 
     udp_server_sockfd = UDPServerGetSocket(udp_port);
 
@@ -103,7 +92,7 @@ void CreateServer(int tcp_port, int udp_port)
 
         if (status == -1)
         {
-            g_logger.Log(Logger::ERROR, "select error: ");
+            g_logger.Log(Logger::ERROR, "select: ");
             g_logger.Log(Logger::ERROR, strerror(errno));
             g_logger.Log(Logger::ERROR, "\n");
             return;
@@ -117,7 +106,7 @@ void CreateServer(int tcp_port, int udp_port)
                 {
                     status = ServerConsole();
 
-                    if (status == -2)
+                    if (status == -2)   // exit from console
                     {
                         g_logger.Log(Logger::DEBUG, "Exit: Closing all sockets\n");
                         for (int j = 0; j <= fdmax; ++i)
@@ -127,7 +116,7 @@ void CreateServer(int tcp_port, int udp_port)
                                 close(j);
                             }
                             
-                            ofs.close();
+                            // ofs.close();
                             return;
                         } 
                     }
@@ -139,7 +128,9 @@ void CreateServer(int tcp_port, int udp_port)
 
                     if (new_sockfd == -1)
                     {
-                        perror("accept");
+                        g_logger.Log(Logger::ERROR, "accept: ");
+                        g_logger.Log(Logger::ERROR, strerror(errno));
+                        g_logger.Log(Logger::ERROR, "\n");
                     }
                     else
                     {
@@ -158,7 +149,7 @@ void CreateServer(int tcp_port, int udp_port)
                     
                     if (nbytes_read == 0)
                     {
-                        std::cout << "closing tcp connection." << std::endl;
+                        g_logger.Log(Logger::DEBUG, "Closing TCP connection\n");
                         close(i);
                         FD_CLR(i, &master);
                         FD_CLR(i, &tcp_fds);
@@ -175,9 +166,9 @@ void CreateServer(int tcp_port, int udp_port)
 
 int ServerConsole(void)
 {
-    char str[MAXDATASIZE]; 
+    char str[MAXDATASIZE];
 
-    // printf("Server Console - waiting for input:\n");
+    g_logger.Log(Logger::DEBUG, "Server Console - waiting for input:\n");
     fgets(str, MAXDATASIZE, stdin);
 
     if (strcmp(str, "exit\n") == 0)
@@ -211,19 +202,25 @@ ssize_t UDPServerRead(int sock_fd)
 
     if (nbytes_rcvd == 0)
     {
-        perror("UDP server recvfrom error");
+        g_logger.Log(Logger::ERROR, "UDP server recvfrom error: ");
+        g_logger.Log(Logger::ERROR, strerror(errno));
+        g_logger.Log(Logger::ERROR, "\n");
         return nbytes_rcvd;
     }
 
     if (nbytes_rcvd == -1)
     {
-        perror("UDP server recvfrom error");
+        g_logger.Log(Logger::ERROR, "UDP server recvfrom error: ");
+        g_logger.Log(Logger::ERROR, strerror(errno));
+        g_logger.Log(Logger::ERROR, "\n");
         return nbytes_rcvd;
     }
 
     buff[nbytes_rcvd] = '\0';
 
-    printf("UDP server: received '%s'\n", buff);
+    g_logger.Log(Logger::DEBUG, "UDP server: received: ");
+    g_logger.Log(Logger::DEBUG, buff);
+    g_logger.Log(Logger::DEBUG, "\n");
 
     if (strcmp(buff, "Ping") == 0)
     {
@@ -231,7 +228,7 @@ ssize_t UDPServerRead(int sock_fd)
 
         if (nbytes_sent == -1)
         {
-            fprintf(stderr, "UDP server send error\n");
+            g_logger.Log(Logger::ERROR, "UDP server send error\n");
         }
     }
     
@@ -260,13 +257,17 @@ ssize_t TCPServerRead(int sock_fd)
 
     if (nbytes_rcvd == -1)
     {
-        perror("TCP server recv error");
+        g_logger.Log(Logger::ERROR, "TCP server recv error: ");
+        g_logger.Log(Logger::ERROR, strerror(errno));
+        g_logger.Log(Logger::ERROR, "\n");
         return nbytes_rcvd;
     }
 
     buff[nbytes_rcvd] = '\0';
 
-    printf("TCP server: received '%s'\n", buff);
+    g_logger.Log(Logger::DEBUG, "TCP server: received: ");
+    g_logger.Log(Logger::DEBUG, buff);
+    g_logger.Log(Logger::DEBUG, "\n");
 
     if (strcmp(buff, "Ping") == 0)
     {
@@ -274,7 +275,7 @@ ssize_t TCPServerRead(int sock_fd)
 
         if (nbytes_sent == -1)
         {
-            fprintf(stderr, "TCP server send error\n");
+            g_logger.Log(Logger::ERROR, "TCP server send error\n");
         }
     }
 
