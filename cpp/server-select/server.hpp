@@ -8,7 +8,7 @@ namespace ilrd
 
 void CreateServer(int tcp_port, int udp_port);
 
-void ServerConsole(void);
+int ServerConsole(void);
 
 int UDPServerGetSocket(int port);
 

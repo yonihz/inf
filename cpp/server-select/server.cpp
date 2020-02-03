@@ -8,17 +8,19 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fstream>
-#include <signal.h>
-#include <pthread.h>
-#include <vector>
 #include <iostream>
+#include <string>
+#include <errno.h>
+
+#include "boost/lexical_cast.hpp" 
+using boost::lexical_cast; 
+using boost::bad_lexical_cast;
 
 #include "server.hpp"
-// #include "logger.hpp"
+#include "logger.hpp"
 
 #define UNUSED(x) (void)(x)
 
-#define NTHREADS 3
 #define MAXDATASIZE 100
 #define BACKLOG 100
 
@@ -27,10 +29,14 @@ namespace ilrd
 
 void CreateServer(int tcp_port, int udp_port)
 {
-    // std::ofstream ofs;
-    // ofs.open("server.log", std::ofstream::out | std::ofstream::app);
+    std::ofstream ofs;
+    ofs.open("server.log", std::ofstream::out | std::ofstream::app);
 
-    // g_logger.SetOutput(ofs);
+    g_logger.SetOutput(ofs);
+    // g_logger.Log(Logger::WARNING, "WARNING msg\n");
+    // g_logger.Log(Logger::INFO, "INFO msg\n");
+    // g_logger.Log(Logger::DEBUG, "DEBUG msg\n");
+    // g_logger.Log(Logger::ERROR, "ERROR msg\n");
 
     int status;
     int fdmax, udp_server_sockfd, tcp_server_sockfd, new_sockfd;
@@ -39,21 +45,28 @@ void CreateServer(int tcp_port, int udp_port)
     struct sockaddr_storage client_ai;
     socklen_t client_addrlen;
 
+    g_logger.Log(Logger::ERROR, "tcp port: ");
+    g_logger.Log(Logger::ERROR, lexical_cast<std::string>(tcp_port));
+    g_logger.Log(Logger::ERROR, "\n");
+    g_logger.Log(Logger::ERROR, strerror(errno));
+    g_logger.Log(Logger::ERROR, "\n");
+
+
     udp_server_sockfd = UDPServerGetSocket(udp_port);
 
     if (udp_server_sockfd == -1)
     {
-        fprintf(stderr, "UDP server: failed to bind\n");
-        exit(1);
+        g_logger.Log(Logger::ERROR, "UDP server: failed to bind\n");
+        return;
     }
 
     tcp_server_sockfd = TCPServerGetSocket(tcp_port);
 
     if (tcp_server_sockfd == -1)
     {
-        fprintf(stderr, "TCP server: failed to bind\n");
-        exit(1);
-    }
+        g_logger.Log(Logger::ERROR, "TCP server: failed to bind\n");
+        return;
+    } 
 
     FD_ZERO(&master);
     FD_ZERO(&tcp_fds);
@@ -68,12 +81,12 @@ void CreateServer(int tcp_port, int udp_port)
 
     if (status == -1)
     {
-        fprintf(stderr, "TCP server error\n");
+        g_logger.Log(Logger::ERROR, "TCP server listen error\n");
     }
 
-    printf("TCP server: waiting for connections...\n");
+    g_logger.Log(Logger::INFO, "TCP server: waiting for connections...\n");
 
-    while (1) 
+    while (status != -2) 
     {
         struct timeval timev;
         timev.tv_sec = 2;
@@ -84,51 +97,68 @@ void CreateServer(int tcp_port, int udp_port)
 
         if (status == 0)
         {
-            std::cout << "select timeout reached, retrying..." << std::endl;
+            g_logger.Log(Logger::DEBUG, "select timeout reached, retrying...\n");
             continue; 
         } 
 
         if (status == -1)
         {
-            perror("select");
-            exit(1);
+            g_logger.Log(Logger::ERROR, "select error: ");
+            g_logger.Log(Logger::ERROR, strerror(errno));
+            g_logger.Log(Logger::ERROR, "\n");
+            return;
         }
 
         for (int i = 0; i <= fdmax; ++i)
         {
-            if (i == tcp_server_sockfd)
-            {
-                client_addrlen = sizeof(client_addrlen);
-                new_sockfd = accept(tcp_server_sockfd, (struct sockaddr *)&client_ai, &client_addrlen);
-
-                if (new_sockfd == -1)
-                {
-                    perror("accept");
-                }
-                else
-                {
-                    FD_SET(new_sockfd, &master);
-                    FD_SET(new_sockfd, &tcp_fds);
-
-                    if (new_sockfd > fdmax)
-                    {
-                        fdmax = new_sockfd;
-                    }
-                }
-            }
-
             if (FD_ISSET(i, &read_fds))
             {
                 if (i == 0)
                 {
-                    ServerConsole();
+                    status = ServerConsole();
+
+                    if (status == -2)
+                    {
+                        g_logger.Log(Logger::DEBUG, "Exit: Closing all sockets\n");
+                        for (int j = 0; j <= fdmax; ++i)
+                        {
+                            if (FD_ISSET(j, &master))
+                            {
+                                close(j);
+                            }
+                            
+                            ofs.close();
+                            return;
+                        } 
+                    }
+                }
+                else if (i == tcp_server_sockfd)
+                {
+                    client_addrlen = sizeof(client_addrlen);
+                    new_sockfd = accept(tcp_server_sockfd, (struct sockaddr *)&client_ai, &client_addrlen);
+
+                    if (new_sockfd == -1)
+                    {
+                        perror("accept");
+                    }
+                    else
+                    {
+                        FD_SET(new_sockfd, &master);
+                        FD_SET(new_sockfd, &tcp_fds);
+
+                        if (new_sockfd > fdmax)
+                        {
+                            fdmax = new_sockfd;
+                        }
+                    }
                 }
                 else if (FD_ISSET(i, &tcp_fds))
                 {
                     nbytes_read = TCPServerRead(i);
-
+                    
                     if (nbytes_read == 0)
                     {
+                        std::cout << "closing tcp connection." << std::endl;
                         close(i);
                         FD_CLR(i, &master);
                         FD_CLR(i, &tcp_fds);
@@ -141,10 +171,9 @@ void CreateServer(int tcp_port, int udp_port)
             }
         }
     }
-
 }
 
-void ServerConsole(void)
+int ServerConsole(void)
 {
     char str[MAXDATASIZE]; 
 
@@ -153,8 +182,10 @@ void ServerConsole(void)
 
     if (strcmp(str, "exit\n") == 0)
     {
-        exit(1);
+        return -2;
     }
+
+    return 0;
 }
 
 int UDPServerGetSocket(int port)

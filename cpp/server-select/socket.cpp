@@ -10,7 +10,7 @@
 #include <iostream>
 
 #include "socket.hpp"
-// #include "logger.hpp"
+#include "logger.hpp"
 
 namespace ilrd
 {
