@@ -156,7 +156,7 @@ int UDPServerBindSocket(struct addrinfo *server_addrinfo)
 }
 
 /* frees serv_info, returns -1 or error */
-int UDPClientGetSocket(struct addrinfo *server_addrinfo)
+int UDPClientGetSocket(struct addrinfo *server_addrinfo, struct addrinfo **node)
 {
     struct addrinfo *p = NULL;
     int sockfd = 0;
@@ -179,8 +179,7 @@ int UDPClientGetSocket(struct addrinfo *server_addrinfo)
         return -1;
     }
 
-    freeaddrinfo(server_addrinfo);
-
+    *node = p;
     return sockfd;
 }
 

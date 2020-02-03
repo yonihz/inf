@@ -1,4 +1,4 @@
-// gd98 tcp_client.cpp ../server-select/socket.cpp ../logger/logger.cpp -I../server-select -I../logger
+// gd98 tcp_client.cpp ../server-select/socket.cpp ../logger/logger.cpp -I../server-select -I../logger -o tcp_client.out
 
 #include <stdio.h>
 #include <string.h>
@@ -31,8 +31,6 @@ int main(int argc, char *argv[])
     struct addrinfo *server_ai;
     InitAddrinfo(NULL, atoi(argv[1]), AF_UNSPEC, SOCK_STREAM, AI_PASSIVE, &server_ai);
 
-    printf("tcp client port: %d\n", atoi(argv[1]));
-
     int sockfd;
     sockfd = TCPClientConnectSocket(server_ai);
 
@@ -51,8 +49,8 @@ int main(int argc, char *argv[])
 
 void ClientRoutine(int sockfd)
 {
-    char buf[MAXDATASIZE];
-    char *msg = "Ping";
+    char buff[MAXDATASIZE];
+    const char *msg = "Ping";
     ssize_t nbytes_sent, nbytes_rcvd;
     size_t len_msg;
     const size_t count = 10;
@@ -69,16 +67,16 @@ void ClientRoutine(int sockfd)
             fprintf(stderr, "send error\n");
         }
 
-        nbytes_rcvd = recv(sockfd, buf, MAXDATASIZE, 0);
+        nbytes_rcvd = recv(sockfd, buff, MAXDATASIZE, 0);
 
         if (nbytes_rcvd == -1)
         {
             perror("recv error");
         }
 
-        buf[nbytes_rcvd] = '\0';
+        buff[nbytes_rcvd] = '\0';
 
-        printf("client: received '%s'\n", buf);
+        printf("client: received '%s'\n", buff);
         sleep(1);
     }
 }

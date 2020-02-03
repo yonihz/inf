@@ -21,7 +21,7 @@ int TCPClientConnectSocket(struct addrinfo *server_addrinfo);
 int UDPServerBindSocket(struct addrinfo *server_addrinfo);
 
 /* frees serv_info, returns -1 or error */
-int UDPClientGetSocket(struct addrinfo *server_addrinfo);
+int UDPClientGetSocket(struct addrinfo *server_addrinfo, struct addrinfo **node);
 
 void PrintClientAddr(struct sockaddr_storage *client_addrinfo);
 

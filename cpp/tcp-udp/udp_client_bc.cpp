@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     int broadcast = 1; /* char broadcast = '1'; */
     const char *msg = "Hello";
 
-    host = gethostbyname("10.1.255.255");
+    host = gethostbyname("255.255.255.255");
 
     if (host == NULL)
     {
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    status = setsockopt(socket_fd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof broadcast);
+    status = setsockopt(socket_fd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast));
     if (status == -1)
     {
         perror("setsockopt (SO_BROADCAST)");

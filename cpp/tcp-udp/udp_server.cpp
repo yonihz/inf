@@ -1,4 +1,4 @@
-// gd98 udp_client.cpp ../server-select/socket.cpp ../logger/logger.cpp -I../server-select -I../logger -o udp_client.out
+// gd98 udp_server.cpp ../server-select/socket.cpp ../logger/logger.cpp -I../server-select -I../logger -o udp_server.out
 
 #include <stdio.h>
 #include <string.h>
@@ -12,13 +12,13 @@
 
 #include "socket.hpp"
 
+using namespace ilrd;
+
 #define MAXDATASIZE 100
 
 #define UNUSED(x) (void)(x)
 
-using namespace ilrd;
-
-void ClientRoutine(int sockfd, struct addrinfo *node);
+void ServerRoutine(int sockfd);
 
 int main(int argc, char *argv[])
 {  
@@ -28,25 +28,20 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    struct addrinfo *server_ai, *node;
+    struct addrinfo *server_ai;
     InitAddrinfo(NULL, atoi(argv[1]), AF_UNSPEC, SOCK_DGRAM, AI_PASSIVE, &server_ai);
 
     int sockfd;
-    sockfd = UDPClientGetSocket(server_ai, &node);
+    sockfd = UDPServerBindSocket(server_ai);
 
-    if (sockfd == -1) 
-    {
-        fprintf(stderr, "UDP client: failed to connect\n");
-        return 2;
-    }
+    ServerRoutine(sockfd);
 
-    ClientRoutine(sockfd, node);
-    freeaddrinfo(server_ai);
+    close(sockfd);
+
     return 0;
-
 }
 
-void ClientRoutine(int sockfd, struct addrinfo *node)
+void ServerRoutine(int sockfd)
 {
     char buff[MAXDATASIZE];
     const char *msg = "Ping";
@@ -54,19 +49,15 @@ void ClientRoutine(int sockfd, struct addrinfo *node)
     size_t len_msg;
     const size_t count = 10;
     size_t i = 0;
+    struct sockaddr_storage client_ai;
+    socklen_t client_addrlen;
 
     len_msg = strlen(msg);
 
     for (i = 0; i < count; ++i)
     {
-        nbytes_sent = sendto(sockfd, msg, len_msg, MSG_CONFIRM, node->ai_addr, node->ai_addrlen);
-
-        if (nbytes_sent == -1)
-        {
-            fprintf(stderr, "sendto error\n");
-        }
-
-        nbytes_rcvd = recvfrom(sockfd, buff, MAXDATASIZE, MSG_WAITALL, node->ai_addr, &node->ai_addrlen);
+        client_addrlen = sizeof(client_ai);
+        nbytes_rcvd = recvfrom(sockfd, buff, MAXDATASIZE, MSG_WAITALL, (struct sockaddr *)&client_ai, &client_addrlen);
 
         if (nbytes_rcvd == -1)
         {
@@ -75,7 +66,15 @@ void ClientRoutine(int sockfd, struct addrinfo *node)
 
         buff[nbytes_rcvd] = '\0';
 
-        printf("UDP client: received '%s'\n", buff);
+        printf("listener: received '%s'\n", buff);
         sleep(1);
+
+        nbytes_sent = sendto(sockfd, msg, len_msg, MSG_CONFIRM, (const struct sockaddr *)&client_ai, client_addrlen);
+
+        if (nbytes_sent == -1)
+        {
+            fprintf(stderr, "sendto error\n");
+        }
     }
+
 }
