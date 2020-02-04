@@ -1,4 +1,4 @@
-// gd98 tcp_client.cpp ../server-select/socket.cpp ../logger/logger.cpp -I../server-select -I../logger -o tcp_client.out
+// gd98 tcp_client.cpp ../server-select/socket.cpp ../thread/thread.cpp ../logger/logger.cpp -I../thread/ -I../server-select -I../logger -I../waitable_queue/ -pthread -o tcp_client.out
 
 #include <stdio.h>
 #include <string.h>

@@ -9,7 +9,6 @@
 #include <unistd.h>
 
 #include "socket.hpp"
-#include "logger.hpp"
 
 namespace ilrd
 {

@@ -6,21 +6,21 @@
 namespace ilrd
 {
 
-void CreateServer(const char *tcp_port, const char *udp_port, const char *bc_port);
+void CreateServer(int tcp_port, int udp_port);
 
 void *ConsoleThread(void* arg);
 
 void *TCPServerThread(void *server_in);
 
-void *TCPConnectionThread(void *new_socket_fd_voidptr);
+void *TCPConnectionThread(void *new_sockfd_voidptr);
 
 void *UDPServerThread(void *server_in);
 
-void UDPServerLoop(int socket_fd);
+void UDPServerLoop(int sockfd);
 
 void *UDPBroadcastServerThread(void *server_in);
 
-void UDPBroadcastServerLoop(int socket_fd);
+void UDPBroadcastServerLoop(int sockfd);
 
 }
 

@@ -1,4 +1,4 @@
-// gd98 server_test.cpp server.cpp ../socket/socket.cpp ../thread/thread.cpp ../logger/logger.cpp -I../logger/ -I../socket/ -I../thread/ -pthread -I../waitable_queue/ -o server.out
+// gd98 server_test.cpp server.cpp ../socket/socket.cpp ../thread/thread.cpp ../logger/logger.cpp -I../logger/ -I../socket/ -I../thread/ -pthread -I../waitable_queue/ -I../singleton/ -o server.out
 
 #include <cstdlib>
 #include <iostream>

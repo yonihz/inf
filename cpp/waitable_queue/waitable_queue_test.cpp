@@ -7,7 +7,7 @@
 #include <boost/core/noncopyable.hpp>
 
 #include "thread.hpp"
-#include "waitable_queue_liron.hpp"
+#include "waitable_queue.hpp"
 
 #define RED   "\x1B[31m"
 #define GRN   "\x1B[32m"

@@ -1,4 +1,4 @@
-// gd98 server_test.cpp server.cpp socket.cpp ../logger/logger.cpp -I../logger/ -pthread -D_POSIX_C_SOURCE=200112L -o server.out
+// gd98 server_test.cpp server.cpp ../socket/socket.cpp ../thread/thread.cpp ../logger/logger.cpp -I../logger/ -I../socket/ -I../thread/ -pthread -I../waitable_queue/ -o server.out
 
 #include <cstdlib>
 #include <iostream>
