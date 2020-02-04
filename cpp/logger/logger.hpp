@@ -2,6 +2,10 @@
 #define ILRD_OL734_LOGGER_HPP
 
 #include <iosfwd>
+#include <queue>
+
+#include "thread.hpp"
+#include "waitable_queue.hpp"
 
 namespace ilrd
 {
@@ -23,6 +27,11 @@ public:
 private:
     Severity m_severity;
     std::ostream *m_os;
+    WaitableQueue< std::queue<std::string> > m_wqueue;
+    size_t m_interval;
+    Thread *m_thread;
+
+    void *FlushQueue(void *thread_args_void);
 };
 
 extern Logger g_logger;
