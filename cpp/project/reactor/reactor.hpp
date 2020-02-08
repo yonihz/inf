@@ -4,7 +4,7 @@
 #include <map>
 
 #include "fd_listener.hpp"
-#include "reactor_typedefs.hpp"
+// #include "reactor_typedefs.hpp"
 
 namespace ilrd
 {
@@ -16,9 +16,9 @@ public:
     typedef FDListener::Mode FD_Mode;
     enum Mode
     {
-        READ = FD_Mode::READ,
-        WRITE = FD_Mode::WRITE,
-        EXCEPT = FD_Mode::EXCEPT
+        READ = FDListener::READ,
+        WRITE = FDListener::WRITE,
+        EXCEPT = FDListener::EXCEPT
     };
 
     //Reactor() = default
@@ -28,9 +28,11 @@ public:
     void Stop();
     void AddFD(int fd_, Mode mode_, Function func_);
     void RemoveFD(int fd_, Mode mode_);
+    std::map<FDListener::ModeAndFD, Function> *GetFDToFuncs();
 
 private:
     std::map<FDListener::ModeAndFD, Function> m_fdToFuncs;
+    bool m_is_running; //new
 };
 
 } // namespace ilrd

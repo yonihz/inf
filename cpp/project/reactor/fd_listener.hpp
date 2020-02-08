@@ -5,7 +5,7 @@
 #include <boost/chrono.hpp>
 #include <boost/function.hpp>
 
-#include "reactor_typedefs.hpp"
+// #include "reactor_typedefs.hpp"
 
 namespace ilrd
 {
@@ -23,9 +23,6 @@ public:
 private:
     const static boost::chrono::milliseconds s_timeout;
 };
-
-//move to cpp
-const boost::chrono::milliseconds FDListener::s_timeout(2000);
 
 } // namespace ilrd
 
