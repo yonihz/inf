@@ -8,6 +8,8 @@ namespace ilrd
 
 void Reactor::Run()
 {
+    m_is_running = true;
+    
     while (m_is_running)
     {
         FDListener::FDVector master_fds;

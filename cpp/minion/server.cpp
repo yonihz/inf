@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <string>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -153,59 +154,70 @@ void UDPServerReadFunction::operator()(void)
 {
     Logger &logger = *(Singleton<Logger>::Instance());
     struct addrinfo client_addrinfo;
-    socklen_t client_addrlen;
+    socklen_t client_addrlen = sizeof(client_addrinfo);
 
-    char buff[MAXDATASIZE];
-    ssize_t nbytes_sent, nbytes_rcvd;
-    const char *pong_msg = "Pong";
-    size_t len_pong_msg = strlen(pong_msg);
+    char request_buffer[4114];
 
-    client_addrlen = sizeof(client_addrinfo);
-    nbytes_rcvd = recvfrom(
-        m_sockfd,
-        buff,
-        MAXDATASIZE,
-        MSG_WAITALL,
-        (struct sockaddr *)&client_addrinfo,
-        &client_addrlen);
+    recvfrom(m_sockfd, request_buffer, sizeof(request_buffer), MSG_DONTWAIT, (struct sockaddr *)&client_addrinfo, &client_addrlen);
 
-    if (nbytes_rcvd == 0)
+    if ((int)request_buffer[0] == 1) // write request from client
     {
-        logger.Log(Logger::ERROR, "UDP server recvfrom error: ");
-        logger.Log(Logger::ERROR, strerror(errno));
-        logger.Log(Logger::ERROR, "\n");
-        return;
+        std::string filename = "block" + lexical_cast<std::string>(*(size_t*)&request_buffer[9]);
+        std::ofstream block_file(filename.c_str());
+
+        block_file.write(&request_buffer[17], 4096);
+
+        request_buffer[9] = 1;
+
+        sendto(m_sockfd, request_buffer, 10, MSG_DONTWAIT, (const struct sockaddr *)&client_addrinfo, client_addrlen);
+    }
+    else if ((int)request_buffer[0] == 0) // read request from client
+    {
+        std::string filename = "block" + lexical_cast<std::string>(*(size_t*)&request_buffer[9]);
+        std::ifstream block_file(filename.c_str());
+
+        request_buffer[9] = 1;
+        block_file.read(&request_buffer[10], 4096);
+
+
+        sendto(m_sockfd, request_buffer, 4106, MSG_DONTWAIT, (const struct sockaddr *)&client_addrinfo, client_addrlen);
     }
 
-    if (nbytes_rcvd == -1)
-    {
-        logger.Log(Logger::ERROR, "UDP server recvfrom error: ");
-        logger.Log(Logger::ERROR, strerror(errno));
-        logger.Log(Logger::ERROR, "\n");
-        return;
-    }
+    // if (nbytes_rcvd == 0)
+    // {
+    //     logger.Log(Logger::ERROR, "UDP server recvfrom error: ");
+    //     logger.Log(Logger::ERROR, strerror(errno));
+    //     logger.Log(Logger::ERROR, "\n");
+    //     return;
+    // }
 
-    buff[nbytes_rcvd] = '\0';
+    // if (nbytes_rcvd == -1)
+    // {
+    //     logger.Log(Logger::ERROR, "UDP server recvfrom error: ");
+    //     logger.Log(Logger::ERROR, strerror(errno));
+    //     logger.Log(Logger::ERROR, "\n");
+    //     return;
+    // }
 
-    logger.Log(Logger::DEBUG, "UDP server: received: ");
-    logger.Log(Logger::DEBUG, buff);
-    logger.Log(Logger::DEBUG, "\n");
+    // logger.Log(Logger::DEBUG, "UDP server: received: ");
+    // logger.Log(Logger::DEBUG, buff);
+    // logger.Log(Logger::DEBUG, "\n");
 
-    if (strcmp(buff, "Ping") == 0)
-    {
-        nbytes_sent = sendto(
-            m_sockfd,
-            pong_msg,
-            len_pong_msg,
-            MSG_CONFIRM,
-            (const struct sockaddr *)&client_addrinfo,
-            client_addrlen);
+    // if (strcmp(buff, "Ping") == 0)
+    // {
+    //     nbytes_sent = sendto(
+    //         m_sockfd,
+    //         pong_msg,
+    //         len_pong_msg,
+    //         MSG_CONFIRM,
+    //         (const struct sockaddr *)&client_addrinfo,
+    //         client_addrlen);
 
-        if (nbytes_sent == -1)
-        {
-            logger.Log(Logger::ERROR, "UDP server send error\n");
-        }
-    }
+    //     if (nbytes_sent == -1)
+    //     {
+    //         logger.Log(Logger::ERROR, "UDP server send error\n");
+    //     }
+    // }
     
     return;
 }
