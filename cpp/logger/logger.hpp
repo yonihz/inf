@@ -20,7 +20,7 @@ class Logger
 public:
     enum Severity { DEBUG, INFO, WARNING, ERROR };
 
-    explicit Logger(Severity initialSeverity = WARNING);
+    explicit Logger(Severity initialSeverity = DEBUG);
     ~Logger();
 
     void Log(Severity msgSeverity, const char *msg);

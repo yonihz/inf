@@ -29,27 +29,22 @@ FDListener::FDVector FDListener::Wait(FDListener::FDVector& fds_)
     int status = 0, fdmax = 0;
     fd_set read_fds, write_fds, except_fds;
     FDListener::FDVector ready_fds;
+    struct timeval timev;
 
     FD_ZERO(&read_fds);
     FD_ZERO(&write_fds);
     FD_ZERO(&except_fds);
 
-    struct timeval timev;
     timev.tv_sec = 0;
     timev.tv_usec = FDListener::s_timeout.count() * 1000;
 
     InitFDSets(fds_, &read_fds, &write_fds, &except_fds, &fdmax);
-    
-    while (0 == status)
-    {
-        status = select(fdmax + 1, &read_fds, &write_fds, &except_fds, &timev);
+    status = select(fdmax + 1, &read_fds, &write_fds, &except_fds, &timev);
 
-        if (status == 0)
-        {
-            logger.Log(Logger::DEBUG, "select timeout reached, retrying...\n");
-            continue;
-        }
-    } 
+    if (status == 0)
+    {
+        logger.Log(Logger::DEBUG, "select timeout reached, retrying...\n");
+    }
 
     if (-1 == status)
     {

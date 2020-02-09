@@ -1,4 +1,5 @@
 #include <utility>
+#include <iostream> //delete later
 
 #include "reactor.hpp"
 
@@ -7,22 +8,22 @@ namespace ilrd
 
 void Reactor::Run()
 {
-    FDListener::FDVector master_fds;
-    FDListener::FDVector ready_fds;
-
-    std::map<FDListener::ModeAndFD, Reactor::Function>::iterator it1;
-    for (it1 = m_fdToFuncs.begin(); it1 != m_fdToFuncs.end(); ++it1)
-    {
-        master_fds.push_back(
-            std::make_pair(
-                it1->first.first,
-                it1->first.second));
-    }
-
-    FDListener::FDVector::iterator it2;
-
     while (m_is_running)
     {
+        FDListener::FDVector master_fds;
+        FDListener::FDVector ready_fds;
+
+        std::map<FDListener::ModeAndFD, Reactor::Function>::iterator it1;
+        for (it1 = m_fdToFuncs.begin(); it1 != m_fdToFuncs.end(); ++it1)
+        {
+            master_fds.push_back(
+                std::make_pair(
+                    it1->first.first,
+                    it1->first.second));
+        }
+
+        FDListener::FDVector::iterator it2;
+
         ready_fds = FDListener::Wait(master_fds);
         for (it2 = ready_fds.begin(); it2 != ready_fds.end(); ++it2)
         {
