@@ -4,7 +4,6 @@
 #include <map>
 
 #include "fd_listener.hpp"
-// #include "reactor_typedefs.hpp"
 
 namespace ilrd
 {
@@ -32,7 +31,7 @@ public:
 
 private:
     std::map<FDListener::ModeAndFD, Function> m_fdToFuncs;
-    bool m_is_running; //new
+    bool m_is_running;
 };
 
 } // namespace ilrd

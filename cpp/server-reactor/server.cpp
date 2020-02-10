@@ -78,6 +78,19 @@ void Server::Start()
         ServerConsoleFunction(STDIN_FILENO, &m_reactor));
 
     m_reactor.Run();
+    CloseAllFD();
+}
+
+void Server::CloseAllFD()
+{
+    std::map<FDListener::ModeAndFD, Reactor::Function>::iterator it;
+    for (
+        it = m_reactor.GetFDToFuncs()->begin(); 
+        it != m_reactor.GetFDToFuncs()->end();
+        ++it)
+    {
+        close(it->first.first); 
+    }
 }
 
 ServerConsoleFunction::ServerConsoleFunction(int sockfd_, Reactor *reactor_)
@@ -89,23 +102,21 @@ void ServerConsoleFunction::operator()(void)
     char str[MAXDATASIZE];
 
     fgets(str, MAXDATASIZE, stdin);
+    logger.Log(Logger::DEBUG, std::string(str));
 
     if (strcmp(str, "exit\n") == 0)
     {
-        logger.Log(Logger::DEBUG, "exit\n");
+        
         logger.Log(Logger::DEBUG, "Exit: Closing all sockets\n");
-        CloseAllFD(m_reactor);
         m_reactor->Stop();
         return;
     }
     else if (strcmp(str, "+\n") == 0)
     {
-        logger.Log(Logger::DEBUG, "+\n");
         logger.IncOutputSeverity();
     }
     else if (strcmp(str, "-\n") == 0)
     {
-        logger.Log(Logger::DEBUG, "-\n");
         logger.DecOutputSeverity();
     }
     else if (strcmp(str, "cout\n") == 0)
@@ -115,18 +126,6 @@ void ServerConsoleFunction::operator()(void)
     }
 
     return;
-}
-
-void CloseAllFD(Reactor *reactor)
-{
-    std::map<FDListener::ModeAndFD, Reactor::Function>::iterator it;
-    for (
-        it = reactor->GetFDToFuncs()->begin(); 
-        it != reactor->GetFDToFuncs()->end();
-        ++it)
-    {
-        close(it->first.first); 
-    }
 }
 
 UDPServer::UDPServer(int port_)
@@ -171,25 +170,19 @@ void UDPServerReadFunction::operator()(void)
 
     if (nbytes_rcvd == 0)
     {
-        logger.Log(Logger::ERROR, "UDP server recvfrom error: ");
-        logger.Log(Logger::ERROR, strerror(errno));
-        logger.Log(Logger::ERROR, "\n");
+        logger.Log(Logger::ERROR, "UDP server recvfrom error: " + std::string(strerror(errno)) + "\n");
         return;
     }
 
     if (nbytes_rcvd == -1)
     {
-        logger.Log(Logger::ERROR, "UDP server recvfrom error: ");
-        logger.Log(Logger::ERROR, strerror(errno));
-        logger.Log(Logger::ERROR, "\n");
+        logger.Log(Logger::ERROR, "UDP server recvfrom error: " + std::string(strerror(errno)) + "\n");
         return;
     }
 
     buff[nbytes_rcvd] = '\0';
 
-    logger.Log(Logger::DEBUG, "UDP server: received: ");
-    logger.Log(Logger::DEBUG, buff);
-    logger.Log(Logger::DEBUG, "\n");
+    logger.Log(Logger::DEBUG, "UDP server: received: " + std::string(buff) + "\n");
 
     if (strcmp(buff, "Ping") == 0)
     {
@@ -246,9 +239,7 @@ void TCPListenerFunction::operator()(void)
 
     if (new_sockfd == -1)
     {
-        logger.Log(Logger::ERROR, "accept: ");
-        logger.Log(Logger::ERROR, strerror(errno));
-        logger.Log(Logger::ERROR, "\n");
+        logger.Log(Logger::ERROR, "accept: " + std::string(strerror(errno)) + "\n");
         return;
     }
 
@@ -280,16 +271,12 @@ void TCPServerReadFunction::operator()(void)
 
     if (nbytes_rcvd == -1)
     {
-        logger.Log(Logger::ERROR, "TCP server recv error: ");
-        logger.Log(Logger::ERROR, strerror(errno));
-        logger.Log(Logger::ERROR, "\n");
+        logger.Log(Logger::ERROR, "TCP server recv error: " + std::string(strerror(errno)) + "\n");
     }
 
     buff[nbytes_rcvd] = '\0';
 
-    logger.Log(Logger::DEBUG, "TCP server: received: ");
-    logger.Log(Logger::DEBUG, buff);
-    logger.Log(Logger::DEBUG, "\n");
+    logger.Log(Logger::DEBUG, "TCP server: received: " + std::string(buff) + "\n");
 
     if (strcmp(buff, "Ping") == 0)
     {

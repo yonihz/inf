@@ -7,8 +7,6 @@
 namespace ilrd
 {
 
-void CloseAllFD(Reactor *reactor);
-
 class ServerConsoleFunction
 {
 public:
@@ -86,6 +84,7 @@ public:
     void Start();
 
 private:
+    void CloseAllFD();
     TCPServer m_tcp_server;
     UDPServer m_udp_server;
     Reactor m_reactor;

@@ -3,6 +3,7 @@
 
 #include "socket.hpp"
 #include "reactor.hpp"
+#include "factory.hpp"
 
 namespace ilrd
 {
@@ -40,6 +41,7 @@ public:
 private:
     int m_sockfd;
     Reactor *m_reactor;
+    Factory<boost::shared_ptr<Command>, char, void, boost::shared_ptr<Command>(*)(void)> m_factory;
 };
 
 class TCPServerReadFunction

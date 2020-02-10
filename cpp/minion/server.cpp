@@ -22,6 +22,7 @@ using boost::bad_lexical_cast;
 #include "singleton.hpp"
 #include "fd_listener.hpp"
 #include "reactor.hpp"
+#include "command.hpp"
 
 #define UNUSED(x) (void)(x)
 
@@ -148,78 +149,23 @@ int UDPServer::GetSocket()
 }
 
 UDPServerReadFunction::UDPServerReadFunction(int sockfd_, Reactor *reactor_)
-    : m_sockfd(sockfd_), m_reactor(reactor_) {}
+    : m_sockfd(sockfd_), m_reactor(reactor_)
+{
+    m_factory.Add('0', CreateReadRequestCmd);
+    m_factory.Add('1', CreateWriteRequestCmd);
+}
 
 void UDPServerReadFunction::operator()(void)
 {
     Logger &logger = *(Singleton<Logger>::Instance());
-    struct addrinfo client_addrinfo;
-    socklen_t client_addrlen = sizeof(client_addrinfo);
 
     char request_buffer[4114];
 
-    recvfrom(m_sockfd, request_buffer, sizeof(request_buffer), MSG_DONTWAIT, (struct sockaddr *)&client_addrinfo, &client_addrlen);
+    CmdArgs cmd_args(m_sockfd, request_buffer);
 
-    if ((int)request_buffer[0] == 1) // write request from client
-    {
-        std::string filename = "block" + lexical_cast<std::string>(*(size_t*)&request_buffer[9]);
-        std::ofstream block_file(filename.c_str());
+    recvfrom(m_sockfd, request_buffer, sizeof(request_buffer), MSG_DONTWAIT, (struct sockaddr *)&cmd_args.m_client_addrinfo, &cmd_args.m_client_addrlen);
 
-        block_file.write(&request_buffer[17], 4096);
-
-        request_buffer[9] = 1;
-
-        sendto(m_sockfd, request_buffer, 10, MSG_DONTWAIT, (const struct sockaddr *)&client_addrinfo, client_addrlen);
-    }
-    else if ((int)request_buffer[0] == 0) // read request from client
-    {
-        std::string filename = "block" + lexical_cast<std::string>(*(size_t*)&request_buffer[9]);
-        std::ifstream block_file(filename.c_str());
-
-        request_buffer[9] = 1;
-        block_file.read(&request_buffer[10], 4096);
-
-
-        sendto(m_sockfd, request_buffer, 4106, MSG_DONTWAIT, (const struct sockaddr *)&client_addrinfo, client_addrlen);
-    }
-
-    // if (nbytes_rcvd == 0)
-    // {
-    //     logger.Log(Logger::ERROR, "UDP server recvfrom error: ");
-    //     logger.Log(Logger::ERROR, strerror(errno));
-    //     logger.Log(Logger::ERROR, "\n");
-    //     return;
-    // }
-
-    // if (nbytes_rcvd == -1)
-    // {
-    //     logger.Log(Logger::ERROR, "UDP server recvfrom error: ");
-    //     logger.Log(Logger::ERROR, strerror(errno));
-    //     logger.Log(Logger::ERROR, "\n");
-    //     return;
-    // }
-
-    // logger.Log(Logger::DEBUG, "UDP server: received: ");
-    // logger.Log(Logger::DEBUG, buff);
-    // logger.Log(Logger::DEBUG, "\n");
-
-    // if (strcmp(buff, "Ping") == 0)
-    // {
-    //     nbytes_sent = sendto(
-    //         m_sockfd,
-    //         pong_msg,
-    //         len_pong_msg,
-    //         MSG_CONFIRM,
-    //         (const struct sockaddr *)&client_addrinfo,
-    //         client_addrlen);
-
-    //     if (nbytes_sent == -1)
-    //     {
-    //         logger.Log(Logger::ERROR, "UDP server send error\n");
-    //     }
-    // }
-    
-    return;
+    *(m_factory.Create((int)request_buffer[0]))(cmd_args);
 }
 
 TCPServer::TCPServer(int port_)
@@ -315,3 +261,40 @@ void TCPServerReadFunction::operator()(void)
 }
 
 } //namespace ilrd
+
+
+// void UDPServerReadFunction::operator()(void)
+// {
+//     Logger &logger = *(Singleton<Logger>::Instance());
+//     struct addrinfo client_addrinfo;
+//     socklen_t client_addrlen = sizeof(client_addrinfo);
+
+//     char request_buffer[4114];
+
+//     recvfrom(m_sockfd, request_buffer, sizeof(request_buffer), MSG_DONTWAIT, (struct sockaddr *)&client_addrinfo, &client_addrlen);
+
+//     if ((int)request_buffer[0] == 1) // write request from client
+//     {
+//         std::string filename = "block" + lexical_cast<std::string>(*(size_t*)&request_buffer[9]);
+//         std::ofstream block_file(filename.c_str());
+
+//         block_file.write(&request_buffer[17], 4096);
+
+//         request_buffer[9] = 1;
+
+//         sendto(m_sockfd, request_buffer, 10, MSG_DONTWAIT, (const struct sockaddr *)&client_addrinfo, client_addrlen);
+//     }
+//     else if ((int)request_buffer[0] == 0) // read request from client
+//     {
+//         std::string filename = "block" + lexical_cast<std::string>(*(size_t*)&request_buffer[9]);
+//         std::ifstream block_file(filename.c_str());
+
+//         request_buffer[9] = 1;
+//         block_file.read(&request_buffer[10], 4096);
+
+
+//         sendto(m_sockfd, request_buffer, 4106, MSG_DONTWAIT, (const struct sockaddr *)&client_addrinfo, client_addrlen);
+//     }
+    
+//     return;
+// }

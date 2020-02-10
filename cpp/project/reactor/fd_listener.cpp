@@ -1,4 +1,4 @@
-#include <utility>
+#include <utility> // std::make_pair
 
 #include "fd_listener.hpp"
 #include "singleton.hpp"
@@ -41,16 +41,14 @@ FDListener::FDVector FDListener::Wait(FDListener::FDVector& fds_)
     InitFDSets(fds_, &read_fds, &write_fds, &except_fds, &fdmax);
     status = select(fdmax + 1, &read_fds, &write_fds, &except_fds, &timev);
 
-    if (status == 0)
+    if (0 == status)
     {
         logger.Log(Logger::DEBUG, "select timeout reached, retrying...\n");
     }
 
     if (-1 == status)
     {
-        logger.Log(Logger::ERROR, "select: ");
-        logger.Log(Logger::ERROR, strerror(errno));
-        logger.Log(Logger::ERROR, "\n");
+        logger.Log(Logger::ERROR,"select: " + std::string(strerror(errno)) + "\n");
         return ready_fds;
     }
 
