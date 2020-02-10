@@ -1,4 +1,5 @@
 #include <utility> // std::make_pair
+#include <iostream>  //delete
 
 #include "reactor.hpp"
 
@@ -36,11 +37,6 @@ void Reactor::Run()
 void Reactor::Stop()
 {
     m_is_running = false;
-}
-
-std::map<FDListener::ModeAndFD, Reactor::Function> *Reactor::GetFDToFuncs()
-{
-    return &m_fdToFuncs;
 }
 
 void Reactor::AddFD(int fd_, Mode mode_, Function func_)

@@ -78,23 +78,10 @@ void Server::Start()
         ServerConsoleFunction(STDIN_FILENO, &m_reactor));
 
     m_reactor.Run();
-    CloseAllFD();
-}
-
-void Server::CloseAllFD()
-{
-    std::map<FDListener::ModeAndFD, Reactor::Function>::iterator it;
-    for (
-        it = m_reactor.GetFDToFuncs()->begin(); 
-        it != m_reactor.GetFDToFuncs()->end();
-        ++it)
-    {
-        close(it->first.first); 
-    }
 }
 
 ServerConsoleFunction::ServerConsoleFunction(int sockfd_, Reactor *reactor_)
-    : m_sockfd(sockfd_), m_reactor(reactor_) {}
+    : m_sockfd(sockfd_), m_reactor(reactor_) { std::cout << "ServerConsoleFunction Ctor" << std::endl; }
 
 void ServerConsoleFunction::operator()(void)
 {
@@ -106,7 +93,6 @@ void ServerConsoleFunction::operator()(void)
 
     if (strcmp(str, "exit\n") == 0)
     {
-        
         logger.Log(Logger::DEBUG, "Exit: Closing all sockets\n");
         m_reactor->Stop();
         return;
@@ -129,7 +115,17 @@ void ServerConsoleFunction::operator()(void)
 }
 
 UDPServer::UDPServer(int port_)
-    : m_port(port_) {}
+    : m_port(port_)
+{
+    std::cout << "UDPServer Ctor" << std::endl;
+}
+
+UDPServer::~UDPServer()
+{
+    std::cout << "UDPServer Dtor" << std::endl;
+    close(m_sockfd);
+}
+
 
 int UDPServer::CreateSocket()
 {
@@ -146,7 +142,7 @@ int UDPServer::GetSocket()
 }
 
 UDPServerReadFunction::UDPServerReadFunction(int sockfd_, Reactor *reactor_)
-    : m_sockfd(sockfd_), m_reactor(reactor_) {}
+    : m_sockfd(sockfd_), m_reactor(reactor_) { std::cout << "UDPServerReadFunction Ctor" << std::endl; }
 
 void UDPServerReadFunction::operator()(void)
 {
@@ -204,7 +200,16 @@ void UDPServerReadFunction::operator()(void)
 }
 
 TCPServer::TCPServer(int port_)
-    : m_port(port_) {}
+    : m_port(port_)
+{
+    std::cout << "TCPServer Ctor" << std::endl;
+}
+
+TCPServer::~TCPServer()
+{
+    std::cout << "TCPServer Dtor" << std::endl;
+    close(m_sockfd);
+}
 
 int TCPServer::CreateSocket()
 {
@@ -225,7 +230,7 @@ int TCPServer::Listen()
 }
 
 TCPListenerFunction::TCPListenerFunction(int sockfd_, Reactor *reactor_)
-    : m_sockfd(sockfd_), m_reactor(reactor_) {}
+    : m_sockfd(sockfd_), m_reactor(reactor_) { std::cout << "TCPListenerFunction Ctor" << std::endl; }
 
 void TCPListenerFunction::operator()(void)
 {
@@ -250,7 +255,16 @@ void TCPListenerFunction::operator()(void)
 }
 
 TCPServerReadFunction::TCPServerReadFunction(int sockfd_, Reactor *reactor_)
-    : m_sockfd(sockfd_), m_reactor(reactor_) {}
+    : m_sockfd(sockfd_), m_reactor(reactor_)
+{
+    std::cout << "TCPServerReadFunction Ctor" << std::endl;
+}
+
+TCPServerReadFunction::~TCPServerReadFunction()
+{
+    std::cout << "TCPServerReadFunction Dtor" << std::endl;
+    // close(m_sockfd);
+}
 
 void TCPServerReadFunction::operator()(void)
 {

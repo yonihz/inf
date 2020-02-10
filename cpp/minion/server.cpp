@@ -22,7 +22,6 @@ using boost::bad_lexical_cast;
 #include "singleton.hpp"
 #include "fd_listener.hpp"
 #include "reactor.hpp"
-#include "command.hpp"
 
 #define UNUSED(x) (void)(x)
 
@@ -96,7 +95,6 @@ void ServerConsoleFunction::operator()(void)
     {
         logger.Log(Logger::DEBUG, "exit\n");
         logger.Log(Logger::DEBUG, "Exit: Closing all sockets\n");
-        CloseAllFD(m_reactor);
         m_reactor->Stop();
         return;
     }
@@ -119,18 +117,6 @@ void ServerConsoleFunction::operator()(void)
     return;
 }
 
-void CloseAllFD(Reactor *reactor)
-{
-    std::map<FDListener::ModeAndFD, Reactor::Function>::iterator it;
-    for (
-        it = reactor->GetFDToFuncs()->begin(); 
-        it != reactor->GetFDToFuncs()->end();
-        ++it)
-    {
-        close(it->first.first); 
-    }
-}
-
 UDPServer::UDPServer(int port_)
     : m_port(port_) {}
 
@@ -151,21 +137,19 @@ int UDPServer::GetSocket()
 UDPServerReadFunction::UDPServerReadFunction(int sockfd_, Reactor *reactor_)
     : m_sockfd(sockfd_), m_reactor(reactor_)
 {
-    m_factory.Add('0', CreateReadRequestCmd);
-    m_factory.Add('1', CreateWriteRequestCmd);
+    m_factory.Add(0, CreateReadRequestCmd);
+    m_factory.Add(1, CreateWriteRequestCmd);
 }
 
 void UDPServerReadFunction::operator()(void)
 {
-    Logger &logger = *(Singleton<Logger>::Instance());
-
     char request_buffer[4114];
 
     CmdArgs cmd_args(m_sockfd, request_buffer);
 
     recvfrom(m_sockfd, request_buffer, sizeof(request_buffer), MSG_DONTWAIT, (struct sockaddr *)&cmd_args.m_client_addrinfo, &cmd_args.m_client_addrlen);
 
-    *(m_factory.Create((int)request_buffer[0]))(cmd_args);
+    (*m_factory.Create(request_buffer[0], cmd_args))();
 }
 
 TCPServer::TCPServer(int port_)

@@ -4,11 +4,10 @@
 #include "socket.hpp"
 #include "reactor.hpp"
 #include "factory.hpp"
+#include "command.hpp"
 
 namespace ilrd
 {
-
-void CloseAllFD(Reactor *reactor);
 
 class ServerConsoleFunction
 {
@@ -41,7 +40,7 @@ public:
 private:
     int m_sockfd;
     Reactor *m_reactor;
-    Factory<boost::shared_ptr<Command>, char, void, boost::shared_ptr<Command>(*)(void)> m_factory;
+    Factory<boost::shared_ptr<Command>, char, CmdArgs&> m_factory;
 };
 
 class TCPServerReadFunction

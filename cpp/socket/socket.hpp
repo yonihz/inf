@@ -1,6 +1,8 @@
 #ifndef ILRD_RD734_SOCKET_HPP
 #define ILRD_RD734_SOCKET_HPP
 
+#include <netdb.h>
+
 namespace ilrd
 {
 

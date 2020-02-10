@@ -27,7 +27,6 @@ public:
     void Stop();
     void AddFD(int fd_, Mode mode_, Function func_);
     void RemoveFD(int fd_, Mode mode_);
-    std::map<FDListener::ModeAndFD, Function> *GetFDToFuncs();
 
 private:
     std::map<FDListener::ModeAndFD, Function> m_fdToFuncs;

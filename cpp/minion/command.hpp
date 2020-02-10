@@ -1,11 +1,7 @@
 #ifndef ILRD_RD734_COMMAND_HPP
 #define ILRD_RD734_COMMAND_HPP
 
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <netdb.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -19,39 +15,38 @@ public:
 
     int m_sockfd;
     char *m_buffer;
-    struct addrinfo m_client_addrinfo;
+    addrinfo m_client_addrinfo;
     socklen_t m_client_addrlen;
 };
 
 class Command
 {
 public:
-    virtual void operator()(CmdArgs &args);
+    explicit Command(CmdArgs &args_);
+    virtual ~Command() {}
+
+    virtual void operator()() = 0;
+    CmdArgs &m_args;
 };
 
 class ReadRequestCmd : public Command
 {
 public:
-    void operator()(CmdArgs &args);
+    ReadRequestCmd(CmdArgs &args_);
+
+    void operator()(void);
 };
 
 class WriteRequestCmd : public Command
 {
 public:
-    void operator()(CmdArgs &args);
+    WriteRequestCmd(CmdArgs &args_);
+
+    void operator()(void);
 };
 
-boost::shared_ptr<Command> CreateReadRequestCmd(void)
-{
-    boost::shared_ptr<Command> command(new ReadRequestCmd());
-    return command;
-}
-
-boost::shared_ptr<Command> CreateWriteRequestCmd(void)
-{
-    boost::shared_ptr<Command> command(new WriteRequestCmd());
-    return command;
-}
+boost::shared_ptr<Command> CreateReadRequestCmd(CmdArgs &args);
+boost::shared_ptr<Command> CreateWriteRequestCmd(CmdArgs &args);
 
 }
 
