@@ -12,6 +12,7 @@
 #include <iostream>
 #include <string>
 #include <errno.h>
+#include <dlfcn.h>
 
 #include "boost/lexical_cast.hpp" 
 using boost::lexical_cast; 
@@ -29,57 +30,6 @@ using boost::bad_lexical_cast;
 
 namespace ilrd
 {
-
-Server::Server(int tcp_port, int udp_port)
-    : m_tcp_server(tcp_port), m_udp_server(udp_port), m_reactor() {}
-
-void Server::Start()
-{
-    Logger &logger = *(Singleton<Logger>::Instance());
-    int status;
-
-    status = m_udp_server.CreateSocket();
-
-    if (status == -1)
-    {
-        logger.Log(Logger::ERROR, "UDP server: failed to bind\n");
-        return;
-    }
-
-    status = m_tcp_server.CreateSocket();
-
-    if (status == -1)
-    {
-        logger.Log(Logger::ERROR, "TCP server: failed to bind\n");
-        return;
-    } 
-
-    status = m_tcp_server.Listen();
-
-    if (status == -1)
-    {
-        logger.Log(Logger::ERROR, "TCP server listen error\n");
-    }
-
-    logger.Log(Logger::INFO, "TCP server: waiting for connections...\n");
-
-    m_reactor.AddFD(
-        m_tcp_server.GetSocket(),
-        Reactor::READ,
-        TCPListenerFunction(m_tcp_server.GetSocket(), &m_reactor));
-    
-    m_reactor.AddFD(
-        m_udp_server.GetSocket(),
-        Reactor::READ,
-        UDPServerReadFunction(m_udp_server.GetSocket(), &m_reactor));
-    
-    m_reactor.AddFD(
-        STDIN_FILENO,
-        Reactor::READ,
-        ServerConsoleFunction(STDIN_FILENO, &m_reactor));
-
-    m_reactor.Run();
-}
 
 ServerConsoleFunction::ServerConsoleFunction(int sockfd_, Reactor *reactor_)
     : m_sockfd(sockfd_), m_reactor(reactor_) {}
@@ -137,19 +87,73 @@ int UDPServer::GetSocket()
 UDPServerReadFunction::UDPServerReadFunction(int sockfd_, Reactor *reactor_)
     : m_sockfd(sockfd_), m_reactor(reactor_)
 {
-    m_factory.Add(0, CreateReadRequestCmd);
-    m_factory.Add(1, CreateWriteRequestCmd);
+    void *handle_read_request_cmd;
+    boost::shared_ptr<Command> (*CreatorReadRequestCmd)();
+    char (*GetKeyReadRequestCmd)(void);
+
+    void *handle_write_request_cmd;
+    boost::shared_ptr<Command> (*CreatorWriteRequestCmd)();
+    char (*GetKeyWriteRequestCmd)(void);
+    char *error;
+
+    handle_read_request_cmd = dlopen ("./libcommand_read_request.so", RTLD_LAZY);
+    if (!handle_read_request_cmd) {
+        fputs (dlerror(), stderr);
+        // throw
+        return;
+    }
+
+    CreatorReadRequestCmd = (boost::shared_ptr<Command>(*)()) dlsym(handle_read_request_cmd, "Creator");
+    if ((error = dlerror()) != NULL)  {
+        fputs(error, stderr);
+        // throw
+        return;
+    }
+
+    GetKeyReadRequestCmd = (char(*)(void)) dlsym(handle_read_request_cmd, "GetKey");
+    if ((error = dlerror()) != NULL)  {
+        fputs(error, stderr);
+        // throw
+        return;
+    }
+
+    handle_write_request_cmd = dlopen ("./libcommand_write_request.so", RTLD_LAZY);
+    if (!handle_write_request_cmd) {
+        fputs (dlerror(), stderr);
+        // throw
+        return;
+    }
+
+    CreatorWriteRequestCmd = (boost::shared_ptr<Command>(*)()) dlsym(handle_write_request_cmd, "Creator");
+    if ((error = dlerror()) != NULL)  {
+        fputs(error, stderr);
+        // throw
+        return;
+    }
+
+    GetKeyWriteRequestCmd = (char(*)(void)) dlsym(handle_write_request_cmd, "GetKey");
+    if ((error = dlerror()) != NULL)  {
+        fputs(error, stderr);
+        // throw
+        return;
+    }
+
+    m_factory.Add((int)(*GetKeyReadRequestCmd)(), CreatorReadRequestCmd);
+    m_factory.Add((int)(*GetKeyWriteRequestCmd)(), CreatorWriteRequestCmd);
+
+    // m_factory.Add(0, CreateReadRequestCmd);
+    // m_factory.Add(1, CreateWriteRequestCmd);
 }
 
 void UDPServerReadFunction::operator()(void)
 {
     char request_buffer[4114];
+    struct addrinfo client_addrinfo;
+    socklen_t client_addrlen;
 
-    CmdArgs cmd_args(m_sockfd, request_buffer);
+    recvfrom(m_sockfd, request_buffer, sizeof(request_buffer), MSG_DONTWAIT, (struct sockaddr *)&client_addrinfo, &client_addrlen);
 
-    recvfrom(m_sockfd, request_buffer, sizeof(request_buffer), MSG_DONTWAIT, (struct sockaddr *)&cmd_args.m_client_addrinfo, &cmd_args.m_client_addrlen);
-
-    (*m_factory.Create(request_buffer[0], cmd_args))();
+    (*m_factory.Create(request_buffer[0]))(m_sockfd, request_buffer, &client_addrinfo, &client_addrlen);
 }
 
 TCPServer::TCPServer(int port_)

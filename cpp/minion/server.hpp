@@ -40,7 +40,7 @@ public:
 private:
     int m_sockfd;
     Reactor *m_reactor;
-    Factory<boost::shared_ptr<Command>, char, CmdArgs&> m_factory;
+    Factory<boost::shared_ptr<Command>, char, void, boost::shared_ptr<Command>(*)(void)> m_factory;
 };
 
 class TCPServerReadFunction
@@ -78,18 +78,6 @@ public:
 private:
     int m_port;
     int m_sockfd;
-};
-
-class Server
-{
-public:
-    Server(int tcp_port, int udp_port);
-    void Start();
-
-private:
-    TCPServer m_tcp_server;
-    UDPServer m_udp_server;
-    Reactor m_reactor;
 };
 
 }

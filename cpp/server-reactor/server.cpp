@@ -29,61 +29,10 @@ using boost::bad_lexical_cast;
 namespace ilrd
 {
 
-Server::Server(int tcp_port, int udp_port)
-    : m_tcp_server(tcp_port), m_udp_server(udp_port), m_reactor() {}
+ConsoleListener::ConsoleListener(int sockfd_, Reactor *reactor_)
+    : m_sockfd(sockfd_), m_reactor(reactor_) {}
 
-void Server::Start()
-{
-    Logger &logger = *(Singleton<Logger>::Instance());
-    int status;
-
-    status = m_udp_server.CreateSocket();
-
-    if (status == -1)
-    {
-        logger.Log(Logger::ERROR, "UDP server: failed to bind\n");
-        return;
-    }
-
-    status = m_tcp_server.CreateSocket();
-
-    if (status == -1)
-    {
-        logger.Log(Logger::ERROR, "TCP server: failed to bind\n");
-        return;
-    } 
-
-    status = m_tcp_server.Listen();
-
-    if (status == -1)
-    {
-        logger.Log(Logger::ERROR, "TCP server listen error\n");
-    }
-
-    logger.Log(Logger::INFO, "TCP server: waiting for connections...\n");
-
-    m_reactor.AddFD(
-        m_tcp_server.GetSocket(),
-        Reactor::READ,
-        TCPListenerFunction(m_tcp_server.GetSocket(), &m_reactor));
-    
-    m_reactor.AddFD(
-        m_udp_server.GetSocket(),
-        Reactor::READ,
-        UDPServerReadFunction(m_udp_server.GetSocket(), &m_reactor));
-    
-    m_reactor.AddFD(
-        STDIN_FILENO,
-        Reactor::READ,
-        ServerConsoleFunction(STDIN_FILENO, &m_reactor));
-
-    m_reactor.Run();
-}
-
-ServerConsoleFunction::ServerConsoleFunction(int sockfd_, Reactor *reactor_)
-    : m_sockfd(sockfd_), m_reactor(reactor_) { std::cout << "ServerConsoleFunction Ctor" << std::endl; }
-
-void ServerConsoleFunction::operator()(void)
+void ConsoleListener::operator()(void)
 {
     Logger &logger = *(Singleton<Logger>::Instance());
     char str[MAXDATASIZE];
@@ -230,7 +179,7 @@ int TCPServer::Listen()
 }
 
 TCPListenerFunction::TCPListenerFunction(int sockfd_, Reactor *reactor_)
-    : m_sockfd(sockfd_), m_reactor(reactor_) { std::cout << "TCPListenerFunction Ctor" << std::endl; }
+    : m_sockfd(sockfd_), m_reactor(reactor_), m_connected_fds(new std::vector<int>) { std::cout << "TCPListenerFunction Ctor" << std::endl; }
 
 void TCPListenerFunction::operator()(void)
 {
@@ -247,6 +196,8 @@ void TCPListenerFunction::operator()(void)
         logger.Log(Logger::ERROR, "accept: " + std::string(strerror(errno)) + "\n");
         return;
     }
+
+    m_connected_fds->push_back(new_sockfd);
 
     m_reactor->AddFD(
         new_sockfd,
