@@ -3,61 +3,80 @@
 
 #include <set>
 
+#include <boost/shared_ptr.hpp>
+
 #include "socket.hpp"
 #include "reactor.hpp"
+#include "factory.hpp"
 
 namespace ilrd
 {
 
-class ConsoleListener
+class StdInCommand
 {
 public:
-    ConsoleListener(int sockfd_, Reactor *reactor_);
-    ~ConsoleListener();
+    virtual ~StdInCommand() {}
 
-    void operator()(void);
-
-private:
-    int m_sockfd;
-    Reactor *m_reactor;
+    virtual void operator()(Reactor *reactor) = 0;
 };
 
-class UDPProcessRequest
+class StdInExitCmd : public StdInCommand
 {
 public:
-    UDPProcessRequest(int sockfd_, Reactor *reactor_);
-    ~UDPProcessRequest();
-
-    void operator()(void);
-
-private:
-    int m_sockfd;
-    Reactor *m_reactor;
+    void operator()(Reactor *reactor);
 };
 
-class TCPProcessRequest
+class StdInPlusCmd : public StdInCommand
 {
 public:
-    TCPProcessRequest(int sockfd_, Reactor *reactor_, TCPListener *tcp_listener_);
-    ~TCPProcessRequest();
+    void operator()(Reactor *reactor);
+};
+
+class StdInMinusCmd : public StdInCommand
+{
+public:
+    void operator()(Reactor *reactor);
+};
+
+class StdInPingCmd : public StdInCommand
+{
+public:
+    void operator()(Reactor *reactor);
+};
+
+class StdInOutputCoutCmd : public StdInCommand
+{
+public:
+    void operator()(Reactor *reactor);
+};
+
+boost::shared_ptr<StdInCommand> CreatorStdInExitCmd();
+boost::shared_ptr<StdInCommand> CreatorStdInPlusCmd();
+boost::shared_ptr<StdInCommand> CreatorStdInMinusCmd();
+boost::shared_ptr<StdInCommand> CreatorStdInPingCmd();
+boost::shared_ptr<StdInCommand> CreatorStdInOutputCoutCmd();
+
+class StdInListener
+{
+public:
+    StdInListener(int sockfd_, Reactor *reactor_);
 
     void operator()(void);
 
 private:
+    const static int MAXDATASIZE = 100;
     int m_sockfd;
     Reactor *m_reactor;
-    TCPListener *m_tcp_listener;
+    Factory<boost::shared_ptr<StdInCommand>, std::string, void, boost::shared_ptr<StdInCommand>(*)(void)> m_factory;
 };
 
 class TCPListener
 {
 public:
     TCPListener(int port_, Reactor *reactor_);
-    ~TCPListener();
 
-    int CreateSocket();
+    int Init();
     int GetSocket();
-    int Listen();
     void CloseSocket();
     void CloseAllConnections();
     void CloseConnection(int sockfd);
@@ -65,7 +84,9 @@ public:
     void operator()(void);
 
 private:
-    const int backlog = 10;
+    int Listen();
+    int CreateSocket();
+    const static int BACKLOG = 10;
     int m_port;
     int m_sockfd;
     boost::shared_ptr< std::set<int> > m_connections;
@@ -76,18 +97,43 @@ class UDPListener
 {
 public:
     UDPListener(int port_, Reactor *reactor_);
-    ~UDPListener();
 
-    int CreateSocket();
+    int Init();
     int GetSocket();
     void CloseSocket();
+
+private:
+    int CreateSocket();
+    int m_port;
+    int m_sockfd;
+    Reactor *m_reactor;
+};
+
+class UDPProcessRequest
+{
+public:
+    UDPProcessRequest(int sockfd_, Reactor *reactor_);
 
     void operator()(void);
 
 private:
-    int m_port;
+    const static int MAXDATASIZE = 100;
     int m_sockfd;
     Reactor *m_reactor;
+};
+
+class TCPProcessRequest
+{
+public:
+    TCPProcessRequest(int sockfd_, Reactor *reactor_, TCPListener *tcp_listener_);
+
+    void operator()(void);
+
+private:
+    const static int MAXDATASIZE = 100;
+    int m_sockfd;
+    Reactor *m_reactor;
+    TCPListener *m_tcp_listener;
 };
 
 }

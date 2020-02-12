@@ -11,7 +11,7 @@ namespace ilrd
 class Reactor
 {
 public:
-    typedef boost::function<void(void)> Function;
+    typedef boost::function<void(void)> ReactorFunction;
     typedef FDListener::Mode FD_Mode;
     enum Mode
     {
@@ -25,11 +25,11 @@ public:
 
     void Run();
     void Stop();
-    void AddFD(int fd_, Mode mode_, Function func_);
+    void AddFD(int fd_, Mode mode_, ReactorFunction func_);
     void RemoveFD(int fd_, Mode mode_);
 
 private:
-    std::map<FDListener::ModeAndFD, Function> m_fdToFuncs;
+    std::map<FDListener::ModeAndFD, ReactorFunction> m_fdToFuncs;
     bool m_is_running;
 };
 

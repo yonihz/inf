@@ -24,15 +24,20 @@ using boost::bad_lexical_cast;
 
 #define UNUSED(x) (void)(x)
 
-#define MAXDATASIZE 100
-
 namespace ilrd
 {
 
-ConsoleListener::ConsoleListener(int sockfd_, Reactor *reactor_)
-    : m_sockfd(sockfd_), m_reactor(reactor_) {}
+StdInListener::StdInListener(int sockfd_, Reactor *reactor_)
+    : m_sockfd(sockfd_), m_reactor(reactor_)
+{
+    m_factory.Add("exit\n", CreatorStdInExitCmd);
+    m_factory.Add("+\n", CreatorStdInPlusCmd);
+    m_factory.Add("-\n", CreatorStdInMinusCmd);
+    m_factory.Add("ping\n", CreatorStdInPingCmd);
+    m_factory.Add("cout\n", CreatorStdInOutputCoutCmd);
+}
 
-void ConsoleListener::operator()(void)
+void StdInListener::operator()(void)
 {
     Logger &logger = *(Singleton<Logger>::Instance());
     char str[MAXDATASIZE];
@@ -40,26 +45,15 @@ void ConsoleListener::operator()(void)
     fgets(str, MAXDATASIZE, stdin);
     logger.Log(Logger::DEBUG, std::string(str));
 
-    if (strcmp(str, "exit\n") == 0)
+    try
     {
-        logger.Log(Logger::DEBUG, "Exit: Closing all sockets\n");
-        m_reactor->Stop();
-        return;
+        (*m_factory.Create(str))(m_reactor);
     }
-    else if (strcmp(str, "+\n") == 0)
+    catch(const InvalidKey& e)
     {
-        logger.IncOutputSeverity();
+        std::cerr << e.what() << '\n';
     }
-    else if (strcmp(str, "-\n") == 0)
-    {
-        logger.DecOutputSeverity();
-    }
-    else if (strcmp(str, "cout\n") == 0)
-    {
-        logger.Log(Logger::DEBUG, "SetOutput(std::cout)\n");
-        logger.SetOutput(std::cout);
-    }
-
+    
     return;
 }
 
@@ -84,6 +78,22 @@ int UDPListener::CreateSocket()
 int UDPListener::GetSocket()
 {
     return m_sockfd;
+}
+
+int UDPListener::Init()
+{
+    Logger &logger = *(Singleton<Logger>::Instance());
+
+    int status;
+    status = CreateSocket();
+
+    if (status == -1)
+    {
+        logger.Log(Logger::ERROR, "UDP server: failed to bind\n");
+        return -1;
+    }
+
+    return 0;
 }
 
 UDPProcessRequest::UDPProcessRequest(int sockfd_, Reactor *reactor_)
@@ -145,7 +155,7 @@ void UDPProcessRequest::operator()(void)
 }
 
 TCPListener::TCPListener(int port_, Reactor *reactor_)
-    : m_port(port_), m_sockfd() , m_connections(), m_reactor(reactor_) {}
+    : m_port(port_), m_sockfd() , m_connections(new std::set<int>), m_reactor(reactor_) {}
 
 void TCPListener::CloseSocket()
 {
@@ -183,7 +193,32 @@ int TCPListener::GetSocket()
 
 int TCPListener::Listen()
 {
-    return listen(m_sockfd, backlog);
+    return listen(m_sockfd, BACKLOG);
+}
+
+int TCPListener::Init()
+{
+    Logger &logger = *(Singleton<Logger>::Instance());
+
+    int status;
+    status = CreateSocket();
+
+    if (status == -1)
+    {
+        logger.Log(Logger::ERROR, "TCP server: failed to bind\n");
+        return -1;
+    } 
+
+    status = Listen();
+
+    if (status == -1)
+    {
+        logger.Log(Logger::ERROR, "TCP server listen error\n");
+        return -1;
+    }
+
+    logger.Log(Logger::INFO, "TCP server: waiting for connections...\n");
+    return 0;
 }
 
 void TCPListener::operator()(void)
@@ -248,6 +283,73 @@ void TCPProcessRequest::operator()(void)
             logger.Log(Logger::ERROR, "TCP server send error\n");
         }
     }
+}
+
+void StdInExitCmd::operator()(Reactor *reactor)
+{
+    Logger &logger = *(Singleton<Logger>::Instance());
+    logger.Log(Logger::DEBUG, "Exit: Closing all sockets\n");
+    reactor->Stop();
+}
+
+void StdInPlusCmd::operator()(Reactor *reactor)
+{
+    UNUSED(reactor);
+    Logger &logger = *(Singleton<Logger>::Instance());
+    logger.IncOutputSeverity();
+}
+
+void StdInMinusCmd::operator()(Reactor *reactor)
+{
+    UNUSED(reactor);
+    Logger &logger = *(Singleton<Logger>::Instance());
+    logger.DecOutputSeverity();
+}
+
+void StdInPingCmd::operator()(Reactor *reactor)
+{
+    UNUSED(reactor);
+    Logger &logger = *(Singleton<Logger>::Instance());
+    std::cout << "pong" << std::endl;
+    logger.Log(Logger::DEBUG, "pong\n");
+}
+
+void StdInOutputCoutCmd::operator()(Reactor *reactor)
+{
+    UNUSED(reactor);
+    Logger &logger = *(Singleton<Logger>::Instance());
+    logger.Log(Logger::DEBUG, "SetOutput(std::cout)\n");
+    logger.SetOutput(std::cout);
+}
+
+boost::shared_ptr<StdInCommand> CreatorStdInExitCmd()
+{
+    boost::shared_ptr<StdInCommand> command(new StdInExitCmd());
+    return command;
+}
+
+boost::shared_ptr<StdInCommand> CreatorStdInPlusCmd()
+{
+    boost::shared_ptr<StdInCommand> command(new StdInPlusCmd());
+    return command;
+}
+
+boost::shared_ptr<StdInCommand> CreatorStdInMinusCmd()
+{
+    boost::shared_ptr<StdInCommand> command(new StdInMinusCmd());
+    return command;
+}
+
+boost::shared_ptr<StdInCommand> CreatorStdInPingCmd()
+{
+    boost::shared_ptr<StdInCommand> command(new StdInPingCmd());
+    return command;
+}
+
+boost::shared_ptr<StdInCommand> CreatorStdInOutputCoutCmd()
+{
+    boost::shared_ptr<StdInCommand> command(new StdInOutputCoutCmd());
+    return command;
 }
 
 } //namespace ilrd

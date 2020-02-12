@@ -7,39 +7,36 @@
 namespace ilrd
 {
 
-void InitFDSets(
-    FDListener::FDVector& fds,
-    fd_set *read,
-    fd_set *write, 
-    fd_set *except,
-    int *fdmax);
+void InitFDSets(FDListener::FDVector& fds, fd_set *fd_sets, int *fdmax);
 
-void CreateReadyFDVector(
-    FDListener::FDVector *ready_fds,
-    fd_set *read,
-    fd_set *write, 
-    fd_set *except,
-    int fdmax);
+void CreateReadyFDVector(FDListener::FDVector *ready_fds, fd_set *fd_sets, int fdmax);
 
 const boost::chrono::milliseconds FDListener::s_timeout(2000);
 
 FDListener::FDVector FDListener::Wait(FDListener::FDVector& fds_)
 {
     Logger &logger = *(Singleton<Logger>::Instance());
-    int status = 0, fdmax = 0;
-    fd_set read_fds, write_fds, except_fds;
     FDListener::FDVector ready_fds;
+
+    fd_set fd_sets[FDListener::MAX_MODE];
+    FD_ZERO(&fd_sets[FDListener::READ]);
+    FD_ZERO(&fd_sets[FDListener::WRITE]);
+    FD_ZERO(&fd_sets[FDListener::EXCEPT]);
+
     struct timeval timev;
-
-    FD_ZERO(&read_fds);
-    FD_ZERO(&write_fds);
-    FD_ZERO(&except_fds);
-
     timev.tv_sec = 0;
     timev.tv_usec = FDListener::s_timeout.count() * 1000;
 
-    InitFDSets(fds_, &read_fds, &write_fds, &except_fds, &fdmax);
-    status = select(fdmax + 1, &read_fds, &write_fds, &except_fds, &timev);
+    int fdmax = 0;
+    InitFDSets(fds_, fd_sets, &fdmax);
+
+    int status = 0;
+    status = select(
+        fdmax + 1, 
+        &fd_sets[FDListener::READ], 
+        &fd_sets[FDListener::WRITE], 
+        &fd_sets[FDListener::EXCEPT], 
+        &timev);
 
     if (0 == status)
     {
@@ -52,67 +49,37 @@ FDListener::FDVector FDListener::Wait(FDListener::FDVector& fds_)
         return ready_fds;
     }
 
-    CreateReadyFDVector(&ready_fds, &read_fds, &write_fds, &except_fds, fdmax);
+    CreateReadyFDVector(&ready_fds, fd_sets, fdmax);
 
     return ready_fds;
 }
 
-void InitFDSets(
-    FDListener::FDVector &fds,
-    fd_set *read,
-    fd_set *write, 
-    fd_set *except,
-    int *fdmax)
+void InitFDSets(FDListener::FDVector& fds, fd_set *fd_sets, int *fdmax)
 {
-    for (FDListener::FDVector::iterator it = fds.begin() ; it != fds.end(); ++it)
+    FDListener::FDVector::iterator it;
+    FDListener::FDVector::iterator it_end = fds.end();
+    for (it = fds.begin() ; it != it_end; ++it)
     {
         *fdmax = (it->first > *fdmax) ? (it->first) : (*fdmax);
-        
-        switch (it->second)
-        {
-            case FDListener::READ:
-            {
-                FD_SET(it->first, read);
-                break;
-            }
-            case FDListener::WRITE:
-            {
-                FD_SET(it->first, write);
-                break;
-            }
-            case FDListener::EXCEPT:
-            {
-                FD_SET(it->first, except);
-                break;
-            }
-            default:
-            {
-                break;
-            }
-        }
+        FD_SET(it->first, &fd_sets[it->second]);
     }
 }
 
-void CreateReadyFDVector(
-    FDListener::FDVector *ready_fds,
-    fd_set *read,
-    fd_set *write, 
-    fd_set *except,
-    int fdmax)
+void CreateReadyFDVector(FDListener::FDVector *ready_fds, fd_set *fd_sets, int fdmax)
 {
     FDListener::Mode mode;
 
     for (int i = 0; i <= fdmax; ++i)
     {
-        if (FD_ISSET(i, read))
+        if (FD_ISSET(i, &fd_sets[FDListener::READ]))
         {
             mode =  FDListener::READ;
         }
-        else if (FD_ISSET(i, write))
+        else if (FD_ISSET(i, &fd_sets[FDListener::WRITE]))
         {
             mode =  FDListener::WRITE;
         }
-        else if (FD_ISSET(i, except))
+        else if (FD_ISSET(i, &fd_sets[FDListener::EXCEPT]))
         {
             mode =  FDListener::EXCEPT;
         }
@@ -121,7 +88,7 @@ void CreateReadyFDVector(
             continue;
         }
 
-        ready_fds->push_back(std::make_pair(i, mode));
+        ready_fds->push_back(FDListener::ModeAndFD(i, mode));
     }
 }
 

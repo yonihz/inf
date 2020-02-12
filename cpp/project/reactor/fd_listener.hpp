@@ -13,7 +13,7 @@ namespace ilrd
 class FDListener
 {
 public:
-    enum Mode {READ, WRITE, EXCEPT};
+    enum Mode {READ, WRITE, EXCEPT, MAX_MODE};
     
     typedef std::pair<int, Mode> ModeAndFD;
     typedef std::vector<ModeAndFD> FDVector;
