@@ -1,6 +1,8 @@
 #ifndef ILRD_RD734_SERVER_HPP
 #define ILRD_RD734_SERVER_HPP
 
+#include <set>
+
 #include "socket.hpp"
 #include "reactor.hpp"
 
@@ -36,7 +38,7 @@ private:
 class TCPProcessRequest
 {
 public:
-    TCPProcessRequest(int sockfd_, Reactor *reactor_);
+    TCPProcessRequest(int sockfd_, Reactor *reactor_, TCPListener *tcp_listener_);
     ~TCPProcessRequest();
 
     void operator()(void);
@@ -44,6 +46,7 @@ public:
 private:
     int m_sockfd;
     Reactor *m_reactor;
+    TCPListener *m_tcp_listener;
 };
 
 class TCPListener
@@ -55,15 +58,18 @@ public:
     int CreateSocket();
     int GetSocket();
     int Listen();
+    void CloseSocket();
+    void CloseAllConnections();
+    void CloseConnection(int sockfd);
 
     void operator()(void);
 
 private:
+    const int backlog = 10;
     int m_port;
     int m_sockfd;
-    int m_backlog;
+    boost::shared_ptr< std::set<int> > m_connections;
     Reactor *m_reactor;
-    boost::shared_ptr< std::vector<int> > m_connected_fds;
 };
 
 class UDPListener
@@ -74,6 +80,7 @@ public:
 
     int CreateSocket();
     int GetSocket();
+    void CloseSocket();
 
     void operator()(void);
 

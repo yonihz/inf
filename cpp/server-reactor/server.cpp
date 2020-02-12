@@ -63,20 +63,16 @@ void ConsoleListener::operator()(void)
     return;
 }
 
-UDPServer::UDPServer(int port_)
-    : m_port(port_)
-{
-    std::cout << "UDPServer Ctor" << std::endl;
-}
+UDPListener::UDPListener(int port_, Reactor *reactor_)
+    : m_port(port_), m_reactor(reactor_) {}
 
-UDPServer::~UDPServer()
+void UDPListener::CloseSocket()
 {
-    std::cout << "UDPServer Dtor" << std::endl;
     close(m_sockfd);
 }
 
 
-int UDPServer::CreateSocket()
+int UDPListener::CreateSocket()
 {
     struct addrinfo *server_ai;
 
@@ -85,15 +81,15 @@ int UDPServer::CreateSocket()
     return m_sockfd;
 }
 
-int UDPServer::GetSocket()
+int UDPListener::GetSocket()
 {
     return m_sockfd;
 }
 
-UDPServerReadFunction::UDPServerReadFunction(int sockfd_, Reactor *reactor_)
-    : m_sockfd(sockfd_), m_reactor(reactor_) { std::cout << "UDPServerReadFunction Ctor" << std::endl; }
+UDPProcessRequest::UDPProcessRequest(int sockfd_, Reactor *reactor_)
+    : m_sockfd(sockfd_), m_reactor(reactor_) {}
 
-void UDPServerReadFunction::operator()(void)
+void UDPProcessRequest::operator()(void)
 {
     Logger &logger = *(Singleton<Logger>::Instance());
     struct addrinfo client_addrinfo;
@@ -148,19 +144,31 @@ void UDPServerReadFunction::operator()(void)
     return;
 }
 
-TCPServer::TCPServer(int port_)
-    : m_port(port_)
-{
-    std::cout << "TCPServer Ctor" << std::endl;
-}
+TCPListener::TCPListener(int port_, Reactor *reactor_)
+    : m_port(port_), m_sockfd() , m_connections(), m_reactor(reactor_) {}
 
-TCPServer::~TCPServer()
+void TCPListener::CloseSocket()
 {
-    std::cout << "TCPServer Dtor" << std::endl;
     close(m_sockfd);
 }
 
-int TCPServer::CreateSocket()
+void TCPListener::CloseAllConnections()
+{
+    std::set<int>::iterator it;
+    std::set<int>::iterator it_end = m_connections->end();
+    for (it = m_connections->begin(); it != it_end; ++it)
+    {
+        close(*it);
+    }
+}
+
+void TCPListener::CloseConnection(int sockfd)
+{
+    m_connections->erase(sockfd);
+    close(sockfd);
+}
+
+int TCPListener::CreateSocket()
 {
     struct addrinfo *server_ai;
     InitAddrinfo(NULL, m_port, AF_UNSPEC, SOCK_STREAM, AI_PASSIVE, &server_ai);
@@ -168,20 +176,17 @@ int TCPServer::CreateSocket()
     return m_sockfd;
 }
 
-int TCPServer::GetSocket()
+int TCPListener::GetSocket()
 {
     return m_sockfd;
 }
 
-int TCPServer::Listen()
+int TCPListener::Listen()
 {
-    return listen(m_sockfd, m_backlog);
+    return listen(m_sockfd, backlog);
 }
 
-TCPListenerFunction::TCPListenerFunction(int sockfd_, Reactor *reactor_)
-    : m_sockfd(sockfd_), m_reactor(reactor_), m_connected_fds(new std::vector<int>) { std::cout << "TCPListenerFunction Ctor" << std::endl; }
-
-void TCPListenerFunction::operator()(void)
+void TCPListener::operator()(void)
 {
     Logger &logger = *(Singleton<Logger>::Instance());
     int new_sockfd;
@@ -197,27 +202,18 @@ void TCPListenerFunction::operator()(void)
         return;
     }
 
-    m_connected_fds->push_back(new_sockfd);
+    m_connections->insert(new_sockfd);
 
     m_reactor->AddFD(
         new_sockfd,
         Reactor::READ,
-        TCPServerReadFunction(new_sockfd, m_reactor));
+        TCPProcessRequest(new_sockfd, m_reactor, this));
 }
 
-TCPServerReadFunction::TCPServerReadFunction(int sockfd_, Reactor *reactor_)
-    : m_sockfd(sockfd_), m_reactor(reactor_)
-{
-    std::cout << "TCPServerReadFunction Ctor" << std::endl;
-}
+TCPProcessRequest::TCPProcessRequest(int sockfd_, Reactor *reactor_, TCPListener *tcp_listener_)
+    : m_sockfd(sockfd_), m_reactor(reactor_), m_tcp_listener(tcp_listener_) {}
 
-TCPServerReadFunction::~TCPServerReadFunction()
-{
-    std::cout << "TCPServerReadFunction Dtor" << std::endl;
-    // close(m_sockfd);
-}
-
-void TCPServerReadFunction::operator()(void)
+void TCPProcessRequest::operator()(void)
 {
     Logger &logger = *(Singleton<Logger>::Instance());
     char buff[MAXDATASIZE];
@@ -229,7 +225,7 @@ void TCPServerReadFunction::operator()(void)
     if (nbytes_rcvd == 0)
     {
         logger.Log(Logger::DEBUG, "Closing TCP connection\n");
-        close(m_sockfd);
+        m_tcp_listener->CloseConnection(m_sockfd);
         m_reactor->RemoveFD(m_sockfd, Reactor::READ);
         return;
     }

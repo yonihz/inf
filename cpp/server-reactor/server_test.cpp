@@ -58,5 +58,9 @@ int main(int argc, char *argv[])
 
     reactor.Run();
 
+    udp_listener.CloseSocket();
+    tcp_listener.CloseSocket();
+    tcp_listener.CloseAllConnections();
+
     return 0;
 }
