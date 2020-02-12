@@ -13,7 +13,7 @@ class Command
 public:
     virtual ~Command() {}
 
-    virtual void operator()(int sockfd, char *buffer, struct addrinfo *client_addrinfo, socklen_t *client_addrlen) = 0;
+    virtual void operator()(char *buffer) = 0;
 };
 
 } //namespace ilrd
