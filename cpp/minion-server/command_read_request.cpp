@@ -33,10 +33,7 @@ void ReadRequestCmd::operator()(char *buffer)
     std::string filename = "block" + lexical_cast<std::string>(*(size_t*)&(buffer[9]));
     std::ifstream block_file(filename.c_str());
 
-    // logger.Log(Logger::DEBUG, "cmd write log: DEBUG\n");
-    // logger.Log(Logger::INFO, "cmd write log: INFO\n");
-    // logger.Log(Logger::WARNING, "cmd write log: WARNING\n");
-    // logger.Log(Logger::ERROR, "cmd write log: ERROR\n");
+    logger.Log(Logger::DEBUG, "Read request\n");
 
     buffer[9] = 1;
     block_file.read(&(buffer[10]), 4096); 

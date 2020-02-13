@@ -40,11 +40,9 @@ StdInListener::StdInListener(int sockfd_, Reactor *reactor_)
 
 void StdInListener::operator()(void)
 {
-    Logger &logger = *(Singleton<Logger>::Instance());
     char str[MAXDATASIZE];
 
     fgets(str, MAXDATASIZE, stdin);
-    logger.Log(Logger::DEBUG, std::string(str));
 
     try
     {
@@ -114,42 +112,36 @@ UDPProcessRequest::UDPProcessRequest(int sockfd_, Reactor *reactor_)
     handle_read_request_cmd = dlopen ("./libcommand_read_request.so", RTLD_LAZY);
     if (!handle_read_request_cmd) {
         fputs (dlerror(), stderr);
-        // throw
         return;
     }
 
     CreatorReadRequestCmd = (boost::shared_ptr<Command>(*)()) dlsym(handle_read_request_cmd, "Creator");
     if ((error = dlerror()) != NULL)  {
         fputs(error, stderr);
-        // throw
         return;
     }
 
     GetKeyReadRequestCmd = (char(*)(void)) dlsym(handle_read_request_cmd, "GetKey");
     if ((error = dlerror()) != NULL)  {
         fputs(error, stderr);
-        // throw
         return;
     }
 
     handle_write_request_cmd = dlopen ("./libcommand_write_request.so", RTLD_LAZY);
     if (!handle_write_request_cmd) {
         fputs (dlerror(), stderr);
-        // throw
         return;
     }
 
     CreatorWriteRequestCmd = (boost::shared_ptr<Command>(*)()) dlsym(handle_write_request_cmd, "Creator");
     if ((error = dlerror()) != NULL)  {
         fputs(error, stderr);
-        // throw
         return;
     }
 
     GetKeyWriteRequestCmd = (char(*)(void)) dlsym(handle_write_request_cmd, "GetKey");
     if ((error = dlerror()) != NULL)  {
         fputs(error, stderr);
-        // throw
         return;
     }
 
@@ -159,15 +151,21 @@ UDPProcessRequest::UDPProcessRequest(int sockfd_, Reactor *reactor_)
 
 void UDPProcessRequest::operator()(void)
 {
-    char request_buffer[4114];
-    struct addrinfo client_addrinfo;
+    char request_buffer[4114] = {0};
+    struct sockaddr client_addrinfo;
     socklen_t client_addrlen;
 
-    recvfrom(m_sockfd, request_buffer, sizeof(request_buffer), MSG_DONTWAIT, (struct sockaddr *)&client_addrinfo, &client_addrlen);
+    if (-1 == recvfrom(m_sockfd, request_buffer, sizeof(request_buffer), MSG_CONFIRM, &client_addrinfo, &client_addrlen))
+    {
+       std::cout << "error recvfrom\n"; 
+    }
 
     (*m_factory.Create(request_buffer[0]))(request_buffer);
 
-    sendto(m_sockfd, request_buffer, m_reply_size[(int)request_buffer[0]], MSG_DONTWAIT, (const struct sockaddr *)&client_addrinfo, client_addrlen); 
+    if (-1 == sendto(m_sockfd, request_buffer, m_reply_size[(size_t)request_buffer[0]], MSG_WAITALL, &client_addrinfo, client_addrlen))
+    {
+        std::cout << std::string(strerror(errno)) << std::endl;
+    }
 }
 
 TCPListener::TCPListener(int port_, Reactor *reactor_)
@@ -299,73 +297,6 @@ void TCPProcessRequest::operator()(void)
             logger.Log(Logger::ERROR, "TCP server send error\n");
         }
     }
-}
-
-void StdInExitCmd::operator()(Reactor *reactor)
-{
-    Logger &logger = *(Singleton<Logger>::Instance());
-    logger.Log(Logger::DEBUG, "Exit: Closing all sockets\n");
-    reactor->Stop();
-}
-
-void StdInPlusCmd::operator()(Reactor *reactor)
-{
-    UNUSED(reactor);
-    Logger &logger = *(Singleton<Logger>::Instance());
-    logger.IncOutputSeverity();
-}
-
-void StdInMinusCmd::operator()(Reactor *reactor)
-{
-    UNUSED(reactor);
-    Logger &logger = *(Singleton<Logger>::Instance());
-    logger.DecOutputSeverity();
-}
-
-void StdInPingCmd::operator()(Reactor *reactor)
-{
-    UNUSED(reactor);
-    Logger &logger = *(Singleton<Logger>::Instance());
-    std::cout << "pong" << std::endl;
-    logger.Log(Logger::DEBUG, "pong\n");
-}
-
-void StdInOutputCoutCmd::operator()(Reactor *reactor)
-{
-    UNUSED(reactor);
-    Logger &logger = *(Singleton<Logger>::Instance());
-    logger.Log(Logger::DEBUG, "SetOutput(std::cout)\n");
-    logger.SetOutput(std::cout);
-}
-
-boost::shared_ptr<StdInCommand> CreatorStdInExitCmd()
-{
-    boost::shared_ptr<StdInCommand> command(new StdInExitCmd());
-    return command;
-}
-
-boost::shared_ptr<StdInCommand> CreatorStdInPlusCmd()
-{
-    boost::shared_ptr<StdInCommand> command(new StdInPlusCmd());
-    return command;
-}
-
-boost::shared_ptr<StdInCommand> CreatorStdInMinusCmd()
-{
-    boost::shared_ptr<StdInCommand> command(new StdInMinusCmd());
-    return command;
-}
-
-boost::shared_ptr<StdInCommand> CreatorStdInPingCmd()
-{
-    boost::shared_ptr<StdInCommand> command(new StdInPingCmd());
-    return command;
-}
-
-boost::shared_ptr<StdInCommand> CreatorStdInOutputCoutCmd()
-{
-    boost::shared_ptr<StdInCommand> command(new StdInOutputCoutCmd());
-    return command;
 }
 
 } //namespace ilrd

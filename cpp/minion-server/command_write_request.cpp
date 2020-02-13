@@ -33,10 +33,7 @@ void WriteRequestCmd::operator()(char *buffer)
     std::string filename = "block" + lexical_cast<std::string>(*(size_t*)&(buffer[9]));
     std::ofstream block_file(filename.c_str());
 
-    // logger.Log(Logger::DEBUG, "cmd write log: DEBUG\n");
-    // logger.Log(Logger::INFO, "cmd write log: INFO\n");
-    // logger.Log(Logger::WARNING, "cmd write log: WARNING\n");
-    // logger.Log(Logger::ERROR, "cmd write log: ERROR\n");
+    logger.Log(Logger::DEBUG, "Write request\n");
 
     block_file.write(&(buffer[17]), 4096);
 
