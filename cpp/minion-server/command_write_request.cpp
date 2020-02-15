@@ -30,14 +30,17 @@ WriteRequestCmd::WriteRequestCmd()
 void WriteRequestCmd::operator()(char *buffer)
 {
     Logger &logger = *(Singleton<Logger>::Instance());
-    std::string filename = "block" + lexical_cast<std::string>(*(size_t*)&(buffer[9]));
+    std::string filename = 
+        "block" + 
+        lexical_cast<std::string>(*(size_t*)&(buffer[SEND_BLOCK_IDX_BYTE]));
+
     std::ofstream block_file(filename.c_str());
 
     logger.Log(Logger::DEBUG, "Write request\n");
 
-    block_file.write(&(buffer[17]), 4096);
+    block_file.write(&(buffer[SEND_DATA_BYTE]), BLOCK_SIZE);
 
-    buffer[9] = 1; 
+    buffer[REPLY_STATUS_BYTE] = SUCCESS; 
 }
 
 boost::shared_ptr<Command> Creator()

@@ -76,12 +76,14 @@ public:
 
 private:
     const static int MAXDATASIZE = 100;
-    const static size_t WRITE_REPLY_SIZE = 10;
-    const static size_t READ_REPLY_SIZE = 4106;
+    const static size_t WRITE_REPLY_LEN = 10;
+    const static size_t READ_REPLY_LEN = 4106;
+    const static size_t BUFFER_SIZE = 4114;
+    const static size_t REQUEST_TYPE_BYTE = 0;
     int m_sockfd;
     Reactor *m_reactor;
     Factory<boost::shared_ptr<Command>, char, void, boost::shared_ptr<Command>(*)(void)> m_factory;
-    size_t m_reply_size[2];
+    size_t m_reply_len[2];
 };
 
 class TCPProcessRequest

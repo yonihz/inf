@@ -1,12 +1,12 @@
 // gd98 -c -fPIC command_write_request.cpp -I../logger/ -I../singleton/ -I../waitable_queue/ -I../thread/
 // gd98 -c -fPIC command_read_request.cpp -I../logger/ -I../singleton/ -I../waitable_queue/ -I../thread/
 // gd98 -shared command_read_request.o -o libcommand_read_request.so
-// gd98 -shared command_write_request.o -o libcommand_write_request.so
+// 
 
 // gd98 -c -fPIC ../logger/logger.cpp ../thread/thread.cpp -I../thread/ -I../logger/ -I../waitable_queue/ -I../singleton/
 // gd98 -shared logger.o thread.o -o liblogger.so
 
-// gd98 -fPIC server_test.cpp server.cpp command_stdin.cpp ../project/reactor/reactor.cpp ../project/reactor/fd_listener.cpp  ../socket/socket.cpp -I../factory/ -I../socket/ -I../project/reactor/ -I../logger/ -I../singleton/ -I../waitable_queue/ -I../thread/ -pthread -lboost_system -Wl,-rpath,. -L. -llogger -ldl -rdynamic -o server.out
+// gd98 -fPIC server_app.cpp server.cpp command_stdin.cpp ../project/reactor/reactor.cpp ../project/reactor/fd_listener.cpp  ../socket/socket.cpp -I../factory/ -I../socket/ -I../project/reactor/ -I../logger/ -I../singleton/ -I../waitable_queue/ -I../thread/ -pthread -lboost_system -Wl,-rpath,. -L. -llogger -ldl -rdynamic -o server.out
 
 #include <cstdlib>
 #include <iostream>

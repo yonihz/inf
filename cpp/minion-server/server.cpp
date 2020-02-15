@@ -98,8 +98,8 @@ int UDPListener::Init()
 UDPProcessRequest::UDPProcessRequest(int sockfd_, Reactor *reactor_)
     : m_sockfd(sockfd_), m_reactor(reactor_), m_factory()
 {
-    m_reply_size[0] = READ_REPLY_SIZE;
-    m_reply_size[1] = WRITE_REPLY_SIZE;
+    m_reply_len[0] = READ_REPLY_LEN;
+    m_reply_len[1] = WRITE_REPLY_LEN;
     void *handle_read_request_cmd;
     boost::shared_ptr<Command> (*CreatorReadRequestCmd)();
     char (*GetKeyReadRequestCmd)(void);
@@ -151,21 +151,29 @@ UDPProcessRequest::UDPProcessRequest(int sockfd_, Reactor *reactor_)
 
 void UDPProcessRequest::operator()(void)
 {
-    char request_buffer[4114] = {0};
+    Logger &logger = *(Singleton<Logger>::Instance());
+    int status;
+    char *request_buffer = new char[BUFFER_SIZE];
     struct sockaddr client_addrinfo;
     socklen_t client_addrlen;
 
-    if (-1 == recvfrom(m_sockfd, request_buffer, sizeof(request_buffer), MSG_CONFIRM, &client_addrinfo, &client_addrlen))
+    status = recvfrom(m_sockfd, request_buffer, BUFFER_SIZE, MSG_CONFIRM, &client_addrinfo, &client_addrlen);
+
+    if (-1 == status)
     {
-       std::cout << "error recvfrom\n"; 
+       logger.Log(Logger::ERROR, "recvfrom error: " + std::string(strerror(errno)) + "\n");
     }
 
-    (*m_factory.Create(request_buffer[0]))(request_buffer);
+    (*m_factory.Create(request_buffer[REQUEST_TYPE_BYTE]))(request_buffer);
 
-    if (-1 == sendto(m_sockfd, request_buffer, m_reply_size[(size_t)request_buffer[0]], MSG_WAITALL, &client_addrinfo, client_addrlen))
+    sendto(m_sockfd, request_buffer, m_reply_len[(size_t)request_buffer[REQUEST_TYPE_BYTE]], MSG_WAITALL, &client_addrinfo, client_addrlen);
+
+    if (-1 == status)
     {
-        std::cout << std::string(strerror(errno)) << std::endl;
+       logger.Log(Logger::ERROR, "sendto error: " + std::string(strerror(errno)) + "\n");
     }
+
+    delete[] request_buffer; request_buffer = NULL;
 }
 
 TCPListener::TCPListener(int port_, Reactor *reactor_)

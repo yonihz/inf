@@ -30,13 +30,15 @@ ReadRequestCmd::ReadRequestCmd()
 void ReadRequestCmd::operator()(char *buffer)
 {
     Logger &logger = *(Singleton<Logger>::Instance());
-    std::string filename = "block" + lexical_cast<std::string>(*(size_t*)&(buffer[9]));
+    std::string filename =
+        "block" +
+        lexical_cast<std::string>(*(size_t*)&(buffer[SEND_BLOCK_IDX_BYTE]));
     std::ifstream block_file(filename.c_str());
 
     logger.Log(Logger::DEBUG, "Read request\n");
 
-    buffer[9] = 1;
-    block_file.read(&(buffer[10]), 4096); 
+    buffer[REPLY_STATUS_BYTE] = SUCCESS;
+    block_file.read(&(buffer[REPLY_DATA_BYTE]), BLOCK_SIZE); 
 }
 
 boost::shared_ptr<Command> Creator()
