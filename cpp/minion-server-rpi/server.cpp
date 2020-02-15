@@ -155,7 +155,7 @@ void UDPRequestMgr::operator()(void)
     int status;
     char request_buffer[BUFFER_SIZE];
     struct sockaddr client_addrinfo;
-    socklen_t client_addrlen = sizeof(client_addrlen);
+    socklen_t client_addrlen = sizeof(client_addrinfo);
 
     status = recvfrom(m_sockfd, request_buffer, BUFFER_SIZE, MSG_CONFIRM, &client_addrinfo, &client_addrlen);
 
