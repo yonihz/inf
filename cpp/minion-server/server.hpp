@@ -9,97 +9,154 @@
 #include "reactor.hpp"
 #include "factory.hpp"
 #include "command.hpp"
-#include "command_stdin.hpp"
+#include "command_console.hpp"
 
 namespace ilrd
 {
 
-class StdInListener
+class ConsoleCmdManager
 {
 public:
-    StdInListener(int sockfd_, Reactor *reactor_);
+    ConsoleCmdManager(Reactor *reactor_);
+    void RunCommand(std::string str_);
+    void AddCommand(std::string str_, boost::shared_ptr<ConsoleCommand>(*creator_)(void));
+
+private:
+    Factory<
+        boost::shared_ptr<ConsoleCommand>, 
+        std::string,
+        void, 
+        boost::shared_ptr<ConsoleCommand>(*)(void)> 
+        m_factory;
+    Reactor *m_reactor;
+};
+
+class ConsoleFD
+{
+public:
+    ConsoleFD(int fd_);
+    int GetFD();
+
+private:
+    int m_fd;
+};
+
+class ServerConsole
+{
+public:
+    ServerConsole(int fd_, Reactor *reactor_);
+    void AddToReactor();
 
     void operator()(void);
 
 private:
     const static int MAXDATASIZE = 100;
-    int m_sockfd;
-    Reactor *m_reactor;
-    Factory<boost::shared_ptr<StdInCommand>, std::string, void, boost::shared_ptr<StdInCommand>(*)(void)> m_factory;
-};
-
-class TCPListener
-{
-public:
-    TCPListener(int port_, Reactor *reactor_);
-
-    int Init();
-    int GetSocket();
-    void CloseSocket();
-    void CloseAllConnections();
-    void CloseConnection(int sockfd);
-
-    void operator()(void);
-
-private:
-    int Listen();
-    int CreateSocket();
-    const static int BACKLOG = 10;
-    int m_port;
-    int m_sockfd;
-    boost::shared_ptr< std::set<int> > m_connections;
+    ConsoleCmdManager m_cmd_manager;
+    ConsoleFD m_console_fd;
     Reactor *m_reactor;
 };
 
-class UDPListener
+class UDPServerSocket
 {
 public:
-    UDPListener(int port_, Reactor *reactor_);
+    UDPServerSocket(const char *ip_, int port_);
 
     int Init();
-    int GetSocket();
+    int GetFD();
     void CloseSocket();
 
 private:
-    int CreateSocket();
+    const char *m_ip;
     int m_port;
     int m_sockfd;
-    Reactor *m_reactor;
 };
 
-class UDPRequestMgr
+class UDPCmdManager
 {
 public:
-    UDPRequestMgr(int sockfd_, Reactor *reactor_);
+    UDPCmdManager(Reactor *reactor_);
+
+    void RunCommand(char c_, char *buffer_);
+    void AddCommand(char c_, boost::shared_ptr<Command>(*creator_)(void));
 
     void operator()(void);
+private:
+    Reactor *m_reactor;
+    Factory<boost::shared_ptr<Command>, char, void, boost::shared_ptr<Command>(*)(void)> m_factory;
+};
 
+class UDPServer
+{
+public:
+    UDPServer(const char *ip_, int port_, Reactor *reactor_);
+    ~UDPServer();
+    
+    int Init();
+    void AddToReactor();
+
+    void operator()(void);
 private:
     const static int MAXDATASIZE = 100;
     const static size_t WRITE_REPLY_LEN = 10;
     const static size_t READ_REPLY_LEN = 4106;
     const static size_t BUFFER_SIZE = 4114;
     const static size_t REQUEST_TYPE_BYTE = 0;
-    int m_sockfd;
-    Reactor *m_reactor;
-    Factory<boost::shared_ptr<Command>, char, void, boost::shared_ptr<Command>(*)(void)> m_factory;
     size_t m_reply_len[2];
-};
-
-class TCPRequestMgr
-{
-public:
-    TCPRequestMgr(int sockfd_, Reactor *reactor_, TCPListener *tcp_listener_);
-
-    void operator()(void);
-
-private:
-    const static int MAXDATASIZE = 100;
-    int m_sockfd;
+    UDPCmdManager m_cmd_manager;
+    UDPServerSocket m_socket;
     Reactor *m_reactor;
-    TCPListener *m_tcp_listener;
 };
 
-}
+} //namespace ilrd
 
 #endif // ILRD_RD734_SERVER_HPP
+
+// class TCPServer
+// {
+// public:
+//     TCPServer(const char *ip, int port_, Reactor *reactor_);
+
+//     int Init();
+//     void AddToReactor();
+
+//     void operator()(void);
+// private:
+//     const static int MAXDATASIZE = 100;
+//     TCPCmdManager m_cmd_manager;
+//     TCPServerSocket m_socket;
+//     Reactor *m_reactor;
+// };
+
+// class TCPServerSocket
+// {
+// public:
+//     TCPServerSocket(const char *ip_, int port_);
+
+//     int Init();
+//     int GetSocket();
+//     void CloseSocket();
+//     void CloseAllConnections();
+//     void CloseConnection(int sockfd);
+
+// private:
+//     int Listen();
+//     int CreateSocket();
+//     const static int BACKLOG = 10;
+//     const char *m_ip
+//     int m_port;
+//     int m_sockfd;
+//     boost::shared_ptr< std::set<int> > m_connections;
+// };
+
+// class TCPCmdManager
+// {
+// public:
+//     TCPCmdManager(Reactor *reactor_);
+
+//     void operator()(void);
+
+// private:
+//     int m_sockfd;
+//     Reactor *m_reactor;
+//     TCPServerSocket *m_tcp_server_socket;
+// };

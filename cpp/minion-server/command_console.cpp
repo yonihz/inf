@@ -1,4 +1,4 @@
-#include "command_stdin.hpp"
+#include "command_console.hpp"
 #include "logger.hpp"
 #include "singleton.hpp"
 
@@ -7,28 +7,28 @@
 namespace ilrd
 {
 
-void StdInExitCmd::operator()(Reactor *reactor)
+void ConsoleExitCmd::operator()(Reactor *reactor)
 {
     Logger &logger = *(Singleton<Logger>::Instance());
     logger.Log(Logger::DEBUG, "Exit: Closing all sockets\n");
     reactor->Stop();
 }
 
-void StdInPlusCmd::operator()(Reactor *reactor)
+void ConsolePlusCmd::operator()(Reactor *reactor)
 {
     UNUSED(reactor);
     Logger &logger = *(Singleton<Logger>::Instance());
     logger.IncOutputSeverity();
 }
 
-void StdInMinusCmd::operator()(Reactor *reactor)
+void ConsoleMinusCmd::operator()(Reactor *reactor)
 {
     UNUSED(reactor);
     Logger &logger = *(Singleton<Logger>::Instance());
     logger.DecOutputSeverity();
 }
 
-void StdInPingCmd::operator()(Reactor *reactor)
+void ConsolePingCmd::operator()(Reactor *reactor)
 {
     UNUSED(reactor);
     Logger &logger = *(Singleton<Logger>::Instance());
@@ -36,7 +36,7 @@ void StdInPingCmd::operator()(Reactor *reactor)
     logger.Log(Logger::DEBUG, "pong\n");
 }
 
-void StdInOutputCoutCmd::operator()(Reactor *reactor)
+void ConsoleOutputCoutCmd::operator()(Reactor *reactor)
 {
     UNUSED(reactor);
     Logger &logger = *(Singleton<Logger>::Instance());
@@ -44,33 +44,33 @@ void StdInOutputCoutCmd::operator()(Reactor *reactor)
     logger.SetOutput(std::cout);
 }
 
-boost::shared_ptr<StdInCommand> CreatorStdInExitCmd()
+boost::shared_ptr<ConsoleCommand> CreatorConsoleExitCmd()
 {
-    boost::shared_ptr<StdInCommand> command(new StdInExitCmd());
+    boost::shared_ptr<ConsoleCommand> command(new ConsoleExitCmd());
     return command;
 }
 
-boost::shared_ptr<StdInCommand> CreatorStdInPlusCmd()
+boost::shared_ptr<ConsoleCommand> CreatorConsolePlusCmd()
 {
-    boost::shared_ptr<StdInCommand> command(new StdInPlusCmd());
+    boost::shared_ptr<ConsoleCommand> command(new ConsolePlusCmd());
     return command;
 }
 
-boost::shared_ptr<StdInCommand> CreatorStdInMinusCmd()
+boost::shared_ptr<ConsoleCommand> CreatorConsoleMinusCmd()
 {
-    boost::shared_ptr<StdInCommand> command(new StdInMinusCmd());
+    boost::shared_ptr<ConsoleCommand> command(new ConsoleMinusCmd());
     return command;
 }
 
-boost::shared_ptr<StdInCommand> CreatorStdInPingCmd()
+boost::shared_ptr<ConsoleCommand> CreatorConsolePingCmd()
 {
-    boost::shared_ptr<StdInCommand> command(new StdInPingCmd());
+    boost::shared_ptr<ConsoleCommand> command(new ConsolePingCmd());
     return command;
 }
 
-boost::shared_ptr<StdInCommand> CreatorStdInOutputCoutCmd()
+boost::shared_ptr<ConsoleCommand> CreatorConsoleOutputCoutCmd()
 {
-    boost::shared_ptr<StdInCommand> command(new StdInOutputCoutCmd());
+    boost::shared_ptr<ConsoleCommand> command(new ConsoleOutputCoutCmd());
     return command;
 }
 
