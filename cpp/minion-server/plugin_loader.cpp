@@ -28,8 +28,6 @@ void PluginLoader::operator()(std::string &name)
     //     m_shared_objs.insert(name);
     //     LoadLib(name);
     // }
-
-    m_shared_objs.insert(name);
     
     void *handle;
     char *error;
@@ -59,6 +57,7 @@ void PluginLoader::operator()(std::string &name)
         return;
     }
 
+    m_shared_objs.insert(name);
     m_cmd_manager->AddCommand((int)(*GetKey)(), Creator);
 }
 

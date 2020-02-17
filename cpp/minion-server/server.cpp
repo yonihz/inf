@@ -15,7 +15,6 @@
 
 #include "boost/lexical_cast.hpp" 
 using boost::lexical_cast; 
-using boost::bad_lexical_cast;
 
 #include "server.hpp"
 #include "logger.hpp"
@@ -169,19 +168,6 @@ int UDPServerSocket::Init()
     }
 
     return m_sockfd;
-}
-
-CommandManager::CommandManager(Reactor *reactor_)
-    : m_reactor(reactor_), m_factory() {}
-
-void CommandManager::RunCommand(char c_, char *buffer_)
-{
-    (*m_factory.Create(c_))(buffer_);
-}
-
-void CommandManager::AddCommand(char c_, boost::shared_ptr<Command>(*creator_)(void))
-{
-    m_factory.Add((int)c_, creator_);
 }
 
 } //namespace ilrd

@@ -73,20 +73,6 @@ private:
     int m_sockfd;
 };
 
-class CommandManager
-{
-public:
-    CommandManager(Reactor *reactor_);
-
-    void RunCommand(char c_, char *buffer_);
-    void AddCommand(char c_, boost::shared_ptr<Command>(*creator_)(void));
-
-    void operator()(void);
-private:
-    Reactor *m_reactor;
-    Factory<boost::shared_ptr<Command>, char, void, boost::shared_ptr<Command>(*)(void)> m_factory;
-};
-
 class UDPServer
 {
 public:

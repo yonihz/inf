@@ -4,6 +4,8 @@
 #include <string>
 
 #include "reactor.hpp"
+#include "command.hpp"
+#include "event_handler.hpp"
 
 namespace ilrd
 {
@@ -11,7 +13,7 @@ namespace ilrd
 class DirMonitor
 {
 public:
-    DirMonitor(std::string name_, Reactor *reactor_); //non-explicit
+    DirMonitor(std::string name_, CommandManager *cmd_manager, Reactor *reactor_); //non-explicit
     ~DirMonitor();
     
     int Init();

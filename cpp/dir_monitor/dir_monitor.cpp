@@ -11,12 +11,12 @@
 namespace ilrd
 {
 
-DirMonitor::DirMonitor(std::string name_, Reactor *reactor_)
-    : m_name(name_), m_fd(), m_reactor(reactor_) {}
+DirMonitor::DirMonitor(std::string name_, CommandManager *cmd_manager_, Reactor *reactor_)
+    : m_name(name_), m_fd(), m_reactor(reactor_), m_event_handler(cmd_manager_) {}
 
 DirMonitor::~DirMonitor()
 {
-    close(m_fd);
+    // close(m_fd);
 }
 
 int DirMonitor::Init()
@@ -40,17 +40,23 @@ int DirMonitor::Init()
         return -1;
     }
 
+    m_event_handler.SetFD(m_fd);
     return m_fd;
 }
 
-void DirMonitor::AddToReactor(Reactor::ReactorFunction func)
+void DirMonitor::AddToReactor()
 {
-    m_reactor->AddFD(m_fd, Reactor::READ, func);
+    m_reactor->AddFD(m_fd, Reactor::READ, *this);
 }
 
 int DirMonitor::GetFD()
 {
     return m_fd;
+}
+
+void DirMonitor::operator()(void)
+{
+    m_event_handler();
 }
 
 } // namespace ilrd

@@ -4,7 +4,7 @@
 #include <string>
 #include <set>
 
-#include "server.hpp"
+#include "command.hpp"
 
 namespace ilrd
 {

@@ -12,6 +12,7 @@ class LoggerConfigurator
 {
 public:
     LoggerConfigurator();
+    ~LoggerConfigurator();
     
     void operator()(void);
 

@@ -5,6 +5,9 @@
 
 #include <boost/shared_ptr.hpp>
 
+#include "factory.hpp"
+#include "reactor.hpp"
+
 namespace ilrd
 {
 
@@ -22,6 +25,20 @@ public:
     const static size_t SEND_DATA_BYTE = 17;
     const static size_t REPLY_STATUS_BYTE = 9;
     const static size_t REPLY_DATA_BYTE = 10;
+};
+
+class CommandManager
+{
+public:
+    CommandManager(Reactor *reactor_);
+
+    void RunCommand(char c_, char *buffer_);
+    void AddCommand(char c_, boost::shared_ptr<Command>(*creator_)(void));
+
+    void operator()(void);
+private:
+    Reactor *m_reactor;
+    Factory<boost::shared_ptr<Command>, char, void, boost::shared_ptr<Command>(*)(void)> m_factory;
 };
 
 } //namespace ilrd

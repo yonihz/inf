@@ -68,6 +68,4 @@ void EventHandler::SetFD(int fd_)
     m_fd = fd_;
 }
 
-};
-
 } // namespace ilrd

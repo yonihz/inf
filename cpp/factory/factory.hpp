@@ -1,6 +1,7 @@
 #ifndef _ILRD_OL734_FACTORY_HPP_
 #define _ILRD_OL734_FACTORY_HPP_
 
+#include <stdexcept>
 #include <map>
 
 namespace ilrd
