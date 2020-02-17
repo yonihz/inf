@@ -40,7 +40,8 @@ FDListener::FDVector FDListener::Wait(FDListener::FDVector& fds_)
 
     if (0 == status)
     {
-        logger.Log(Logger::DEBUG, "select timeout reached, retrying...\n");
+        // reached timeout
+        // logger.Log(Logger::DEBUG, "select timeout reached, retrying...\n");
     }
 
     if (-1 == status)

@@ -2,6 +2,10 @@
 #include <iostream>
 
 #include "server.hpp"
+#include "dir_monitor.hpp"
+#include "plugin_loader.hpp"
+#include "logger_configurator.hpp"
+#include "event_handler.hpp"
 #include "logger.hpp"
 #include "singleton.hpp"
 
@@ -22,7 +26,8 @@ int main(int argc, char *argv[])
 
     ServerConsole server_console(STDIN_FILENO, &reactor);
 
-    UDPServer udp_server(NULL, atoi(argv[1]), &reactor);
+    CommandManager cmd_manager(&reactor);
+    UDPServer udp_server(NULL, atoi(argv[1]), cmd_manager, &reactor);
     status = udp_server.Init();
 
     if (status == -1)
@@ -31,8 +36,21 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    std::string addons_dir("./add_ons/");
+    DirMonitor dir_monitor(addons_dir, &reactor);
+    status = dir_monitor.Init();
+
+    if (status == -1)
+    {
+        logger.Log(Logger::ERROR, "DirMonitor: failed to init\n");
+        return 0;
+    }
+
+    PluginLoader plugin_loader(dir_monitor.GetFD(), &cmd_manager);
+
     udp_server.AddToReactor();
     server_console.AddToReactor();
+    dir_monitor.AddToReactor(plugin_loader);
 
     reactor.Run();
 

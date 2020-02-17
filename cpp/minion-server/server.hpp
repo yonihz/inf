@@ -14,13 +14,14 @@
 namespace ilrd
 {
 
-class ConsoleCmdManager
+class ConsoleCommandManager
 {
 public:
-    ConsoleCmdManager(Reactor *reactor_);
+    ConsoleCommandManager(Reactor *reactor_);
     void RunCommand(std::string str_);
     void AddCommand(std::string str_, boost::shared_ptr<ConsoleCommand>(*creator_)(void));
 
+    void operator()(const char *name_);
 private:
     Factory<
         boost::shared_ptr<ConsoleCommand>, 
@@ -51,7 +52,7 @@ public:
 
 private:
     const static int MAXDATASIZE = 100;
-    ConsoleCmdManager m_cmd_manager;
+    ConsoleCommandManager m_cmd_manager;
     ConsoleFD m_console_fd;
     Reactor *m_reactor;
 };
@@ -60,6 +61,7 @@ class UDPServerSocket
 {
 public:
     UDPServerSocket(const char *ip_, int port_);
+    ~UDPServerSocket();
 
     int Init();
     int GetFD();
@@ -71,10 +73,10 @@ private:
     int m_sockfd;
 };
 
-class UDPCmdManager
+class CommandManager
 {
 public:
-    UDPCmdManager(Reactor *reactor_);
+    CommandManager(Reactor *reactor_);
 
     void RunCommand(char c_, char *buffer_);
     void AddCommand(char c_, boost::shared_ptr<Command>(*creator_)(void));
@@ -88,8 +90,7 @@ private:
 class UDPServer
 {
 public:
-    UDPServer(const char *ip_, int port_, Reactor *reactor_);
-    ~UDPServer();
+    UDPServer(const char *ip_, int port_, CommandManager &cmd_manager_, Reactor *reactor_);
     
     int Init();
     void AddToReactor();
@@ -102,8 +103,8 @@ private:
     const static size_t BUFFER_SIZE = 4114;
     const static size_t REQUEST_TYPE_BYTE = 0;
     size_t m_reply_len[2];
-    UDPCmdManager m_cmd_manager;
-    UDPServerSocket m_socket;
+    CommandManager &m_cmd_manager;
+    boost::shared_ptr<UDPServerSocket> m_socket;
     Reactor *m_reactor;
 };
 

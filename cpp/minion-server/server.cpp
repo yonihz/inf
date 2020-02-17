@@ -38,6 +38,7 @@ void ServerConsole::AddToReactor()
 
 void ServerConsole::operator()(void)
 {
+    Logger &logger = *(Singleton<Logger>::Instance());
     char str[MAXDATASIZE];
 
     fgets(str, MAXDATASIZE, stdin);
@@ -48,13 +49,13 @@ void ServerConsole::operator()(void)
     }
     catch(const InvalidKey& e)
     {
-        std::cerr << e.what() << '\n';
+        logger.Log(Logger::ERROR, std::string(e.what()) + "\n");
     }
     
     return;
 }
 
-ConsoleCmdManager::ConsoleCmdManager(Reactor *reactor_)
+ConsoleCommandManager::ConsoleCommandManager(Reactor *reactor_)
     : m_reactor(reactor_)
 {
     m_factory.Add("exit\n", CreatorConsoleExitCmd);
@@ -64,12 +65,12 @@ ConsoleCmdManager::ConsoleCmdManager(Reactor *reactor_)
     m_factory.Add("cout\n", CreatorConsoleOutputCoutCmd);
 }
 
-void ConsoleCmdManager::RunCommand(std::string str_)
+void ConsoleCommandManager::RunCommand(std::string str_)
 {
     (*m_factory.Create(str_))(m_reactor);
 }
 
-void ConsoleCmdManager::AddCommand(
+void ConsoleCommandManager::AddCommand(
     std::string key_, 
     boost::shared_ptr<ConsoleCommand>(*creator_)(void))
 {
@@ -84,26 +85,21 @@ int ConsoleFD::GetFD()
     return m_fd;
 }
 
-UDPServer::UDPServer(const char *ip_, int port_, Reactor *reactor_)
-    : m_reply_len(), m_cmd_manager(reactor_), m_socket(ip_, port_), m_reactor(reactor_)
+UDPServer::UDPServer(const char *ip_, int port_, CommandManager &cmd_manager_, Reactor *reactor_)
+    : m_reply_len(), m_cmd_manager(cmd_manager_), m_socket(new UDPServerSocket(ip_, port_)), m_reactor(reactor_)
 {
     m_reply_len[0] = READ_REPLY_LEN;
     m_reply_len[1] = WRITE_REPLY_LEN;    
 }
 
-UDPServer::~UDPServer()
-{
-    m_socket.CloseSocket();
-}
-
 int UDPServer::Init()
 {
-    return m_socket.Init();
+    return m_socket->Init();
 }
 
 void UDPServer::AddToReactor()
 {
-    m_reactor->AddFD(m_socket.GetFD(), Reactor::READ, *this);
+    m_reactor->AddFD(m_socket->GetFD(), Reactor::READ, *this);
 }
 
 void UDPServer::operator()(void)
@@ -114,16 +110,24 @@ void UDPServer::operator()(void)
     struct sockaddr client_addrinfo;
     socklen_t client_addrlen = sizeof(client_addrlen);
 
-    status = recvfrom(m_socket.GetFD(), request_buffer, BUFFER_SIZE, MSG_CONFIRM, &client_addrinfo, &client_addrlen);
+    status = recvfrom(m_socket->GetFD(), request_buffer, BUFFER_SIZE, MSG_CONFIRM, &client_addrinfo, &client_addrlen);
 
     if (-1 == status)
     {
        logger.Log(Logger::ERROR, "recvfrom error: " + std::string(strerror(errno)) + "\n");
     }
 
-    m_cmd_manager.RunCommand(request_buffer[REQUEST_TYPE_BYTE], request_buffer);
+    try
+    {
+        m_cmd_manager.RunCommand(request_buffer[REQUEST_TYPE_BYTE], request_buffer);
+    }
+    catch(const InvalidKey& e)
+    {
+        logger.Log(Logger::ERROR, std::string(e.what()) + "\n");
+        return;
+    }
 
-    status = sendto(m_socket.GetFD(), request_buffer, m_reply_len[(size_t)request_buffer[REQUEST_TYPE_BYTE]], MSG_WAITALL, &client_addrinfo, client_addrlen);
+    status = sendto(m_socket->GetFD(), request_buffer, m_reply_len[(size_t)request_buffer[REQUEST_TYPE_BYTE]], MSG_WAITALL, &client_addrinfo, client_addrlen);
 
     if (-1 == status)
     {
@@ -131,9 +135,13 @@ void UDPServer::operator()(void)
     }
 }
 
-
 UDPServerSocket::UDPServerSocket(const char *ip_, int port_)
     : m_ip(ip_), m_port(port_) {}
+
+UDPServerSocket::~UDPServerSocket()
+{
+    CloseSocket();
+}
 
 void UDPServerSocket::CloseSocket()
 {
@@ -163,64 +171,15 @@ int UDPServerSocket::Init()
     return m_sockfd;
 }
 
-UDPCmdManager::UDPCmdManager(Reactor *reactor_)
-    : m_reactor(reactor_), m_factory()
-{
-    void *handle_read_request_cmd;
-    boost::shared_ptr<Command> (*CreatorReadRequestCmd)();
-    char (*GetKeyReadRequestCmd)(void);
+CommandManager::CommandManager(Reactor *reactor_)
+    : m_reactor(reactor_), m_factory() {}
 
-    void *handle_write_request_cmd;
-    boost::shared_ptr<Command> (*CreatorWriteRequestCmd)();
-    char (*GetKeyWriteRequestCmd)(void);
-    char *error;
-
-    handle_read_request_cmd = dlopen ("./libcommand_read_request.so", RTLD_LAZY);
-    if (!handle_read_request_cmd) {
-        fputs (dlerror(), stderr);
-        return;
-    }
-
-    CreatorReadRequestCmd = (boost::shared_ptr<Command>(*)()) dlsym(handle_read_request_cmd, "Creator");
-    if ((error = dlerror()) != NULL)  {
-        fputs(error, stderr);
-        return;
-    }
-
-    GetKeyReadRequestCmd = (char(*)(void)) dlsym(handle_read_request_cmd, "GetKey");
-    if ((error = dlerror()) != NULL)  {
-        fputs(error, stderr);
-        return;
-    }
-
-    handle_write_request_cmd = dlopen ("./libcommand_write_request.so", RTLD_LAZY);
-    if (!handle_write_request_cmd) {
-        fputs (dlerror(), stderr);
-        return;
-    }
-
-    CreatorWriteRequestCmd = (boost::shared_ptr<Command>(*)()) dlsym(handle_write_request_cmd, "Creator");
-    if ((error = dlerror()) != NULL)  {
-        fputs(error, stderr);
-        return;
-    }
-
-    GetKeyWriteRequestCmd = (char(*)(void)) dlsym(handle_write_request_cmd, "GetKey");
-    if ((error = dlerror()) != NULL)  {
-        fputs(error, stderr);
-        return;
-    }
-
-    m_factory.Add((int)(*GetKeyReadRequestCmd)(), CreatorReadRequestCmd);
-    m_factory.Add((int)(*GetKeyWriteRequestCmd)(), CreatorWriteRequestCmd);   
-}
-
-void UDPCmdManager::RunCommand(char c_, char *buffer_)
+void CommandManager::RunCommand(char c_, char *buffer_)
 {
     (*m_factory.Create(c_))(buffer_);
 }
 
-void UDPCmdManager::AddCommand(char c_, boost::shared_ptr<Command>(*creator_)(void))
+void CommandManager::AddCommand(char c_, boost::shared_ptr<Command>(*creator_)(void))
 {
     m_factory.Add((int)c_, creator_);
 }
