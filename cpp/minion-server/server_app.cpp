@@ -11,6 +11,8 @@ using boost::lexical_cast;
 #include "event_handler.hpp"
 #include "logger.hpp"
 #include "singleton.hpp"
+#include "dispatcher.hpp"
+#include "server_callbacks.hpp"
 
 using namespace ilrd;
 
@@ -23,10 +25,15 @@ int main(int argc, char *argv[])
     }
 
     Reactor reactor;
+    
+    CommandManager cmd_manager(&reactor);
 
     ServerConsole server_console(STDIN_FILENO, &reactor);
+    
+    Dispatcher<std::string> dispatcher();
+    PluginLoader plugin_loader(&cmd_manager);
+    LoggerConfigurator logger_configurator();
 
-    CommandManager cmd_manager(&reactor);
     UDPServer udp_server(NULL, atoi(argv[1]), cmd_manager, &reactor);
     udp_server.Init();
 

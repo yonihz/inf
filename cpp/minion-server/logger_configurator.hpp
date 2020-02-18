@@ -16,6 +16,7 @@ public:
     
     void operator()(void);
 
+    void OnDispatcherDeath();
 private:
     boost::shared_ptr<std::ofstream> m_ofs;    
 };

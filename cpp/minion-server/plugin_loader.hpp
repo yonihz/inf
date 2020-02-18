@@ -15,6 +15,8 @@ public:
     PluginLoader(CommandManager *cmd_manager_);
     
     void operator()(std::string &name);
+    
+    void OnDispatcherDeath();
 
 private:
     CommandManager *m_cmd_manager;

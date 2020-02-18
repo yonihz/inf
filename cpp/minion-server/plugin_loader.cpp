@@ -61,4 +61,10 @@ void PluginLoader::operator()(std::string &name)
     m_cmd_manager->AddCommand((int)(*GetKey)(), Creator);
 }
 
+void PluginLoader::OnDispatcherDeath(void)
+{
+    Logger &logger = *(Singleton<Logger>::Instance());
+    logger.Log(Logger::DEBUG, "PluginLoader: dispatcher died\n");
+}
+
 } // namespace ilrd

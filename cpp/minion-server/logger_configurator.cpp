@@ -31,5 +31,11 @@ void LoggerConfigurator::operator()(void)
     logger.SetOutput(*m_ofs);   
 }
 
+void LoggerConfigurator::OnDispatcherDeath(void)
+{
+    Logger &logger = *(Singleton<Logger>::Instance());
+    logger.Log(Logger::DEBUG, "LoggerConfigurator: dispatcher died\n");
+}
+
 
 } // namespace ilrd
