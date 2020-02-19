@@ -14,7 +14,7 @@ class PluginLoader
 public:
     PluginLoader(CommandManager *cmd_manager_);
     
-    void operator()(std::string &name);
+    void operator()(std::string name);
     
     void OnDispatcherDeath();
 

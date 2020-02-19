@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <sys/types.h>
-#include <sys/inotify.h>
+
+#include "boost/lexical_cast.hpp" 
+using boost::lexical_cast;
 
 #include "dir_monitor.hpp"
 #include "logger.hpp"
@@ -11,8 +13,8 @@
 namespace ilrd
 {
 
-DirMonitor::DirMonitor(std::string name_, CommandManager *cmd_manager_, Reactor *reactor_)
-    : m_name(name_), m_fd(), m_reactor(reactor_), m_event_handler(cmd_manager_) {}
+DirMonitor::DirMonitor(std::string name_, Reactor *reactor_, Dispatcher<std::string> *dispatcher_)
+    : m_name(name_), m_fd(), m_reactor(reactor_), m_dispatcher(dispatcher_) {}
 
 DirMonitor::~DirMonitor()
 {
@@ -40,7 +42,6 @@ int DirMonitor::Init()
         return -1;
     }
 
-    m_event_handler.SetFD(m_fd);
     return m_fd;
 }
 
@@ -49,14 +50,50 @@ void DirMonitor::AddToReactor()
     m_reactor->AddFD(m_fd, Reactor::READ, *this);
 }
 
-int DirMonitor::GetFD()
-{
-    return m_fd;
-}
-
 void DirMonitor::operator()(void)
 {
-    m_event_handler();
+    Logger &logger = *(Singleton<Logger>::Instance());
+    char buff[BUFF_LEN];
+    int len;
+
+    len = read(m_fd, buff, BUFF_LEN);
+
+    if ((-1 == len) && (errno != EAGAIN)) 
+    {
+        logger.Log(Logger::ERROR, "read: " + std::string(strerror(errno)) + "\n");
+        return;
+    }
+    else if (0 == len)
+    {
+        logger.Log(Logger::ERROR, "read: len = 0 (buffer might be too small)\n");
+        return;
+    }
+
+    int i = 0;
+    while (i < len) 
+    {
+        struct inotify_event *event;
+
+        event = (struct inotify_event *)&buff[i];
+
+        // logger.Log(Logger::DEBUG, 
+        //     "event: wd = " + lexical_cast<std::string>(event->wd) +
+        //     " mask = " + lexical_cast<std::string>(event->mask) + 
+        //     " cookie = " + lexical_cast<std::string>(event->cookie) +
+        //     " len = " + lexical_cast<std::string>(event->len) + "\n");
+
+        if (0 != event->len)
+        {
+            std::string name = lexical_cast<std::string>((char*)event->name);
+            logger.Log(Logger::DEBUG, 
+                "event: name = " + name + "\n");
+            
+            sleep(1);
+            m_dispatcher->NotifyAll(name);
+        }
+
+        i += EVENT_SIZE + event->len;
+    }
 }
 
 } // namespace ilrd

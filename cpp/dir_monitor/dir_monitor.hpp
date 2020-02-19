@@ -2,10 +2,11 @@
 #define _ILRD_RD734_DIRMONITOR_HPP_
 
 #include <string>
+#include <sys/inotify.h>
 
 #include "reactor.hpp"
 #include "command.hpp"
-#include "event_handler.hpp"
+#include "dispatcher.hpp"
 
 namespace ilrd
 {
@@ -13,20 +14,21 @@ namespace ilrd
 class DirMonitor
 {
 public:
-    DirMonitor(std::string name_, CommandManager *cmd_manager, Reactor *reactor_); //non-explicit
+    DirMonitor(std::string name_, Reactor *reactor_, Dispatcher<std::string> *dispatcher_); //non-explicit
     ~DirMonitor();
     
     int Init();
     void AddToReactor();
-    int GetFD();
 
     void operator()(void);
 
 private:
+    static const size_t EVENT_SIZE = (sizeof (struct inotify_event));
+    static const size_t BUFF_LEN = (1024 * (EVENT_SIZE + 16));
     std::string m_name;
     int m_fd;
     Reactor *m_reactor;
-    EventHandler m_event_handler;
+    Dispatcher<std::string> *m_dispatcher;
 };
 
 } // namespace ilrd

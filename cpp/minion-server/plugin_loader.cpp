@@ -13,7 +13,7 @@ namespace ilrd
 PluginLoader::PluginLoader(CommandManager *cmd_manager_)
     : m_cmd_manager(cmd_manager_), m_shared_objs() {}
 
-void PluginLoader::operator()(std::string &name)
+void PluginLoader::operator()(std::string name)
 {
     Logger &logger = *(Singleton<Logger>::Instance());
 
@@ -28,7 +28,12 @@ void PluginLoader::operator()(std::string &name)
     //     m_shared_objs.insert(name);
     //     LoadLib(name);
     // }
-    
+
+    if (name == "logger.ini")
+    {
+        return;
+    }
+
     void *handle;
     char *error;
     boost::shared_ptr<Command> (*Creator)();

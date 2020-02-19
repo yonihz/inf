@@ -22,29 +22,8 @@ private:
     factory_map_t m_map;
 };
 
-//  specialization for Data = void
-template <typename Obj_Handle, typename Key, typename Create_Func>
-class Factory <Obj_Handle, Key, void, Create_Func>
-{
-
-public:
-    void Add(const Key key_, Create_Func creator_);  
-    Obj_Handle Create(Key key_) const;
-
-private:
-    typedef std::map<Key, Create_Func> factory_map_t;
-    factory_map_t m_map;
-};
-
 template <typename Obj_Handle, typename Key, typename Data, typename Create_Func>
 void Factory<Obj_Handle, Key, Data, Create_Func>::Add(const Key key_, Create_Func creator_)
-{
-    m_map[key_] = creator_;
-}
-
-//  specialization for Data = void
-template <typename Obj_Handle, typename Key, typename Create_Func>
-void Factory<Obj_Handle, Key, void, Create_Func>::Add(const Key key_, Create_Func creator_)
 {
     m_map[key_] = creator_;
 }
@@ -61,7 +40,29 @@ Obj_Handle Factory<Obj_Handle, Key, Data, Create_Func>::Create(Key key_, Data da
     return iter->second(data_);
 }
 
-//  specialization for Data = void
+/******************************************************************************/
+/****** specialization for Data = void ****************************************/
+/******************************************************************************/
+
+template <typename Obj_Handle, typename Key, typename Create_Func>
+class Factory <Obj_Handle, Key, void, Create_Func>
+{
+
+public:
+    void Add(const Key key_, Create_Func creator_);  
+    Obj_Handle Create(Key key_) const;
+
+private:
+    typedef std::map<Key, Create_Func> factory_map_t;
+    factory_map_t m_map;
+};
+
+template <typename Obj_Handle, typename Key, typename Create_Func>
+void Factory<Obj_Handle, Key, void, Create_Func>::Add(const Key key_, Create_Func creator_)
+{
+    m_map[key_] = creator_;
+}
+
 template <typename Obj_Handle, typename Key, typename Create_Func>
 Obj_Handle Factory<Obj_Handle, Key, void, Create_Func>::Create(Key key_) const
 {
@@ -73,6 +74,10 @@ Obj_Handle Factory<Obj_Handle, Key, void, Create_Func>::Create(Key key_) const
 
     return iter->second();
 }
+
+/******************************************************************************/
+/****** InvalidKey ************************************************************/
+/******************************************************************************/
 
 class InvalidKey : public std::runtime_error
 {

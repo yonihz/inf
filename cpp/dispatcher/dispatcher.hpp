@@ -5,6 +5,8 @@
 #include <list>                  // list
 #include <algorithm>
 
+#include <boost/core/noncopyable.hpp>
+
 namespace ilrd
 {
 
@@ -12,19 +14,16 @@ template<typename Event>
 class CallbackBase;
 
 template<typename Event>
-class Dispatcher
+class Dispatcher : private boost::noncopyable
 {
 public:
 
-    ~Dispatcher(); // implement stop within
+    ~Dispatcher();
     void Subscribe(CallbackBase<Event>* callbackBase_);
     void UnSubscribe(CallbackBase<Event>* callbackBase_);
     void NotifyAll(Event event_);
 
 private:
-    Dispatcher(const Dispatcher& other_); // not implemented
-    const Dispatcher& operator=(const Dispatcher& other_); // not implemented
-
     std::list<CallbackBase<Event>* > m_subscribers;
 
     class NotifySubscriber;
@@ -32,10 +31,9 @@ private:
 };
 
 template<typename Event>
-class CallbackBase
+class CallbackBase : private boost::noncopyable
 {
 public:
-
     CallbackBase();
     virtual ~CallbackBase(); 
     virtual void Notify(Event event_) =0;
@@ -45,10 +43,8 @@ public:
 
 private:
     friend class Dispatcher<Event>;
-    CallbackBase(const CallbackBase& other_); // not implemented
-    const CallbackBase& operator=(const CallbackBase& other_); // not implemented
 
-    Dispatcher<Event>* m_dispatcher;    
+    Dispatcher<Event>* m_dispatcher;
 };
 
 
@@ -63,13 +59,14 @@ public:
     void NotifyDeath();
 
 private:
-    Callback(const Callback& other_); // not implemented
-    const Callback& operator=(const Callback& other_); // not implemented
-
     Type& m_instance;
     void (Type::*m_notify)(Event);
     void (Type::*m_notifyDeath)();
 };
+
+/******************************************************************************/
+/****** Dispatcher ************************************************************/
+/******************************************************************************/
 
 template<typename Event>
 Dispatcher<Event>::~Dispatcher()
@@ -88,7 +85,7 @@ void Dispatcher<Event>::Subscribe(CallbackBase<Event>* callbackBase_)
 template<typename Event>
 void Dispatcher<Event>::UnSubscribe(CallbackBase<Event>* callbackBase_)
 {
-    m_subscribers.erase(callbackBase_);
+    m_subscribers.remove(callbackBase_);
 }
 
 template<typename Event>
@@ -99,32 +96,15 @@ void Dispatcher<Event>::NotifyAll(Event event_)
 }
 
 template<typename Event>
-CallbackBase<Event>::~CallbackBase()
-{
-    Stop();
-}
-
-template<typename Event>
-void CallbackBase<Event>::Stop()
-{
-    m_dispatcher->UnSubscribe(this);
-    m_dispatcher = NULL;
-}
-
-template<typename Type, typename Event>
-Callback<Type, Event>::Callback(Type& instance_, void (Type::*notify_)(Event), void (Type::*notifyDeath_)())
-    : m_instance(instance_), m_notify(notify_), m_notifyDeath(notifyDeath_) {}
-
-template<typename Event>
 class Dispatcher<Event>::NotifySubscriber
 {
 public:
     NotifySubscriber(Event event_)
         : m_event(event_) {}
 
-    void operator()(Subscriber &s)
+    void operator()(CallbackBase<Event> *c)
     {
-        s.Notify(m_event);
+        c->Notify(m_event);
     }
 private:
     Event m_event;
@@ -134,10 +114,55 @@ template<typename Event>
 class Dispatcher<Event>::NotifyDeathSubscriber
 {
 public:
-    void operator()(Subscriber &s)
+    void operator()(CallbackBase<Event> *c)
     {
-        s.NotifyDeath();
+        c->NotifyDeath();
     }
 };
 
+/******************************************************************************/
+/****** CallbackBase **********************************************************/
+/******************************************************************************/
+
+template<typename Event>
+CallbackBase<Event>::CallbackBase()
+    : m_dispatcher(NULL) {}
+
+template<typename Event>
+CallbackBase<Event>::~CallbackBase()
+{
+    Stop();
+}
+
+template<typename Event>
+void CallbackBase<Event>::Stop()
+{
+    if (m_dispatcher != NULL)
+    {
+        m_dispatcher->UnSubscribe(this);
+        m_dispatcher = NULL;
+    }
+}
+
+/******************************************************************************/
+/****** Callback **************************************************************/
+/******************************************************************************/
+
+template<typename Type, typename Event>
+Callback<Type, Event>::Callback(Type& instance_, void (Type::*notify_)(Event), void (Type::*notifyDeath_)())
+    : m_instance(instance_), m_notify(notify_), m_notifyDeath(notifyDeath_) {}
+
+template<typename Type, typename Event>
+void Callback<Type, Event>::Notify(Event event_)
+{
+    (m_instance.*m_notify)(event_);
+}
+
+template<typename Type, typename Event>
+void Callback<Type, Event>::NotifyDeath()
+{
+    (m_instance.*m_notifyDeath)();
+}
+
+}
 #endif // _ILRD_OL734_DISPATCHER_HPP_

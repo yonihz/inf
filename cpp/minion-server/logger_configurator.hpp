@@ -14,7 +14,7 @@ public:
     LoggerConfigurator();
     ~LoggerConfigurator();
     
-    void operator()(void);
+    void operator()(std::string name);
 
     void OnDispatcherDeath();
 private:

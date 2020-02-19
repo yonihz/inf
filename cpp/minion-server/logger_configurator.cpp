@@ -16,8 +16,13 @@ LoggerConfigurator::~LoggerConfigurator()
     // m_ofs->close();
 }
     
-void LoggerConfigurator::operator()(void)
+void LoggerConfigurator::operator()(std::string name)
 {
+    if (name != "logger.ini")
+    {
+        return;
+    }
+    
     std::ifstream configuration_file("./add_ons/logger.ini");
     std::string output_filename;
     std::getline(configuration_file, output_filename);
