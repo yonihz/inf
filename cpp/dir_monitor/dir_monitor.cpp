@@ -88,7 +88,7 @@ void DirMonitor::operator()(void)
             logger.Log(Logger::DEBUG, 
                 "event: name = " + name + "\n");
             
-            sleep(1);
+            sync();
             m_dispatcher->NotifyAll(name);
         }
 
