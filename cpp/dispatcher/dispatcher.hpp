@@ -71,8 +71,7 @@ private:
 template<typename Event>
 Dispatcher<Event>::~Dispatcher()
 {
-    NotifyDeathSubscriber notify_death_subscriber;
-    std::for_each(m_subscribers.begin(), m_subscribers.end(), notify_death_subscriber);  
+    std::for_each(m_subscribers.begin(), m_subscribers.end(), NotifyDeathSubscriber());  
 }
 
 template<typename Event>
@@ -85,14 +84,14 @@ void Dispatcher<Event>::Subscribe(CallbackBase<Event>* callbackBase_)
 template<typename Event>
 void Dispatcher<Event>::UnSubscribe(CallbackBase<Event>* callbackBase_)
 {
+    callbackBase_->m_dispatcher = reinterpret_cast<Dispatcher<Event> *>(0);
     m_subscribers.remove(callbackBase_);
 }
 
 template<typename Event>
 void Dispatcher<Event>::NotifyAll(Event event_)
 {
-    NotifySubscriber notify_subscriber(event_);
-    std::for_each(m_subscribers.begin(), m_subscribers.end(), notify_subscriber);
+    std::for_each(m_subscribers.begin(), m_subscribers.end(), NotifySubscriber(event_));
 }
 
 template<typename Event>
@@ -126,7 +125,7 @@ public:
 
 template<typename Event>
 CallbackBase<Event>::CallbackBase()
-    : m_dispatcher(NULL) {}
+    : m_dispatcher(reinterpret_cast<Dispatcher<Event> *>(0)) {}
 
 template<typename Event>
 CallbackBase<Event>::~CallbackBase()
@@ -137,10 +136,9 @@ CallbackBase<Event>::~CallbackBase()
 template<typename Event>
 void CallbackBase<Event>::Stop()
 {
-    if (m_dispatcher != NULL)
+    if (m_dispatcher != reinterpret_cast<Dispatcher<Event> *>(0))
     {
         m_dispatcher->UnSubscribe(this);
-        m_dispatcher = NULL;
     }
 }
 
