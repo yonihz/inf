@@ -13,7 +13,8 @@ LoggerConfigurator::LoggerConfigurator()
 
 LoggerConfigurator::~LoggerConfigurator()
 {
-    // m_ofs->close();
+    Logger &logger = *(Singleton<Logger>::Instance());
+    logger.SetOutput(std::cerr);
 }
     
 void LoggerConfigurator::operator()(std::string name)
@@ -38,8 +39,6 @@ void LoggerConfigurator::operator()(std::string name)
 
 void LoggerConfigurator::OnDispatcherDeath(void)
 {
-    Logger &logger = *(Singleton<Logger>::Instance());
-    logger.Log(Logger::DEBUG, "LoggerConfigurator: dispatcher died\n");
 }
 
 

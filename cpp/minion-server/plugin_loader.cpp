@@ -17,22 +17,13 @@ void PluginLoader::operator()(std::string name)
 {
     Logger &logger = *(Singleton<Logger>::Instance());
 
-    // if (m_shared_objs.find(name) != m_shared_objs.end())
-    // {
-    //     logger.Log(Logger::ERROR, 
-    //         "plugin error: already exists: " + 
-    //         lexical_cast<std::string>(event->wd) + "\n");
-    // }
-    // else
-    // {
-    //     m_shared_objs.insert(name);
-    //     LoadLib(name);
-    // }
-
     if (name == "logger.ini")
     {
         return;
     }
+
+    //TODO: check if name already exists
+    //TODO: check name ends with .so
 
     void *handle;
     char *error;
@@ -68,8 +59,6 @@ void PluginLoader::operator()(std::string name)
 
 void PluginLoader::OnDispatcherDeath(void)
 {
-    Logger &logger = *(Singleton<Logger>::Instance());
-    logger.Log(Logger::DEBUG, "PluginLoader: dispatcher died\n");
 }
 
 } // namespace ilrd

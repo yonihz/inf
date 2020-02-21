@@ -116,6 +116,7 @@ public:
     void operator()(CallbackBase<Event> *c)
     {
         c->NotifyDeath();
+        c->m_dispatcher = reinterpret_cast<Dispatcher<Event> *>(0);
     }
 };
 

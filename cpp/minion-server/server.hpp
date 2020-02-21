@@ -94,56 +94,72 @@ private:
     Reactor *m_reactor;
 };
 
+class TCPServerSocket
+{
+public:
+    TCPServerSocket(const char *ip_, int port_);
+    ~TCPServerSocket();
+
+    int Init();
+    int GetFD();
+    void CloseSocket();
+
+
+private:
+    int CreateSocket();
+    int Listen();
+    const static int BACKLOG = 10;
+    const char *m_ip;
+    int m_port;
+    int m_sockfd;
+};
+
+class TCPServer
+{
+public:
+    TCPServer(const char *ip_, int port_, CommandManager &cmd_manager_, Reactor *reactor_);
+    
+    int Init();
+    void AddToReactor();
+
+    void operator()(void);
+    
+private:
+    const static int MAXDATASIZE = 100;
+    CommandManager &m_cmd_manager;
+    boost::shared_ptr<TCPServerSocket> m_socket;
+    Reactor *m_reactor;
+};
+
+class TCPConnectionSocket
+{
+public:
+    TCPConnectionSocket(int sockfd_);
+    ~TCPConnectionSocket();
+
+    int GetFD();
+    void CloseSocket();
+
+private:
+    int m_sockfd;
+};
+
+class TCPConnection
+{
+public:
+    TCPConnection(int sockfd_, CommandManager cmd_manager_, Reactor *reactor_);
+
+    void AddToReactor();
+
+    void operator()(void);
+    
+private:
+    const static int MAXDATASIZE = 100;
+    boost::shared_ptr<TCPConnectionSocket> m_socket;
+    CommandManager &m_cmd_manager;
+    Reactor *m_reactor;
+};
+
 } //namespace ilrd
 
 #endif // ILRD_RD734_SERVER_HPP
-
-// class TCPServer
-// {
-// public:
-//     TCPServer(const char *ip, int port_, Reactor *reactor_);
-
-//     int Init();
-//     void AddToReactor();
-
-//     void operator()(void);
-// private:
-//     const static int MAXDATASIZE = 100;
-//     TCPCmdManager m_cmd_manager;
-//     TCPServerSocket m_socket;
-//     Reactor *m_reactor;
-// };
-
-// class TCPServerSocket
-// {
-// public:
-//     TCPServerSocket(const char *ip_, int port_);
-
-//     int Init();
-//     int GetSocket();
-//     void CloseSocket();
-//     void CloseAllConnections();
-//     void CloseConnection(int sockfd);
-
-// private:
-//     int Listen();
-//     int CreateSocket();
-//     const static int BACKLOG = 10;
-//     const char *m_ip
-//     int m_port;
-//     int m_sockfd;
-//     boost::shared_ptr< std::set<int> > m_connections;
-// };
-
-// class TCPCmdManager
-// {
-// public:
-//     TCPCmdManager(Reactor *reactor_);
-
-//     void operator()(void);
-
-// private:
-//     int m_sockfd;
-//     Reactor *m_reactor;
-//     TCPServerSocket *m_tcp_server_socket;
-// };

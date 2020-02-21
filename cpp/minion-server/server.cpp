@@ -27,6 +27,10 @@ using boost::lexical_cast;
 namespace ilrd
 {
 
+/******************************************************************************/
+/**** ServerConsole ***********************************************************/
+/******************************************************************************/
+
 ServerConsole::ServerConsole(int fd_, Reactor *reactor_)
     : m_cmd_manager(reactor_), m_console_fd(fd_), m_reactor(reactor_) {}
 
@@ -54,6 +58,10 @@ void ServerConsole::operator()(void)
     return;
 }
 
+/******************************************************************************/
+/**** ConsoleCommandManager ***************************************************/
+/******************************************************************************/
+
 ConsoleCommandManager::ConsoleCommandManager(Reactor *reactor_)
     : m_reactor(reactor_)
 {
@@ -76,6 +84,10 @@ void ConsoleCommandManager::AddCommand(
     m_factory.Add(key_, creator_);
 }
 
+/******************************************************************************/
+/**** ConsoleFD ***************************************************************/
+/******************************************************************************/
+
 ConsoleFD::ConsoleFD(int fd_)
     : m_fd(fd_) {}
 
@@ -83,6 +95,10 @@ int ConsoleFD::GetFD()
 {
     return m_fd;
 }
+
+/******************************************************************************/
+/**** UDPServer ***************************************************************/
+/******************************************************************************/
 
 UDPServer::UDPServer(const char *ip_, int port_, CommandManager &cmd_manager_, Reactor *reactor_)
     : m_reply_len(), m_cmd_manager(cmd_manager_), m_socket(new UDPServerSocket(ip_, port_)), m_reactor(reactor_)
@@ -134,6 +150,10 @@ void UDPServer::operator()(void)
     }
 }
 
+/******************************************************************************/
+/**** UDPServerSocket *********************************************************/
+/******************************************************************************/
+
 UDPServerSocket::UDPServerSocket(const char *ip_, int port_)
     : m_ip(ip_), m_port(port_) {}
 
@@ -170,138 +190,175 @@ int UDPServerSocket::Init()
     return m_sockfd;
 }
 
+/******************************************************************************/
+/**** TCPServer ***************************************************************/
+/******************************************************************************/
+
+TCPServer::TCPServer(const char *ip_, int port_, CommandManager &cmd_manager_, Reactor *reactor_)
+    : m_cmd_manager(cmd_manager_), 
+    m_socket(new TCPServerSocket(ip_, port_)), 
+    m_reactor(reactor_) {}
+
+int TCPServer::Init()
+{
+    return m_socket->Init();
+}
+
+void TCPServer::operator()(void)
+{
+    Logger &logger = *(Singleton<Logger>::Instance());
+    int new_sockfd;
+    struct sockaddr_storage client_ai;
+    socklen_t client_addrlen;
+    client_addrlen = sizeof(client_addrlen);
+
+    new_sockfd = accept(m_socket->GetFD(), (struct sockaddr *)&client_ai, &client_addrlen);
+
+    if (new_sockfd == -1)
+    {
+        logger.Log(Logger::ERROR, "accept: " + std::string(strerror(errno)) + "\n");
+        return;
+    }
+
+    TCPConnection tcp_connection(new_sockfd, this->m_cmd_manager, this->m_reactor);
+    tcp_connection.AddToReactor();
+}
+
+void TCPServer::AddToReactor()
+{
+    m_reactor->AddFD(m_socket->GetFD(), Reactor::READ, *this);
+}
+
+/******************************************************************************/
+/**** TCPServerSocket *********************************************************/
+/******************************************************************************/
+
+TCPServerSocket::TCPServerSocket(const char *ip_, int port_)
+    : m_ip(ip_), m_port(port_) {}
+
+TCPServerSocket::~TCPServerSocket()
+{
+    CloseSocket();
+}
+
+int TCPServerSocket::Init()
+{
+    Logger &logger = *(Singleton<Logger>::Instance());
+
+    int status;
+    status = CreateSocket();
+
+    if (status == -1)
+    {
+        logger.Log(Logger::ERROR, "TCP server: failed to bind\n");
+        return -1;
+    } 
+
+    status = Listen();
+
+    if (status == -1)
+    {
+        logger.Log(Logger::ERROR, "TCP server listen error\n");
+        return -1;
+    }
+
+    logger.Log(Logger::INFO, "TCP server: waiting for connections...\n");
+    return 0;
+}
+
+int TCPServerSocket::GetFD()
+{
+    return m_sockfd;
+}
+
+void TCPServerSocket::CloseSocket()
+{
+    close(m_sockfd);
+}
+
+int TCPServerSocket::CreateSocket()
+{
+    struct addrinfo *server_ai;
+    InitAddrinfo(NULL, m_port, AF_UNSPEC, SOCK_STREAM, AI_PASSIVE, &server_ai);
+    m_sockfd = TCPServerBindSocket(server_ai);
+    return m_sockfd;
+}
+
+int TCPServerSocket::Listen()
+{
+    return listen(m_sockfd, BACKLOG);
+}
+
+/******************************************************************************/
+/**** TCPConnection ***********************************************************/
+/******************************************************************************/
+
+TCPConnection::TCPConnection(int sockfd_, CommandManager cmd_manager_, Reactor *reactor_)
+    : m_socket(new TCPConnectionSocket(sockfd_)), 
+    m_cmd_manager(cmd_manager_),
+    m_reactor(reactor_) {}
+
+void TCPConnection::AddToReactor()
+{
+    m_reactor->AddFD(m_socket->GetFD(), Reactor::READ, *this);
+}
+
+void TCPConnection::operator()(void)
+{
+    Logger &logger = *(Singleton<Logger>::Instance());
+    char buff[MAXDATASIZE];
+    ssize_t nbytes_sent, nbytes_rcvd;
+    const char *pong_msg = "Pong";
+    size_t len_pong_msg = strlen(pong_msg);
+
+    nbytes_rcvd = recv(m_socket->GetFD(), buff, MAXDATASIZE, 0);
+    if (nbytes_rcvd == 0)
+    {
+        logger.Log(Logger::DEBUG, "Closing TCP connection\n");
+        m_reactor->RemoveFD(m_socket->GetFD(), Reactor::READ);
+        return;
+    }
+
+    if (nbytes_rcvd == -1)
+    {
+        logger.Log(Logger::ERROR, "TCP server recv error: " + std::string(strerror(errno)) + "\n");
+    }
+
+    buff[nbytes_rcvd] = '\0';
+
+    logger.Log(Logger::DEBUG, "TCP server: received: " + std::string(buff) + "\n");
+
+    if (strcmp(buff, "Ping") == 0)
+    {
+        nbytes_sent = send(m_socket->GetFD(), pong_msg, len_pong_msg, 0);
+
+        if (nbytes_sent == -1)
+        {
+            logger.Log(Logger::ERROR, "TCP server send error\n");
+        }
+    }
+}
+
+/******************************************************************************/
+/**** TCPConnectionSocket *****************************************************/
+/******************************************************************************/
+
+TCPConnectionSocket::TCPConnectionSocket(int sockfd_)
+    : m_sockfd(sockfd_) {}
+
+TCPConnectionSocket::~TCPConnectionSocket()
+{
+    CloseSocket();
+}
+
+int TCPConnectionSocket::GetFD()
+{
+    return m_sockfd;
+}
+
+void TCPConnectionSocket::CloseSocket()
+{
+    close(m_sockfd);
+}
+
 } //namespace ilrd
-
-// TCPServer::TCPServer(const char *ip_, int port_, Reactor *reactor_)
-//     : m_cmd_manager(reactor_), m_socket(ip_, port_), m_reactor(reactor_) {}
-
-// TCPListener::TCPListener(int port_, Reactor *reactor_)
-//     : m_port(port_), m_sockfd() , m_connections(new std::set<int>), m_reactor(reactor_) {}
-
-// void TCPListener::CloseSocket()
-// {
-//     close(m_sockfd);
-// }
-
-// void TCPListener::CloseAllConnections()
-// {
-//     std::set<int>::iterator it;
-//     std::set<int>::iterator it_end = m_connections->end();
-//     for (it = m_connections->begin(); it != it_end; ++it)
-//     {
-//         close(*it);
-//     }
-// }
-
-// void TCPListener::CloseConnection(int sockfd)
-// {
-//     m_connections->erase(sockfd);
-//     close(sockfd);
-// }
-
-// int TCPListener::CreateSocket()
-// {
-//     struct addrinfo *server_ai;
-//     InitAddrinfo(NULL, m_port, AF_UNSPEC, SOCK_STREAM, AI_PASSIVE, &server_ai);
-//     m_sockfd = TCPServerBindSocket(server_ai);
-//     return m_sockfd;
-// }
-
-// int TCPListener::GetSocket()
-// {
-//     return m_sockfd;
-// }
-
-// int TCPListener::Listen()
-// {
-//     return listen(m_sockfd, BACKLOG);
-// }
-
-// int TCPListener::Init()
-// {
-//     Logger &logger = *(Singleton<Logger>::Instance());
-
-//     int status;
-//     status = CreateSocket();
-
-//     if (status == -1)
-//     {
-//         logger.Log(Logger::ERROR, "TCP server: failed to bind\n");
-//         return -1;
-//     } 
-
-//     status = Listen();
-
-//     if (status == -1)
-//     {
-//         logger.Log(Logger::ERROR, "TCP server listen error\n");
-//         return -1;
-//     }
-
-//     logger.Log(Logger::INFO, "TCP server: waiting for connections...\n");
-//     return 0;
-// }
-
-// void TCPListener::operator()(void)
-// {
-//     Logger &logger = *(Singleton<Logger>::Instance());
-//     int new_sockfd;
-//     struct sockaddr_storage client_ai;
-//     socklen_t client_addrlen;
-//     client_addrlen = sizeof(client_addrlen);
-
-//     new_sockfd = accept(m_sockfd, (struct sockaddr *)&client_ai, &client_addrlen);
-
-//     if (new_sockfd == -1)
-//     {
-//         logger.Log(Logger::ERROR, "accept: " + std::string(strerror(errno)) + "\n");
-//         return;
-//     }
-
-//     m_connections->insert(new_sockfd);
-
-//     m_reactor->AddFD(
-//         new_sockfd,
-//         Reactor::READ,
-//         TCPRequestMgr(new_sockfd, m_reactor, this));
-// }
-
-// TCPRequestMgr::TCPRequestMgr(int sockfd_, Reactor *reactor_, TCPListener *tcp_listener_)
-//     : m_sockfd(sockfd_), m_reactor(reactor_), m_tcp_listener(tcp_listener_) {}
-
-// void TCPRequestMgr::operator()(void)
-// {
-//     Logger &logger = *(Singleton<Logger>::Instance());
-//     char buff[MAXDATASIZE];
-//     ssize_t nbytes_sent, nbytes_rcvd;
-//     const char *pong_msg = "Pong";
-//     size_t len_pong_msg = strlen(pong_msg);
-
-//     nbytes_rcvd = recv(m_sockfd, buff, MAXDATASIZE, 0);
-//     if (nbytes_rcvd == 0)
-//     {
-//         logger.Log(Logger::DEBUG, "Closing TCP connection\n");
-//         m_tcp_listener->CloseConnection(m_sockfd);
-//         m_reactor->RemoveFD(m_sockfd, Reactor::READ);
-//         return;
-//     }
-
-//     if (nbytes_rcvd == -1)
-//     {
-//         logger.Log(Logger::ERROR, "TCP server recv error: " + std::string(strerror(errno)) + "\n");
-//     }
-
-//     buff[nbytes_rcvd] = '\0';
-
-//     logger.Log(Logger::DEBUG, "TCP server: received: " + std::string(buff) + "\n");
-
-//     if (strcmp(buff, "Ping") == 0)
-//     {
-//         nbytes_sent = send(m_sockfd, pong_msg, len_pong_msg, 0);
-
-//         if (nbytes_sent == -1)
-//         {
-//             logger.Log(Logger::ERROR, "TCP server send error\n");
-//         }
-//     }
-// }
