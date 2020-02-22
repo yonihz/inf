@@ -11,6 +11,7 @@ namespace ilrd
 void CreateExceptionCheck(int status);
 void JoinExceptionCheck(int status);
 void DetachExceptionCheck(int status);
+void TryJoinExceptionCheck(int status);
 
 Thread::Attr Thread::default_attr;
 
@@ -67,6 +68,21 @@ void* Thread::Join()
 
     m_joinable = false; // used for check in dtor
     return thread_return;
+}
+
+/**
+ * @brief try to join with a terminated thread
+ * 
+ * @return int - on success, these functions return 0; on error, they 
+ * return an error number.
+ */
+int Thread::TryJoin(void *retval)
+{   
+    int status = pthread_tryjoin_np(m_id, &retval);
+    TryJoinExceptionCheck(status);
+
+    m_joinable = false; // used for check in dtor
+    return status;
 }
 
 /**
@@ -222,6 +238,39 @@ void DetachExceptionCheck(int status)
     }
 
     assert(status != ESRCH);
+}
+
+void TryJoinExceptionCheck(int status)
+{
+    switch(status)
+    {
+        case SUCCESS:
+        {
+            break;
+        }
+        case EDEADLK:
+        {
+            throw Deadlock();
+            break;
+        }
+        case EINVAL:
+        {
+            throw NonJoinable();
+            break;
+        }
+        case EBUSY: // additional exception to the Join() exceptions
+        {
+            throw ThreadException();
+            break;
+        }
+        default:
+        {
+            throw ThreadException();
+            break;
+        }
+    }
+    
+    assert(status != ESRCH); 
 }
 
 } //namespace ilrd

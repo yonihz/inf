@@ -3,12 +3,14 @@
 #define _ILRD_OL734_THREAD_POOL_HPP_
 
 #include <queue>                        // std::priority_queue
+#include <vector>
 #include <list>                         // list
 #include <utility>                      // pair
 #include <boost/function.hpp>           // boost::function
 #include <boost/interprocess/sync/interprocess_semaphore.hpp> // boost::semaphore
 #include <boost/interprocess/sync/interprocess_mutex.hpp> // boost::mutex
 #include <boost/core/noncopyable.hpp>   // boost::noncopyable
+#include <signal.h> // pthread_kill
 
 #include "waitable_queue.hpp"           // WaitableQueue
 #include "thread.hpp"                   // Thread
@@ -17,7 +19,11 @@
 namespace ilrd
 {
 
-template<typename T>
+/******************************************************************************/
+/****** Pqueue ****************************************************************/
+/******************************************************************************/
+
+template<typename T, class Compare>
 class Pqueue
 {
 public:
@@ -34,8 +40,12 @@ public:
     size_t GetSize() const;
 
 private:
-    std::priority_queue<T> m_priorityQueue;
+    std::priority_queue<T, std::vector<T>, Compare> m_priorityQueue;
 };
+
+/******************************************************************************/
+/****** Task ******************************************************************/
+/******************************************************************************/
 
 class Task
 {
@@ -43,6 +53,14 @@ public:
     virtual void Execute() =0;
     virtual ~Task() =0;
 };
+
+Task::~Task() {}
+
+/******************************************************************************/
+/****** ThreadPool ************************************************************/
+/******************************************************************************/
+
+// Not thread-safe
 
 class ThreadPool : private boost::noncopyable
 {
@@ -53,7 +71,7 @@ public:
     ~ThreadPool();
 
     void SetNumOfThreads(std::size_t numOfThreads_); // waiting for task completion
-    void AddTask(SharedPtr<Task> func_, priority_t priority_); 
+    void AddTask(SharedPtr<Task> task_, priority_t priority_); 
     void Pause();                               // waiting for task completion
     void Resume();
     void Stop(std::size_t timeOutSeconds_);
@@ -68,148 +86,82 @@ private:
                             INTERNAL_HIGH = HIGH};
     typedef std::pair<SharedPtr<Task>, internalPriority_t> taskAndPriority_t;
 
-    void AddTask(SharedPtr<Task> func_, internalPriority_t priority_); 
+    struct ComparePriority
+    {
+        bool operator()(const taskAndPriority_t &lhs_, const taskAndPriority_t &rhs_)
+        {
+          if (lhs_.second > rhs_.second)
+          {
+            return true;
+          }
+          else
+          {
+            return false;
+          }
+        }   
+    };
+
+    void AddTask(SharedPtr<Task> task_, internalPriority_t priority_); 
     void Push(Thread* thread_);
     void Remove(Thread* thread_);
 
-    WaitableQueue<Pqueue<taskAndPriority_t> > m_pendingTasks;
+    WaitableQueue<Pqueue<taskAndPriority_t, ComparePriority> > m_pendingTasks;
     std::list<Thread*> m_threads;
-    std::size_t m_numActiveThreads;
     boost::interprocess::interprocess_semaphore m_semaphore;
+    std::size_t m_numActiveThreads;
+
+    friend class PauseTask;
 };
 
-// Pqueue
-template<typename T>
-Pqueue<T>::Pqueue()
+/******************************************************************************/
+/****** Pqueue ****************************************************************/
+/******************************************************************************/
+
+template<typename T, class Compare>
+Pqueue<T, Compare>::Pqueue()
     : m_priorityQueue()
 {
 }
 
-template<typename T>
-Pqueue<T>::~Pqueue()
+template<typename T, class Compare>
+Pqueue<T, Compare>::~Pqueue()
 {
 }
 
-template<typename T>
-void Pqueue<T>::pop()
+template<typename T, class Compare>
+void Pqueue<T, Compare>::pop()
 {
     m_priorityQueue.pop();
 }
 
-template<typename T>
-void Pqueue<T>::push(const T& toPush)
+template<typename T, class Compare>
+void Pqueue<T, Compare>::push(const T& toPush)
 {
     m_priorityQueue.push(toPush);
 }
 
-template<typename T>
-const T& Pqueue<T>::front() const
+template<typename T, class Compare>
+const T& Pqueue<T, Compare>::front() const
 {
     return this->m_priorityQueue.top();
 }
 
-template<typename T>
-size_t Pqueue<T>::GetSize() const
+template<typename T, class Compare>
+size_t Pqueue<T, Compare>::GetSize() const
 {
     return this->m_priorityQueue.size();
 }
 
 /******************************************************************************/
-/****** ThreadPool ************************************************************/
+/****** Stop Exception ********************************************************/
 /******************************************************************************/
 
-ThreadPool::ThreadPool(std::size_t numOfThreads_)
-    : m_pendingTasks(), m_threads(), m_semaphore(0) {}
-
-ThreadPool::~ThreadPool()
+class StopThreadPool : public std::runtime_error
 {
-    Stop(0);
-}
-
-void ThreadPool::SetNumOfThreads(std::size_t numOfThreads_)
-{
-    if (numOfThreads_ > m_numActiveThreads)
-    {
-        std::size_t numThreadsToCreate = numOfThreads_ - m_numActiveThreads;
-
-        for (size_t i = 0; i < numThreadsToCreate; ++i)
-        {
-            Push(new Thread(ThreadPool::ThreadRoutine, NULL));
-        }
-    }
-    else if (numOfThreads_ < m_numActiveThreads)
-    {
-        std::size_t numThreadsToRemove = m_numActiveThreads - numOfThreads_;
-        for (size_t i = 0; i < numThreadsToRemove; ++i)
-        {
-            SharedPtr<Task> stopTask(new StopTask);
-            AddTask(stopTask, ThreadPool::RESERVED);
-        }      
-    }
-
-    m_numActiveThreads = numOfThreads_;
-}
-
-void ThreadPool::AddTask(SharedPtr<Task> func_, priority_t priority_)
-{
-    AddTask(func_, static_cast<internalPriority_t>(priority_));
-}
-
-void ThreadPool::AddTask(SharedPtr<Task> func_, internalPriority_t priority_)
-{
-    m_pendingTasks.Push(taskAndPriority_t(func_, priority_));
-}
-
-void ThreadPool::Pause()
-{
-
-}
-
-void ThreadPool::Resume()
-{
-
-}
-
-void ThreadPool::Stop(std::size_t timeOutSeconds_)
-{
-    for (size_t i = 0; i < m_numActiveThreads; ++i)
-    {
-        SharedPtr<Task> stopTask(new StopTask);
-        AddTask(stopTask, ThreadPool::RESERVED);
-    }     
-}
-
-void *ThreadPool::ThreadRoutine(void* arg)
-{
-    ThreadPool *threadPool = static_cast<ThreadPool*>(arg);
-
-    try
-    {
-        while(1)
-        {
-            taskAndPriority_t tp;
-            threadPool->m_pendingTasks.Pop(tp);
-        }
-    }
-    catch (StopThreadPool &e)
-    {
-        return;
-    }
-}
-
-/******************************************************************************/
-/****** ThreadPool :: ThreadList **********************************************/
-/******************************************************************************/
-
-void ThreadPool::Push(Thread* thread_)
-{
-    m_threads.push_back(thread_);
-}
-
-void ThreadPool::Remove(Thread* thread_)
-{
-    m_threads.remove(thread_);
-}
+public:
+    StopThreadPool(const std::string& s_ = "Thread pool stopped")
+        : runtime_error(s_) { }
+};
 
 /******************************************************************************/
 /****** Service Tasks *********************************************************/
@@ -226,19 +178,152 @@ public:
 
 class PauseTask : public Task
 {
-    
-};
-
-/******************************************************************************/
-/****** Stop Exception ********************************************************/
-/******************************************************************************/
-
-class StopThreadPool : public std::runtime_error
-{
 public:
-    StopThreadPool(const std::string& s_ = "Thread pool stopped")
-        : runtime_error(s_) { }
+    PauseTask(ThreadPool &threadPool_)
+        : m_threadPool(threadPool_) {}
+
+    void Execute()
+    {
+        m_threadPool.m_semaphore.wait();
+    }
+
+private:
+    ThreadPool &m_threadPool;  
 };
+
+/******************************************************************************/
+/****** ThreadPool ************************************************************/
+/******************************************************************************/
+
+ThreadPool::ThreadPool(std::size_t numOfThreads_)
+    : m_pendingTasks(), m_threads(), m_semaphore(0), m_numActiveThreads(0)
+{
+    SetNumOfThreads(numOfThreads_);
+}
+
+ThreadPool::~ThreadPool()
+{
+    Stop(0);
+}
+
+void ThreadPool::SetNumOfThreads(std::size_t numOfThreads_)
+{
+    // adds new threads to list
+    if (numOfThreads_ > m_numActiveThreads)
+    {
+        std::size_t numThreadsToCreate = numOfThreads_ - m_numActiveThreads;
+
+        for (size_t i = 0; i < numThreadsToCreate; ++i)
+        {
+            Push(new Thread(ThreadPool::ThreadRoutine, this));
+        }
+    }
+    // add stop tasks to tasks queue
+    // threads are ended but not removed from thread list or joined (become zombies)
+    else if (numOfThreads_ < m_numActiveThreads)
+    {
+        std::size_t numThreadsToRemove = m_numActiveThreads - numOfThreads_;
+        for (size_t i = 0; i < numThreadsToRemove; ++i)
+        {
+            SharedPtr<Task> stopTask(new StopTask);
+            AddTask(stopTask, ThreadPool::RESERVED);
+        }      
+    }
+
+    m_numActiveThreads = numOfThreads_;
+}
+
+void ThreadPool::AddTask(SharedPtr<Task> task_, priority_t priority_)
+{
+    AddTask(task_, static_cast<internalPriority_t>(priority_));
+}
+
+void ThreadPool::AddTask(SharedPtr<Task> task_, internalPriority_t priority_)
+{
+    m_pendingTasks.Push(taskAndPriority_t(task_, priority_));
+}
+
+void ThreadPool::Pause()
+{
+    for (size_t i = 0; i < m_numActiveThreads; ++i)
+    {
+        SharedPtr<Task> pauseTask(new PauseTask(*this));
+        AddTask(pauseTask, ThreadPool::RESERVED);
+    }     
+}
+
+void ThreadPool::Resume()
+{
+    for (std::size_t i = 0; i < m_numActiveThreads; ++i)
+    {
+        m_semaphore.post();
+    }
+}
+
+void ThreadPool::Stop(std::size_t timeOutSeconds_)
+{
+    for (size_t i = 0; i < m_numActiveThreads; ++i)
+    {
+        SharedPtr<Task> stopTask(new StopTask);
+        AddTask(stopTask, ThreadPool::RESERVED);
+    }
+
+    std::list<Thread*>::iterator it;
+    std::list<Thread*>::iterator it_end = m_threads.end();
+    std::size_t numSuccessfulJoins = 0;
+    std::size_t sizeThreadList = m_threads.size();
+
+    for (it = m_threads.begin(); it != it_end; ++it)
+    {
+        numSuccessfulJoins += ((*it)->TryJoin(NULL) == 0);
+    }
+
+    if (numSuccessfulJoins == sizeThreadList)
+    {
+        return;
+    }
+
+    while (timeOutSeconds_)
+    {
+        timeOutSeconds_ = sleep(timeOutSeconds_);
+    }
+
+    for (it = m_threads.begin(); it != it_end; ++it)
+    {
+        pthread_kill((*it)->GetID(), SIGTERM);
+    }
+}
+
+void *ThreadPool::ThreadRoutine(void* arg)
+{
+    ThreadPool *threadPool = static_cast<ThreadPool*>(arg);
+
+    try
+    {
+        while(1)
+        {
+            taskAndPriority_t tp = std::make_pair(SharedPtr<Task>(NULL), RESERVED);
+            threadPool->m_pendingTasks.Pop(tp);
+            tp.first->Execute();
+        }
+    }
+    catch (StopThreadPool &e)
+    {
+        std::cerr << e.what() << std::endl;
+    }
+
+    return NULL;
+}
+
+void ThreadPool::Push(Thread* thread_)
+{
+    m_threads.push_back(thread_);
+}
+
+void ThreadPool::Remove(Thread* thread_)
+{
+    m_threads.remove(thread_);
+}
 
 } // namespace ilrd
 

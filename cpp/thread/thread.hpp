@@ -13,10 +13,11 @@ class Thread
 public:
     class Attr;
 
-    Thread(void*(*start_routine_)(void*), void* args_, Attr& attr_ = default_attr);
+    Thread(void*(*start_routine_)(void*), void *args_, Attr& attr_ = default_attr);
     ~Thread();
 
-    void* Join();
+    void *Join();
+    int TryJoin(void *retval);
     void Detach();
     size_t GetID() const;
     static size_t GetIDSelf();
