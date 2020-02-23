@@ -3,18 +3,22 @@
 #define _ILRD_OL734_THREAD_POOL_HPP_
 
 #include <queue>                        // std::priority_queue
-#include <vector>
-#include <list>                         // list
-#include <utility>                      // pair
+#include <vector>                       // std::vector
+#include <list>                         // std:;list
+#include <utility>                      // std::pair
+#include <signal.h>                     // pthread_kill
 #include <boost/function.hpp>           // boost::function
-#include <boost/interprocess/sync/interprocess_semaphore.hpp> // boost::semaphore
-#include <boost/interprocess/sync/interprocess_mutex.hpp> // boost::mutex
 #include <boost/core/noncopyable.hpp>   // boost::noncopyable
-#include <signal.h> // pthread_kill
+#include <boost/interprocess/sync/interprocess_mutex.hpp>       // boost::mutex
+#include <boost/interprocess/sync/interprocess_semaphore.hpp>   // boost::semaphore
 
-#include "waitable_queue.hpp"           // WaitableQueue
-#include "thread.hpp"                   // Thread
-#include "shared_ptr.hpp"               // shared pointer
+#include "waitable_queue.hpp"
+#include "thread.hpp"
+#include "shared_ptr.hpp"
+#include "logger.hpp"
+#include "singleton.hpp"
+
+#define UNUSED(x) (void)(x)
 
 namespace ilrd
 {
@@ -86,18 +90,12 @@ private:
                             INTERNAL_HIGH = HIGH};
     typedef std::pair<SharedPtr<Task>, internalPriority_t> taskAndPriority_t;
 
-    struct ComparePriority
+    class ComparePriority
     {
+    public:
         bool operator()(const taskAndPriority_t &lhs_, const taskAndPriority_t &rhs_)
         {
-          if (lhs_.second > rhs_.second)
-          {
-            return true;
-          }
-          else
-          {
-            return false;
-          }
+          return (lhs_.second > rhs_.second);
         }   
     };
 
@@ -203,6 +201,7 @@ ThreadPool::ThreadPool(std::size_t numOfThreads_)
 
 ThreadPool::~ThreadPool()
 {
+    // kills all threads immediately
     Stop(0);
 }
 
@@ -262,6 +261,7 @@ void ThreadPool::Resume()
 
 void ThreadPool::Stop(std::size_t timeOutSeconds_)
 {
+    Logger &logger = *(Singleton<Logger>::Instance());
     for (size_t i = 0; i < m_numActiveThreads; ++i)
     {
         SharedPtr<Task> stopTask(new StopTask);
@@ -290,29 +290,9 @@ void ThreadPool::Stop(std::size_t timeOutSeconds_)
 
     for (it = m_threads.begin(); it != it_end; ++it)
     {
-        pthread_kill((*it)->GetID(), SIGTERM);
+        logger.Log(Logger::DEBUG, "Sending SIGUSR1\n");
+        pthread_kill((*it)->GetID(), SIGUSR1);
     }
-}
-
-void *ThreadPool::ThreadRoutine(void* arg)
-{
-    ThreadPool *threadPool = static_cast<ThreadPool*>(arg);
-
-    try
-    {
-        while(1)
-        {
-            taskAndPriority_t tp = std::make_pair(SharedPtr<Task>(NULL), RESERVED);
-            threadPool->m_pendingTasks.Pop(tp);
-            tp.first->Execute();
-        }
-    }
-    catch (StopThreadPool &e)
-    {
-        std::cerr << e.what() << std::endl;
-    }
-
-    return NULL;
 }
 
 void ThreadPool::Push(Thread* thread_)
@@ -323,6 +303,47 @@ void ThreadPool::Push(Thread* thread_)
 void ThreadPool::Remove(Thread* thread_)
 {
     m_threads.remove(thread_);
+}
+
+/******************************************************************************/
+/****** Thread routine and signal handler *************************************/
+/******************************************************************************/
+
+
+void sig_handler1(int sig)
+{
+    UNUSED(sig);
+    Logger &logger = *(Singleton<Logger>::Instance());
+    logger.Log(Logger::DEBUG, "Thread got SIGUSR1\n");
+    pthread_exit(NULL);
+}
+
+void *ThreadPool::ThreadRoutine(void* arg)
+{
+    Logger &logger = *(Singleton<Logger>::Instance());
+    ThreadPool *threadPool = static_cast<ThreadPool*>(arg);
+
+    struct sigaction sa1;
+    sa1.sa_handler = &sig_handler1;
+    sigemptyset(&sa1.sa_mask);
+    sa1.sa_flags = 0;
+    sigaction(SIGUSR1, &sa1, NULL);
+
+    try
+    {
+        while(1)
+        {
+            taskAndPriority_t tp = std::make_pair(SharedPtr<Task>(NULL), RESERVED);
+            threadPool->m_pendingTasks.Pop(tp);
+            tp.first->Execute();
+        }
+    }
+    catch (const StopThreadPool &e)
+    {
+        logger.Log(Logger::DEBUG, std::string(e.what()) + "\n");
+    }
+
+    return NULL;
 }
 
 } // namespace ilrd

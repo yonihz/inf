@@ -260,7 +260,6 @@ void TryJoinExceptionCheck(int status)
         }
         case EBUSY: // additional exception to the Join() exceptions
         {
-            throw ThreadException();
             break;
         }
         default:
