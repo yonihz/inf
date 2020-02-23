@@ -31,7 +31,6 @@ private:
     std::size_t m_times;
 };
 
-
 int main()
 {
     Test1();
@@ -43,7 +42,7 @@ int main()
 void Test1()
 {
     Logger &logger = *(Singleton<Logger>::Instance());
-    logger.Log(Logger::DEBUG, "AddTask and Pause/Resume tests\n");
+    logger.Log(Logger::DEBUG, "----------\nAddTask and Pause/Resume tests\n----------\n");
 
     struct sigaction sa1;
     sa1.sa_handler = &sig_handler_main;
@@ -54,12 +53,12 @@ void Test1()
     std::size_t wait_time = 0;
     ThreadPool threadPool(4);
 
-    Task *task_ptr1 = new PrintTask("Task1", 1, 5);
-    Task *task_ptr2 = new PrintTask("Task2", 1, 5);
+    Task *task_ptr1 = new PrintTask("Task1", 1, 3);
+    Task *task_ptr2 = new PrintTask("Task2", 1, 3);
     Task *task_ptr3 = new PrintTask("Task3", 1, 60);
     Task *task_ptr4 = new PrintTask("Task4", 1, 60);
 
-    logger.Log(Logger::DEBUG, "Added 2 tasks (Task1, Task2) that run for 5 seconds\n");
+    logger.Log(Logger::DEBUG, "Added 2 tasks (Task1, Task2) that run for 3 seconds\n");
     threadPool.AddTask(SharedPtr<Task>(task_ptr1), ThreadPool::HIGH);
     threadPool.AddTask(SharedPtr<Task>(task_ptr2), ThreadPool::HIGH);
 
@@ -69,7 +68,7 @@ void Test1()
         wait_time = sleep(wait_time);
     }
 
-    logger.Log(Logger::DEBUG, "Sent pause and resume after 10 seconds\n");
+    logger.Log(Logger::DEBUG, "Sent pause and resume after 5 seconds\n");
     threadPool.Pause();
 
     wait_time = 1;
@@ -82,7 +81,7 @@ void Test1()
     threadPool.AddTask(SharedPtr<Task>(task_ptr3), ThreadPool::HIGH);
     threadPool.AddTask(SharedPtr<Task>(task_ptr4), ThreadPool::HIGH);
     
-    wait_time = 10;
+    wait_time = 5;
     while (wait_time)
     {
         wait_time = sleep(wait_time);
@@ -91,26 +90,22 @@ void Test1()
     logger.Log(Logger::DEBUG, "Sent resume\n");
     threadPool.Resume();
 
-    wait_time = 10;
+    wait_time = 4;
     while (wait_time)
     {
         wait_time = sleep(wait_time);
     }
 
-    logger.Log(Logger::DEBUG, "Sent Stop(0)\n");
-    threadPool.Stop(0);
-
-    wait_time = 2;
-    while (wait_time)
-    {
-        wait_time = sleep(wait_time);
-    }
+    // Dtor is called, which calls Stop(0)
 }
 
 void Test2()
 {
     Logger &logger = *(Singleton<Logger>::Instance());
-    logger.Log(Logger::DEBUG, "Stop test\n");
+    logger.Log(Logger::DEBUG, "----------\nStop test\n----------\n");
+    logger.Log(Logger::DEBUG, "Added 2 tasks (Task1, Task2) that run for 3 seconds\n");
+    logger.Log(Logger::DEBUG, "Added 2 tasks (Task3, Task4) that run for 30 seconds\n");
+    logger.Log(Logger::DEBUG, "Sent Stop(6)\n");
     struct sigaction sa1;
     sa1.sa_handler = &sig_handler_main;
     sigemptyset(&sa1.sa_mask);
@@ -119,8 +114,8 @@ void Test2()
 
     ThreadPool threadPool(4);
 
-    Task *task_ptr1 = new PrintTask("Task1", 1, 10);
-    Task *task_ptr2 = new PrintTask("Task2", 1, 10);
+    Task *task_ptr1 = new PrintTask("Task1", 1, 3);
+    Task *task_ptr2 = new PrintTask("Task2", 1, 3);
     Task *task_ptr3 = new PrintTask("Task3", 1, 30);
     Task *task_ptr4 = new PrintTask("Task4", 1, 30);
 
@@ -135,13 +130,7 @@ void Test2()
         wait_time = sleep(wait_time);
     }
 
-    threadPool.Stop(15);
-
-    wait_time = 60;
-    while (wait_time)
-    {
-        wait_time = sleep(wait_time);
-    }
+    threadPool.Stop(6);
 }
 
 PrintTask::PrintTask(std::string str_, std::size_t period_, std::size_t times_)

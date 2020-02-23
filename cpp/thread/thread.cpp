@@ -1,5 +1,6 @@
 #include "thread.hpp"
 
+#include <iostream>
 #include <errno.h>
 #include <assert.h>
 
@@ -81,7 +82,11 @@ int Thread::TryJoin(void *retval)
     int status = pthread_tryjoin_np(m_id, &retval);
     TryJoinExceptionCheck(status);
 
-    m_joinable = false; // used for check in dtor
+    if (status == 0)
+    {
+       m_joinable = false; // used for check in dtor
+    }
+
     return status;
 }
 

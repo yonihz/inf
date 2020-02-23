@@ -292,7 +292,10 @@ void ThreadPool::Stop(std::size_t timeOutSeconds_)
     {
         logger.Log(Logger::DEBUG, "Sending SIGUSR1\n");
         pthread_kill((*it)->GetID(), SIGUSR1);
+        delete (*it);
     }
+
+    m_threads.clear();
 }
 
 void ThreadPool::Push(Thread* thread_)
