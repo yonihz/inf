@@ -149,6 +149,44 @@ int GetRegFileInodeInDir(int fd, struct ext2_group_desc *gb, size_t block_size, 
     return -1;
 }
 
+int GetDirInodeInDir(int fd, struct ext2_group_desc *gb, size_t block_size, size_t inode_size, const char *regfile_name, struct ext2_inode *inode_dir, struct ext2_inode *inode_regfile)
+{
+    char buff[256]; // size?
+
+    struct ext2_dir_entry_2 dir;
+    lseek(fd, block_size * inode_dir->i_block[0], SEEK_SET);
+    size_t total_rec_len = 0;
+    total_rec_len += read(fd, &dir, sizeof(struct ext2_dir_entry_2));
+
+    while (total_rec_len < block_size)
+    {
+        strncpy(buff, dir.name, dir.name_len);
+        buff[dir.name_len] = '\0';
+
+        if (strncmp(buff, regfile_name, dir.name_len) == 0)
+        {
+            if (dir.file_type == EXT2_FT_DIR)
+            {
+                size_t inode_table_offset = block_size * gb->bg_inode_table;
+                size_t inode_regfile_offset = inode_table_offset + inode_size * (dir.inode - 1);
+                lseek(fd, inode_regfile_offset, SEEK_SET);
+                read(fd, inode_regfile, sizeof(struct ext2_inode));
+                return 0;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        lseek(fd, dir.rec_len - sizeof(struct ext2_dir_entry_2), SEEK_CUR);
+        total_rec_len += dir.rec_len;
+        read(fd, &dir, sizeof(struct ext2_dir_entry_2));
+    }
+
+    return -1;
+}
+
 int GetInodeRegFileInRoot(int fd, const char *regfile_name, struct ext2_inode *inode_regfile)
 {
     struct ext2_super_block sb;
@@ -205,39 +243,39 @@ int GetInodeRegFile(int fd, const char *regfile_name, struct ext2_inode *inode_r
         return 0;
     }
 
-    struct ext2_inode inode_next;
-    GetRootInode(fd, &gb, block_size, inode_size, &inode_next);
+    struct ext2_inode inode_curr;
+    GetRootInode(fd, &gb, block_size, inode_size, &inode_curr);
+
+    if (regfile_name[0] == '/')
+    {
+        ++regfile_name;
+    }
 
     char *p;
     while (1)
     {
-        p = strchr(regfile_name, '/');
+        if (*regfile_name == '\0')
         {
-            if (*(p + 1) == '\0' || *(p + 1) == '/')
-            {
-                printf("Invalid filename\n");
-            }
+            printf("Invalid filename\n");
         }
-        regfile_name = p + 1;
-        p = strchr(p, '/');
+        p = strchr(regfile_name, '/');
 
-        // next string part is a directory
+        // current string part is a directory
         if (p != NULL)  
         {
             *p = '\0';
-            status = GetDirInodeInDir(fd, &gb, block_size, inode_size, regfile_name, &inode_next, inode_regfile);
+            status = GetDirInodeInDir(fd, &gb, block_size, inode_size, regfile_name, &inode_curr, inode_regfile);
             if (-1 == status)
             {
                 printf("File not found\n");
             }
-
-            regfile_name = p + 1;
-            GetInodeRegFile(regfile_name);
+            inode_curr = *inode_regfile;
+            ++regfile_name;
         }
-        // next string part is a regular file
+        // current string part is a regular file
         else 
         {
-            return GetRegFileInodeInDir(fd, &gb, block_size, inode_size, regfile_name, &inode_next, inode_regfile);
+            return GetRegFileInodeInDir(fd, &gb, block_size, inode_size, regfile_name, &inode_curr, inode_regfile);
         }
     }
 }
