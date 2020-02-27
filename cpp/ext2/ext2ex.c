@@ -155,8 +155,8 @@ int GetInodeInDir(int fd, size_t block_size, size_t inode_size, const char *file
         {
             if (dir.file_type == EXT2_FT_REG_FILE || dir.file_type == EXT2_FT_DIR)
             {
-                size_t gb_idx = dir.inode / inodes_per_group + 1;
-                size_t inode_idx = dir.inode % inodes_per_group;
+                size_t gb_idx = (dir.inode - 1) / inodes_per_group + 1;
+                size_t inode_idx = (dir.inode - 1) % inodes_per_group + 1;
                 struct ext2_group_desc gb;
                 GetGroupDesc(fd, gb_idx, block_size, &gb);
                 size_t inode_table_offset = block_size * gb.bg_inode_table;
