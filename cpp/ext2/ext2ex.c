@@ -130,12 +130,12 @@ int GetRootInode(int fd, struct ext2_group_desc *first_gb, size_t block_size, si
     size_t inode_root_offset = inode_table_offset + inode_size;
     lseek(fd, inode_root_offset, SEEK_SET);
     read(fd, inode_root, sizeof(struct ext2_inode));
-    return 0; // return value?
+    return 0;
 }
 
 int GetInodeInDir(int fd, size_t block_size, size_t inode_size, const char *file_name, struct ext2_inode *inode_dir, struct ext2_inode *inode_file)
 {
-    char buff[256]; // size?
+    char buff[256];
 
     struct ext2_super_block sb;
     GetSuperBlock(fd, &sb);
@@ -285,7 +285,15 @@ int GetInodeRegFile(int fd, const char *regfile_name, struct ext2_inode *inode_f
     }
 
     free(file_name_org);
-    return status;
+
+    if (EXT2_FT_REG_FILE == status)
+    {
+        return 0;
+    }
+    else
+    {
+        return -1;
+    }
 }
 
 void PrintRegFile(int fd, struct ext2_inode *inode_regfile)
@@ -295,7 +303,7 @@ void PrintRegFile(int fd, struct ext2_inode *inode_regfile)
 
     size_t block_size = GetBlockSize(&sb);
 
-    char buff[256]; // size?
+    char buff[256];
 
     lseek(fd, block_size * inode_regfile->i_block[0], SEEK_SET);
     read(fd, buff, 256);
