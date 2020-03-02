@@ -35,32 +35,28 @@ static int xmp_read(void *buf, u_int32_t len, u_int64_t offset, void *userdata)
     if (*(int *)userdata)
         fprintf(stderr, "R - %lu, %u\n", offset, len);
 
+    int fd;
+    size_t i = 0;
     char filename[100];
 
-    while(len > 0)
+    while (len > BLK_SIZE)
     {
-        sprintf(filename, "./storage/block%lu", offset);
-        int fd = open(filename, O_RDONLY | O_CREAT);
-    
-        if (-1 == fd)
-        {
-            perror("open");
-            return 0;
-        }
-
+        sprintf(filename, "./storage/block%lu", offset / BLK_SIZE);
+        fd = open(filename, O_RDONLY);
         lseek(fd, 0, SEEK_SET);
-        int status = read(fd, buf, BLK_SIZE);
-
-        if (-1 == status)
-        {
-            perror("read");
-            return -1;
-        }
+        read(fd, (char*)buf + i * BLK_SIZE, BLK_SIZE);
 
         offset += BLK_SIZE;
         len -= BLK_SIZE;
+        ++i;
         close(fd);
     }
+
+    sprintf(filename, "./storage/block%lu", offset / BLK_SIZE);
+    fd = open(filename, O_RDONLY);
+    lseek(fd, offset % BLK_SIZE, SEEK_SET);
+    read(fd, (char*)buf + i * BLK_SIZE, len);
+    close(fd);
 
     return 0;
 }
@@ -70,32 +66,29 @@ static int xmp_write(const void *buf, u_int32_t len, u_int64_t offset, void *use
     if (*(int *)userdata)
         fprintf(stderr, "W - %lu, %u\n", offset, len);
 
+    int fd;
+    size_t i = 0;
     char filename[100];
 
-    while(len > 0)
+    while (len > BLK_SIZE)
     {
-        sprintf(filename, "./storage/block%lu", offset);    
-        int fd = open(filename, O_WRONLY | O_CREAT);
-
-        if (-1 == fd)
-        {
-            perror("open");
-            return 0;
-        }
-
+        sprintf(filename, "./storage/block%lu", offset / BLK_SIZE);    
+        fd = open(filename, O_WRONLY | O_CREAT, 0660);
         lseek(fd, 0, SEEK_SET);
-        int status = write(fd, buf, len);
-
-        if (-1 == status)
-        {
-            perror("write");
-            return -1;
-        }
+        write(fd, (char*)buf + i * BLK_SIZE, BLK_SIZE);
         
         offset += BLK_SIZE;
         len -= BLK_SIZE;
+        ++i;
+
         close(fd);
     }
+
+    sprintf(filename, "./storage/block%lu", offset / BLK_SIZE);    
+    fd = open(filename, O_WRONLY | O_CREAT, 0660);
+    lseek(fd, offset % BLK_SIZE, SEEK_SET);
+    write(fd, (char*)buf + i * BLK_SIZE, len);
+    close(fd);
 
     return 0;
 }
