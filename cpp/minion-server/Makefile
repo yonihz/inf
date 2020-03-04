@@ -1,7 +1,7 @@
 CC = g++
 CFLAGS = -std=c++98 -pedantic-errors -Wall -Wextra -g
 TARGET = command_write_request.o command_read_request.o libcommand_write_request.so libcommand_read_request.so logger.o thread.o liblogger.so server.o command.o command_console.o reactor.o fd_listener.o dir_monitor.o plugin_loader.o logger_configurator.o socket.o server.out
-INCLUDE_DIRS = -I../minion-server/ -I../logger/ -I../singleton/ -I../waitable_queue/ -I../thread/ -I../factory/ -I../socket/ -I../project/reactor/ -I../dir_monitor/ -I../dispatcher/
+INCLUDE_DIRS = -I../minion-server/ -I../logger/ -I../singleton/ -I../waitable_queue/ -I../thread/ -I../factory/ -I../socket/ -I../reactor/ -I../dir_monitor/ -I../dispatcher/
 
 
 default: all
@@ -38,10 +38,10 @@ command.o: command.cpp
 command_console.o: command_console.cpp
 	$(CC) $(CFLAGS) -c -fPIC $< -o $@ $(INCLUDE_DIRS)
 
-reactor.o: ../project/reactor/reactor.cpp
+reactor.o: ../reactor/reactor.cpp
 	$(CC) $(CFLAGS) -c -fPIC $< -o $@ $(INCLUDE_DIRS)
 
-fd_listener.o: ../project/reactor/fd_listener.cpp
+fd_listener.o: ../reactor/fd_listener.cpp
 	$(CC) $(CFLAGS) -c -fPIC $< -o $@ $(INCLUDE_DIRS)
 
 dir_monitor.o: ../dir_monitor/dir_monitor.cpp

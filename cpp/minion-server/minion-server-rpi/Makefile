@@ -1,7 +1,7 @@
 CC = arm-linux-gnueabihf-g++
 CFLAGS = -std=c++11 -pedantic-errors -Wall -Wextra -g
 TARGET = command_write_request.o command_read_request.o libcommand_write_request.so libcommand_read_request.so logger.o thread.o liblogger.so server.o command_stdin.o reactor.o fd_listener.o socket.o server.out
-INCLUDE_DIRS = -I../logger/ -I../singleton/ -I../waitable_queue/ -I../thread/ -I../factory/ -I../socket/ -I../project/reactor/
+INCLUDE_DIRS = -I../logger/ -I../singleton/ -I../waitable_queue/ -I../thread/ -I../factory/ -I../socket/ -I../reactor/
 INCLUDE_BOOST = -I/boost_1_67_0 -L/boost_1_67_0/stage/lib
 
 default: all
@@ -35,10 +35,10 @@ server.o: server.cpp
 command_stdin.o: command_stdin.cpp
 	$(CC) $(CFLAGS) -c -fPIC $< -o $@ $(INCLUDE_DIRS) $(INCLUDE_BOOST)
 
-reactor.o: ../project/reactor/reactor.cpp
+reactor.o: ../reactor/reactor.cpp
 	$(CC) $(CFLAGS) -c -fPIC $< -o $@ $(INCLUDE_DIRS) $(INCLUDE_BOOST)
 
-fd_listener.o: ../project/reactor/fd_listener.cpp
+fd_listener.o: ../reactor/fd_listener.cpp
 	$(CC) $(CFLAGS) -c -fPIC $< -o $@ $(INCLUDE_DIRS) $(INCLUDE_BOOST)
 
 socket.o: ../socket/socket.cpp
